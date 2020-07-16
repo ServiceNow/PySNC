@@ -12,7 +12,7 @@ docs:
 
 gh-pages:
 	git checkout gh-pages
-	git checkout dev docs
+	git checkout master docs
 	git reset HEAD
 	cd docs && make html && cd -
 	mv -fv docs/_build/html/* ./
