@@ -1,0 +1,6 @@
+server: http://dev00000.service-now.com
+# Do not use admin for production use
+username: admin
+# alternatively place password in .password, specify none to use keychain, or use env PYSNC_PASSWORD
+password: changeme!
+
