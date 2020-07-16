@@ -17,6 +17,7 @@ gh-pages:
 	cd docs && make html && cd -
 	mv -fv docs/_build/html/* ./
 	rm -rf ./docs
+	rm README.md
 	git add -A
-	git commit -m 'Generated gh-pages' && git push origin gh-pages && git checkout dev
+	git commit -m 'Generated gh-pages' && git push origin gh-pages && git checkout master
 
