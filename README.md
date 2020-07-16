@@ -8,9 +8,8 @@ Spawned from the desire to interact with ServiceNow data in a familiar and consi
 
 ## Install
 
-Checkout then: 
 ```
-python setup.py install
+pip install pysnc
 ```
 
 ## Quick Start
@@ -46,7 +45,9 @@ client = ServiceNowClient('dev0000', ServiceNowOAuth2('integration.user', passwo
 
 ## Documentation
 
-Full documentation currently available via local build:
+Full documentation currently available at [https://vetsin.github.io/PySNC/](https://vetsin.github.io/PySNC/)
+
+Or build them yourself:
 
 ```
 cd docs && make html
