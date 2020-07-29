@@ -24,7 +24,7 @@ class RestException(Exception):
             message = message['error']['message']
             self.detail = message['error']['detail']
             self.status = message['error']['status']'''
-        super(RestException, self).__init__(self, message)
+        super(RestException, self).__init__(self, "%s - %s" % (status_code, message))
         self.status_code = status_code
 
 

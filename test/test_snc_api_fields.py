@@ -106,13 +106,21 @@ class TestRecordFields(TestCase):
         gr.fields = ['sys_id']
         self.assertEquals(gr.fields, ['sys_id'])
 
+    def test_field_all(self):
+        client = ServiceNowClient(self.c.server, self.c.credentials)
+        gr = client.GlideRecord('sys_user')
+        self.assertIsNone(gr.fields)
+        gr.query()
+        self.assertIsNotNone(gr.fields)
+
     def test_field_getter_query(self):
         client = ServiceNowClient(self.c.server, self.c.credentials)
         gr = client.GlideRecord('sys_user')
         self.assertEquals(gr.fields, None)
         gr.limit = 1
         gr.query()
-        self.assertEquals(gr.fields, None)
+        self.assertIsNotNone(gr.fields)
+        self.assertGreater(len(gr.fields), 10)
         gr.next()
         print(gr.fields)
         self.assertGreater(len(gr.fields), 10)
@@ -159,3 +167,4 @@ class TestRecordFields(TestCase):
         self.assertEquals(gr.get_element('sys_id').changes(), False)
         gr.sys_id = '1234'
         self.assertEquals(gr.get_element('sys_id').changes(), True)
+
