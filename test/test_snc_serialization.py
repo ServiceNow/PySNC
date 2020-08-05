@@ -81,13 +81,13 @@ class TestSerialization(TestCase):
 
         data = gr.to_pandas()
         print(data)
-        self.assertEquals(list(data.keys()), ['sys_id', 'short_description', 'state__value', 'state__display'])
+        self.assertListEqual(list(data.keys()), ['sys_id', 'short_description', 'state__value', 'state__display'])
         data = gr.to_pandas(mode='display')
         print(data)
-        self.assertEquals(list(data.keys()), ['sys_id', 'short_description', 'state'])
+        self.assertListEqual(list(data.keys()), ['sys_id', 'short_description', 'state'])
         data = gr.to_pandas(columns=['jack', 'jill', 'hill'], mode='display')
         print(data)
-        self.assertEquals(list(data.keys()), ['jack', 'jill', 'hill'])
+        self.assertListEqual(list(data.keys()), ['jack', 'jill', 'hill'])
 
 
     def test_serialize_all_batch(self):
@@ -119,10 +119,10 @@ class TestSerialization(TestCase):
         gr.next()
         data = gr.serialize()
         self.assertIsNotNone(data)
-        self.assertEquals(list(data.keys()), ['sys_id', 'short_description', 'state'])
-        self.assertEquals(list(gr.serialize(changes_only=True).keys()), [])
+        self.assertListEqual(list(data.keys()), ['sys_id', 'short_description', 'state'])
+        self.assertListEqual(list(gr.serialize(changes_only=True).keys()), [])
         gr.short_description = 'new'
-        self.assertEquals(list(gr.serialize(changes_only=True).keys()), ['short_description'])
+        self.assertListEqual(list(gr.serialize(changes_only=True).keys()), ['short_description'])
 
     def test_serialize(self):
         client = ServiceNowClient(self.c.server, self.c.credentials)
@@ -158,7 +158,10 @@ class TestSerialization(TestCase):
         gr.intfield = 5
         data = str(gr)
         self.assertIsNotNone(data)
-        self.assertEquals(data, "some_table({'strfield': 'my string', 'intfield': 5})")
+        # dict is unordered, so do some contains checks
+        self.assertTrue(data.startswith('some_table'))
+        self.assertTrue('my string' in data)
+        self.assertTrue('intfield' in data)
 
 
 

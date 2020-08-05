@@ -41,7 +41,7 @@ class TestAuth(TestCase):
         secret_url = '%s/api/now/mobileapp/plugin/secret' % server
         r = requests.get(secret_url, auth=creds)
         if r.status_code != 200:
-            raise 'couldnt get secret'
+            raise Exception('couldnt get secret')
         secret = r.json()['result']['secret']
         self.assertIsNotNone(secret)
 

@@ -100,6 +100,9 @@ class GlideRecord(object):
         c = self._current()
         if c:
             return list(c.keys())
+        else:
+            if len(self.__results) > 0:
+                return list(self.__results[0].keys())
         return None
 
     @fields.setter
