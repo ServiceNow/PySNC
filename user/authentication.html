@@ -46,13 +46,17 @@
 <div class="section" id="oauth-authentication">
 <h2>OAuth Authentication<a class="headerlink" href="#oauth-authentication" title="Permalink to this headline">¶</a></h2>
 <p>OAuth2 password flow is currently supported out of box, utilizing the default legacy mobile authenticator. Requires BasicAuth to
-be enabled on the server for the first step.</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">pysnc</span> <span class="k">import</span> <span class="n">ServiceNowClient</span><span class="p">,</span> <span class="n">ServiceNowOAuth2</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">client</span> <span class="o">=</span> <span class="n">ServiceNowClient</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">server</span><span class="p">,</span> <span class="n">ServiceNowOAuth2</span><span class="p">(</span><span class="s1">&#39;admin&#39;</span><span class="p">,</span> <span class="s1">&#39;password&#39;</span><span class="p">))</span>
+be enabled on the server for the first step to grab the legacy mobile secret.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">pysnc</span> <span class="kn">import</span> <span class="n">ServiceNowClient</span><span class="p">,</span> <span class="n">ServiceNowOAuth2</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">client</span> <span class="o">=</span> <span class="n">ServiceNowClient</span><span class="p">(</span><span class="n">server_url</span><span class="p">,</span> <span class="n">ServiceNowOAuth2</span><span class="p">(</span><span class="n">username</span><span class="p">,</span> <span class="n">password</span><span class="p">))</span>
 </pre></div>
 </div>
 <p>This will retrieve and store an OAuth2 auth and refresh token, sending your auth token with every request and dropping your user password.</p>
-<p>If this sleeps for a long enough time, even your refresh token will expire and you must re-auth.</p>
+<p>Alternatively you can specify your own client and you do not require basic auth:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">client</span> <span class="o">=</span> <span class="n">ServiceNowClient</span><span class="p">(</span><span class="n">server_url</span><span class="p">,</span> <span class="n">ServiceNowOAuth2</span><span class="p">(</span><span class="n">username</span><span class="p">,</span> <span class="n">password</span><span class="p">,</span> <span class="n">client_id</span><span class="p">,</span> <span class="n">client_secret</span><span class="p">))</span>
+</pre></div>
+</div>
+<p>If this sleeps for a long enough time your refresh token will expire and you must re-auth.</p>
 </div>
 <div class="section" id="requests-authentication">
 <h2>Requests Authentication<a class="headerlink" href="#requests-authentication" title="Permalink to this headline">¶</a></h2>

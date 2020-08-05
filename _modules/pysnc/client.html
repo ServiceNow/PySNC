@@ -36,11 +36,11 @@
 <span></span><span class="kn">import</span> <span class="nn">requests</span>
 <span class="kn">import</span> <span class="nn">re</span>
 <span class="kn">import</span> <span class="nn">logging</span>
-<span class="kn">from</span> <span class="nn">.exceptions</span> <span class="k">import</span> <span class="o">*</span>
-<span class="kn">from</span> <span class="nn">.record</span> <span class="k">import</span> <span class="n">GlideRecord</span>
-<span class="kn">from</span> <span class="nn">.attachment</span> <span class="k">import</span> <span class="n">Attachment</span>
-<span class="kn">from</span> <span class="nn">.utils</span> <span class="k">import</span> <span class="n">get_instance</span>
-<span class="kn">from</span> <span class="nn">.auth</span> <span class="k">import</span> <span class="n">ServiceNowOAuth2</span>
+<span class="kn">from</span> <span class="nn">.exceptions</span> <span class="kn">import</span> <span class="o">*</span>
+<span class="kn">from</span> <span class="nn">.record</span> <span class="kn">import</span> <span class="n">GlideRecord</span>
+<span class="kn">from</span> <span class="nn">.attachment</span> <span class="kn">import</span> <span class="n">Attachment</span>
+<span class="kn">from</span> <span class="nn">.utils</span> <span class="kn">import</span> <span class="n">get_instance</span>
+<span class="kn">from</span> <span class="nn">.auth</span> <span class="kn">import</span> <span class="n">ServiceNowOAuth2</span>
 
 
 <div class="viewcode-block" id="ServiceNowClient"><a class="viewcode-back" href="../../api.html#pysnc.ServiceNowClient">[docs]</a><span class="k">class</span> <span class="nc">ServiceNowClient</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
@@ -52,7 +52,7 @@
 <span class="sd">    :param proxy: HTTP(s) proxy to use as a str ``&#39;http://proxy:8080`` or dict ``{&#39;http&#39;:&#39;http://proxy:8080&#39;}``</span>
 <span class="sd">    :param bool verify: Verify the SSL/TLS certificate. Useful if you&#39;re using a self-signed HTTPS proxy.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">instance</span><span class="p">,</span> <span class="n">auth</span><span class="p">,</span> <span class="n">proxy</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">verify</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">instance</span><span class="p">,</span> <span class="n">auth</span><span class="p">,</span> <span class="n">proxy</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">verify</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_log</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">__instance</span> <span class="o">=</span> <span class="n">get_instance</span><span class="p">(</span><span class="n">instance</span><span class="p">)</span>
 
@@ -199,7 +199,7 @@
 
 <span class="k">class</span> <span class="nc">APIClient</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
 
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">session</span><span class="p">,</span> <span class="n">table</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">session</span><span class="p">,</span> <span class="n">table</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_session</span> <span class="o">=</span> <span class="n">session</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_table</span> <span class="o">=</span> <span class="n">table</span>
 
@@ -310,7 +310,7 @@
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">API_VERSION</span> <span class="o">=</span> <span class="s1">&#39;v1&#39;</span>
 
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">client</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">client</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_client</span> <span class="o">=</span> <span class="n">client</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_url</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="si">{url}</span><span class="s2">/api/now/</span><span class="si">{version}</span><span class="s2">/attachment&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">url</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_client</span><span class="o">.</span><span class="n">instance</span><span class="p">,</span> <span class="n">version</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">API_VERSION</span><span class="p">)</span>
 

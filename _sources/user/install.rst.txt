@@ -3,6 +3,10 @@
 Installation of PySNC
 =====================
 
-For now:
+As such:
+
+    $ pip install pysnc
+
+Or:
 
     $ python setup.py install
