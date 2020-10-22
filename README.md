@@ -45,7 +45,7 @@ client = ServiceNowClient('dev0000', ServiceNowOAuth2('integration.user', passwo
 
 ## Documentation
 
-Full documentation currently available at [https://vetsin.github.io/PySNC/](https://vetsin.github.io/PySNC/)
+Full documentation currently available at [https://servicenow.github.io/PySNC/](https://servicenow.github.io/PySNC/)
 
 Or build them yourself:
 
