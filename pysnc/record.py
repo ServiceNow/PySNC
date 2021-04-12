@@ -46,7 +46,11 @@ class GlideRecord(object):
             sysparm_query=self.__query.generate_query(encoded_query=self.__encoded_query, order_by=self.__order)
         )
         if self.__field_limits and len(self.__field_limits) > 0:
-            ret['sysparm_fields'] = ','.join(self.__field_limits)
+            c = self.__field_limits
+            if 'sys_id' not in self.__field_limits:
+                c.insert(0, 'sys_id')
+
+            ret['sysparm_fields'] = ','.join(c)
         if self.__view:
             ret['sysparm_view'] = self.__view
         # Batch size matters! Transaction limits will exceed.
