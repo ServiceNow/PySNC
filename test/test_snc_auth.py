@@ -35,15 +35,8 @@ class TestAuth(TestCase):
         server = self.c.server
         creds = self.c.credentials
 
-        client_id = '3e57bb02663102004d010ee8f561307a' #mobile
-
-        # get the secret manually
-        secret_url = '%s/api/now/mobileapp/plugin/secret' % server
-        r = requests.get(secret_url, auth=creds)
-        if r.status_code != 200:
-            raise Exception('couldnt get secret')
-        secret = r.json()['result']['secret']
-        self.assertIsNotNone(secret)
+        client_id = 'ac0dd3408c1031006907010c2cc6ef6d' #mobile
+        secret = '7d8o4teb91hmwumraksf' # not actually a secret
 
         oauth = OAuth2Session(client=LegacyApplicationClient(client_id=client_id))
         token = oauth.fetch_token(token_url='%s/oauth_token.do' % server,
@@ -55,11 +48,19 @@ class TestAuth(TestCase):
         gr.fields = 'sys_id'
         self.assertTrue(gr.get('6816f79cc0a8016401c5a33be04be441'))
 
-    def test_oauth_builtin(self):
-        client = ServiceNowClient(self.c.server, ServiceNowOAuth2(self.c.credentials))
+    def test_oauth(self):
+        # Manual setup using legacy oauth
+        server = self.c.server
+        creds = self.c.credentials
+
+        client_id = 'ac0dd3408c1031006907010c2cc6ef6d' #mobile
+        secret = '7d8o4teb91hmwumraksf' # not actually a secret
+
+        client = ServiceNowClient(self.c.server, ServiceNowOAuth2(creds[0], creds[1], client_id, secret))
         gr = client.GlideRecord('sys_user')
         gr.fields = 'sys_id'
         self.assertTrue(gr.get('6816f79cc0a8016401c5a33be04be441'))
+
 
 
 
