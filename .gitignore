@@ -10,3 +10,4 @@ docs/_build
 .password
 .python-version
 .tox
+Pipefile.lock

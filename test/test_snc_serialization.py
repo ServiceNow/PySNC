@@ -27,6 +27,7 @@ class TestSerialization(TestCase):
         self.assertEqual(len(data['short_description']), 4)
         self.assertEqual(len(data['state__value']), 4)
         self.assertEqual(len(data['state__display']), 4)
+        client.session.close()
 
     def test_pandas_both(self):
         client = ServiceNowClient(self.c.server, self.c.credentials)
@@ -49,6 +50,7 @@ class TestSerialization(TestCase):
         self.assertEqual(len(data['short_description__display']), 4)
         self.assertEqual(len(data['state__value']), 4)
         self.assertEqual(len(data['state__display']), 4)
+        client.session.close()
 
     def test_pandas_value(self):
         client = ServiceNowClient(self.c.server, self.c.credentials)
@@ -68,6 +70,7 @@ class TestSerialization(TestCase):
         self.assertTrue('state' in data)
         self.assertFalse('state__value' in data)
         self.assertEqual(len(data['sys_id']), 4)
+        client.session.close()
 
     def test_pandas_order_cols(self):
         client = ServiceNowClient(self.c.server, self.c.credentials)
@@ -88,6 +91,7 @@ class TestSerialization(TestCase):
         data = gr.to_pandas(columns=['jack', 'jill', 'hill'], mode='display')
         print(data)
         self.assertListEqual(list(data.keys()), ['jack', 'jill', 'hill'])
+        client.session.close()
 
 
     def test_serialize_all_batch(self):
@@ -98,7 +102,8 @@ class TestSerialization(TestCase):
         gr.query()
 
         records = gr.serialize_all()
-        self.assertEquals(len(records), 9)
+        self.assertEqual(len(records), 9)
+        client.session.close()
 
     def test_serialize_noncurrent(self):
         client = ServiceNowClient(self.c.server, self.c.credentials)
@@ -109,6 +114,7 @@ class TestSerialization(TestCase):
         self.assertIsNone(gr.serialize())
         gr.next()
         self.assertIsNotNone(gr.serialize())
+        client.session.close()
 
     def test_serialize_changes(self):
         client = ServiceNowClient(self.c.server, self.c.credentials)
@@ -123,6 +129,7 @@ class TestSerialization(TestCase):
         self.assertListEqual(list(gr.serialize(changes_only=True).keys()), [])
         gr.short_description = 'new'
         self.assertListEqual(list(gr.serialize(changes_only=True).keys()), ['short_description'])
+        client.session.close()
 
     def test_serialize(self):
         client = ServiceNowClient(self.c.server, self.c.credentials)
@@ -133,7 +140,8 @@ class TestSerialization(TestCase):
         gr.intfield = 5
         data = gr.serialize()
         self.assertIsNotNone(data)
-        self.assertEquals(data, {'intfield': 5, 'strfield': 'my string'})
+        self.assertEqual(data, {'intfield': 5, 'strfield': 'my string'})
+        client.session.close()
 
     def test_serialize_display(self):
         client = ServiceNowClient(self.c.server, self.c.credentials)
@@ -144,10 +152,11 @@ class TestSerialization(TestCase):
         gr.intfield = 5
         data = gr.serialize(display_value=True)
         self.assertIsNotNone(data)
-        self.assertEquals(gr.get_value('strfield'), 'my string')
-        self.assertEquals(gr.get_display_value('strfield'), 'my string display value')
-        self.assertEquals(gr.serialize(), {'intfield': 5, 'strfield': 'my string'})
-        self.assertEquals(data, {'intfield': 5, 'strfield': 'my string display value'})
+        self.assertEqual(gr.get_value('strfield'), 'my string')
+        self.assertEqual(gr.get_display_value('strfield'), 'my string display value')
+        self.assertEqual(gr.serialize(), {'intfield': 5, 'strfield': 'my string'})
+        self.assertEqual(data, {'intfield': 5, 'strfield': 'my string display value'})
+        client.session.close()
 
     def test_str(self):
         client = ServiceNowClient(self.c.server, self.c.credentials)
@@ -162,6 +171,7 @@ class TestSerialization(TestCase):
         self.assertTrue(data.startswith('some_table'))
         self.assertTrue('my string' in data)
         self.assertTrue('intfield' in data)
+        client.session.close()
 
 
 
