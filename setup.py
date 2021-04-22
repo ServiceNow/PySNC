@@ -20,7 +20,7 @@ setup(
     description='Python SNC (REST) API',
     long_description=long_description,
     long_description_content_type="text/markdown",
-    url='https://github.com/vetsin/PySNC',
+    url='https://github.com/ServiceNow/PySNC',
     author='Matthew Gill',
     author_email='matthew.gill@servicenow.com',
     license='MIT',
