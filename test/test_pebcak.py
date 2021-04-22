@@ -16,21 +16,15 @@ class TestPEBCAK(TestCase):
 
     def test_instance(self):
         with self.assertRaises(InstanceException) as context:
-            try:
-                client = ServiceNowClient('test.x', self.c.credentials)
-            finally:
-                client.session.close()
-        self.assertTrue(isinstance(context.exception, InstanceException))
+            client = ServiceNowClient('test.x', self.c.credentials)
+            self.assertTrue(isinstance(context.exception, InstanceException))
 
     def test_creds(self):
         with self.assertRaises(AuthenticationException) as context:
             client = ServiceNowClient(self.c.server, ('test','test'))
-            try:
-                gr = client.GlideRecord('sys_user')
-                gr.get('asdf');
-            finally:
-                client.session.close()
-        self.assertTrue(isinstance(context.exception, AuthenticationException))
+            gr = client.GlideRecord('sys_user')
+            gr.get('asdf')
+            self.assertTrue(isinstance(context.exception, AuthenticationException))
 
     def test_no_result_without_query(self):
         client = ServiceNowClient(self.c.server, self.c.credentials)
