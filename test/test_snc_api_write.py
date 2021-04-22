@@ -30,6 +30,7 @@ class TestAuditScoped(TestCase):
         # make sure it is deleted
         gr4 = client.GlideRecord('problem')
         self.assertFalse(gr4.get(res))
+        client.session.close()
 
     def test_insert(self):
         # I want to ensure the records sys_id is updated
@@ -50,15 +51,17 @@ class TestAuditScoped(TestCase):
         # make sure it is deleted
         gr4 = client.GlideRecord('problem')
         self.assertFalse(gr4.get(res))
+        client.session.close()
 
     def test_object_setter(self):
         client = ServiceNowClient(self.c.server, self.c.credentials)
         gr = client.GlideRecord('problem')
         gr.initialize()
         gr.name = 'aaaa'
-        self.assertEquals(gr.name, 'aaaa')
+        self.assertEqual(gr.name, 'aaaa')
         gr.roles = [1,2,3]
-        self.assertEquals(gr.roles, [1,2,3])
+        self.assertEqual(gr.roles, [1,2,3])
+        client.session.close()
 
     def test_object_secondary_field(self):
         client = ServiceNowClient(self.c.server, self.c.credentials)
@@ -67,9 +70,10 @@ class TestAuditScoped(TestCase):
         gr.query()
         self.assertTrue(gr.next())
         gr.boom = 'aaaa'
-        self.assertEquals(gr.boom, 'aaaa')
+        self.assertEqual(gr.boom, 'aaaa')
         gr.bye = [1,2,3]
-        self.assertEquals(gr.bye, [1,2,3])
+        self.assertEqual(gr.bye, [1,2,3])
+        client.session.close()
 
     def test_multi_delete(self):
         client = ServiceNowClient(self.c.server, self.c.credentials)
@@ -85,7 +89,7 @@ class TestAuditScoped(TestCase):
         gr.add_query('short_description', 'LIKE', 'BUNKZZ')
         gr.query()
 
-        self.assertEquals(len(gr), 5)
+        self.assertEqual(len(gr), 5)
 
         # now multi delete...
         gr = client.GlideRecord('problem')
@@ -97,7 +101,8 @@ class TestAuditScoped(TestCase):
         gr.add_query('short_description', 'LIKE', 'BUNKZZ')
         gr.query()
 
-        self.assertEquals(len(gr), 0)
+        self.assertEqual(len(gr), 0)
+        client.session.close()
 
 
 

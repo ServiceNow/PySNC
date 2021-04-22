@@ -4,7 +4,7 @@ init:
 	pipenv install --dev
 
 test:
-	pipenv run detox
+	python setup.py test
 
 docs:
 	cd docs && pipenv run make html
