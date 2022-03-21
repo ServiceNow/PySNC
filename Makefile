@@ -20,3 +20,7 @@ gh-pages:
 	git add -A
 	git commit -m 'Generated gh-pages' && git push origin gh-pages && git checkout master
 
+publish:
+	rm -rf ./dist
+	python setup.py sdist bdist_wheel
+	twine upload dist/*
