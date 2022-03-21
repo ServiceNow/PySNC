@@ -46,7 +46,7 @@ class Attachment(object):
                 limit = self.__limit
         if limit:
             ret['sysparm_limit'] = limit
-        if self.__current is -1:
+        if self.__current == -1:
             ret['sysparm_offset'] = 0
         else:
             ret['sysparm_offset'] = self.__current + 1
