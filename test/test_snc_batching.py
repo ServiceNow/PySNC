@@ -31,6 +31,16 @@ class TestBatching(TestCase):
         self.assertEqual(len(res), 7)
         client.session.close()
 
+    def test_batch_actual(self):
+        client = ServiceNowClient(self.c.server, self.c.credentials)
+        gr = client.GlideRecord('problem')
+        gr.fields = 'sys_id'
+        gr.batch_size = 3
+        gr.query()
+        gr.next()
+        self.assertEqual(len(gr._GlideRecord__results), 3)
+        client.session.close()
+
     def test_default_limit(self):
         client = ServiceNowClient(self.c.server, self.c.credentials)
         gr = client.GlideRecord('problem')
@@ -38,13 +48,14 @@ class TestBatching(TestCase):
 
         params = gr._parameters()
         print(params)
-        self.assertFalse('sysparm_limit' in params, 'We have a default limit for some reason')
+        self.assertEqual(params['sysparm_limit'], 10, "default batch size is not 10?")
 
         gr.limit = 40
         print(gr.limit)
         params = gr._parameters()
         print(params)
         self.assertTrue('sysparm_limit' in params)
+        self.assertEqual(params['sysparm_limit'], 10, "batch size still 10 if we have a limit")
         client.session.close()
 
 

@@ -60,12 +60,16 @@ class GlideRecord(object):
             if self.__limit >= self.batch_size:
                 # need to re-calc as our actual queried count will end up greater than our limit
                 # this keeps us at our actual limit even when between batch size boundaries
-                limit = self.__limit - self.__current - 1
+                if (self.__current + self.batch_size) > self.__limit:
+                    limit = self.__limit - self.__current - 1
             elif self.__limit <= self.batch_size or self.__limit > 0:
+                # limit is less than batch, nothing special to do
                 limit = self.__limit
+        if limit is None and self.batch_size:
+            limit = self.batch_size
         if limit:
             ret['sysparm_limit'] = limit
-        if self.__current is -1:
+        if self.__current == -1:
             ret['sysparm_offset'] = 0
         else:
             ret['sysparm_offset'] = self.__current + 1

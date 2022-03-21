@@ -14,7 +14,7 @@ class Constants(object):
             self.CONF_FILE = conf
         try:
             with open(self.CONF_FILE, 'r') as f:
-                self._settings = yaml.load(f)
+                self._settings = yaml.load(f, Loader=yaml.BaseLoader)
         except:
             self._settings = {}
 
