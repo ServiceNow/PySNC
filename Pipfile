@@ -5,8 +5,10 @@ verify_ssl = true
 
 [dev-packages]
 sphinx = "*"
+nose = "*"
+pyyaml = ">=6.0"
+requests-oauthlib = ">=1.2.0"
 
 [packages]
-
-[requires]
-python_version = "3.7"
+requests = ">=2.8.1"
+six = ">=1.10.0"
