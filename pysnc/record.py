@@ -231,7 +231,7 @@ class GlideRecord(object):
         """
         self.__current = -1
 
-    def query(self):
+    def query(self, query=None):
         """
         Query the table - executes a GET
 
@@ -240,7 +240,14 @@ class GlideRecord(object):
             :AuthenticationException: If we do not have rights
             :RequestException: If the transaction is canceled due to execution time
         """
-        response = self._client._list(self)
+        stored = self.__query
+        if query:
+            assert isinstance(query, Query), 'cannot query with a non query object'
+            self.__query = query
+        try:
+            response = self._client._list(self)
+        finally:
+            self.__query = stored
         code = response.status_code
         if code == 200:
             try:

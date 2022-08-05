@@ -1,6 +1,7 @@
 from unittest import TestCase
 
 from pysnc import ServiceNowClient
+import pysnc
 from constants import Constants
 
 class TestRecordQuery(TestCase):
@@ -182,3 +183,35 @@ class TestRecordQuery(TestCase):
         self.assertTrue(gr.get('sys_id', '6816f79cc0a8016401c5a33be04be441'))
         self.assertEqual(gr.user_name, 'admin')
         client.session.close()
+
+    def test_import(self):
+        from pysnc.query import Query
+        from pysnc.query import QueryCondition
+        from pysnc.query import BaseCondition
+        class Junk(BaseCondition):
+            pass
+        j = Junk('name', 'operator')
+
+    def test_code_query_one(self):
+        from pysnc.query import Query
+        client = ServiceNowClient(self.c.server, self.c.credentials)
+        gr = client.GlideRecord('sys_user')
+        q = Query()
+        q.add_query('sys_id', '6816f79cc0a8016401c5a33be04be441')
+        q.add_query('second', 'asdf')
+        self.assertEqual(q.generate_query(), 'sys_id=6816f79cc0a8016401c5a33be04be441^second=asdf')
+        self.assertEqual(gr.get_encoded_query(), '')
+        gr.query(q)
+        self.assertEqual(len(gr), 1)
+        self.assertEqual(gr.get_encoded_query(), '')
+        gr.add_encoded_query(q.generate_query())
+        self.assertEqual(gr.get_encoded_query(), 'sys_id=6816f79cc0a8016401c5a33be04be441^second=asdf')
+        gr.query()
+        self.assertEqual(len(gr), 1)
+
+
+
+
+
+
+
