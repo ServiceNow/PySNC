@@ -1,7 +1,8 @@
 from warnings import warn
 
+
 class Query(object):
-    def __init__(self, table):
+    def __init__(self, table=None):
         self._table = table
         self.__sub_query = []
         self.__conditions = []
@@ -15,6 +16,7 @@ class Query(object):
         return qc
 
     def add_join_query(self, join_table, primary_field=None, join_table_field=None):
+        assert self._table != None, "Cannot execute join query as Query object was not instantiated with a table name"
         join_query = JoinQuery(self._table, join_table, primary_field, join_table_field)
         self.__sub_query.append(join_query)
         return join_query
@@ -37,7 +39,7 @@ class Query(object):
                 return sub_query.generate_query()
             query = '^'.join((query, sub_query.generate_query()))
         if encoded_query:
-            query = '^'.join((query, encoded_query))
+            query = '^'.join(filter(None, (query, encoded_query)))
         if order_by:
             query = '^'.join((query, order_by))
         return query
