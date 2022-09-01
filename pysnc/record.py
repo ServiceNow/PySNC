@@ -225,6 +225,17 @@ class GlideRecord(object):
         """
         return len(self.__results) == 1 and self.__is_new_record
 
+    def set_new_guid_value(self, value):
+        """
+        This does make an assumption the guid is a sys_id, if it is not, set the value directly.
+
+        :param value: A 32 byte string that is the value
+        :return: None
+        """
+        value = str(value)
+        assert len(value) == 32, "GUID must be a 32 byte string"
+        self.sys_id = value
+
     def rewind(self):
         """
         Rewinds the record so it may be iterated upon again. Not required to be called if iterating in the pythonic method.

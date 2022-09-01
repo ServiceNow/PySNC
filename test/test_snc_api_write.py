@@ -53,6 +53,29 @@ class TestAuditScoped(TestCase):
         self.assertFalse(gr4.get(res))
         client.session.close()
 
+    def test_insert_custom_guid(self):
+        # I want to ensure the records sys_id is updated
+        client = ServiceNowClient(self.c.server, self.c.credentials)
+        gr = client.GlideRecord('problem')
+        gr.initialize()
+        customsysid = 'AAAABBBBCCCCDDDDEEEEFFFF00001111'
+        gr.set_new_guid_value(customsysid)
+        gr.short_description = "Unit Test - Test insert id update"
+        res = gr.insert()
+        self.assertIsNotNone(res)
+        self.assertIsNotNone(gr.sys_id)
+        self.assertEquals(res, customsysid)
+        # make sure it exists
+        gr2 = client.GlideRecord('problem')
+        self.assertTrue(gr2.get(customsysid))
+
+        gr.delete()
+
+        # make sure it is deleted
+        gr4 = client.GlideRecord('problem')
+        self.assertFalse(gr4.get(res))
+        client.session.close()
+
     def test_object_setter(self):
         client = ServiceNowClient(self.c.server, self.c.credentials)
         gr = client.GlideRecord('problem')
