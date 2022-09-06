@@ -47,12 +47,12 @@ class ServiceNowClient(object):
 
         self.attachment = AttachmentClient(self)
 
-    def GlideRecord(self, table, batch_size=10):
+    def GlideRecord(self, table, batch_size=100):
         """
         Create a :class:`pysnc.GlideRecord` for a given table against the current client
 
         :param str table: The table name e.g. ``problem``
-        :param int batch_size: Batch size (items returned per HTTP request). Default is ``10``.
+        :param int batch_size: Batch size (items returned per HTTP request). Default is ``100``.
         :return: :class:`pysnc.GlideRecord`
         """
         return GlideRecord(self, table, batch_size)
