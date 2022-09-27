@@ -51,16 +51,33 @@ class TestAttachment(TestCase):
             self.assertNotEqual(attachments, None)
             self.assertEqual(len(attachments), 0)
 
-            content = "this is a sample attachment"
+            content = "this is a sample attachment\nwith\nmulti\nlines"
             gr.add_attachment('test.txt', content)
 
             attachments = gr.get_attachments()
             self.assertEqual(len(attachments), 1)
 
+            bcontent = b'\x00\x01\x02\x03\x04\x05\x06\x07\x08\x09'
+            gr.add_attachment('test.bin', bcontent)
+
+            attachments = gr.get_attachments()
+            self.assertEqual(len(attachments), 2)
+
+            tgr = client.GlideRecord(gr.table)
+            assert tgr.get(gr.sys_id), "could not re-query the table?"
+            self.assertEqual(len(tgr.get_attachments()), 2, "Could not see attachments on re-query?")
+
             for a in attachments:
-                self.assertEqual(a.file_name, 'test.txt')
-                f = a.getAsFile()
-                self.assertEqual(f.read(), content.encode('utf-8'))
-                a.delete()
+                assert a.file_name.startswith('test'), f"expected a test file, not {a.file_name}"
+                if a.file_name.endswith('txt'):
+                    lines = a.readlines()
+                    print(lines)
+                    print(repr(lines))
+                    self.assertEquals(lines[0], "this is a sample attachment")
+                    self.assertEquals(len(lines), 4)
+                if a.file_name.endswith('bin'):
+                    raw = a.read()
+                    self.assertEquals(raw, bcontent, "binary content did not match")
+
         client.session.close()
 

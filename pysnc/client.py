@@ -289,10 +289,10 @@ class AttachmentClient(object):
                              headers=dict(Accept="application/json"))
         return r
 
-    def _get_file(self, sys_id):
+    def _get_file(self, sys_id, stream=True):
         url = "%s/%s/file" % (self._url, sys_id)
         r = self._client.session.get(url,
-                             stream=True)
+                             stream=stream)
         return r
 
     def _set_params(self, record=None):

@@ -16,15 +16,13 @@ class GlideRecord(object):
 
     :param ServiceNowClient client: We need to know which instance we're connecting to
     :param str table: The table are we going to access
-    :param int batch_size: Batch size (items returned per HTTP request). Default is ``10``.
+    :param int batch_size: Batch size (items returned per HTTP request). Default is ``500``.
     """
-    def __init__(self, client, table, batch_size=10):
-        self._client = client
-        self.__table = table
-        self.__is_iter = False
+    def __init__(self, client, table, batch_size=500):
         self._log = logging.getLogger(__name__)
         self._client = client
         self.__table = table
+        self.__is_iter = False
         self.__batch_size = batch_size
         self.__query = Query(table)
         self.__encoded_query = None
