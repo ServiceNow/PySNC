@@ -1,13 +1,13 @@
 name: PySNC Test
 
-on: [push, pull-request]
+on: [push, pull_request]
 
 jobs:
   install-test:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: ["3.8", "3.9", "3.10"]
+        python-version: ["3.7", "3.8", "3.9", "3.10"]
     steps:
     - uses: actions/checkout@v3
     - name: Set up Python ${{ matrix.python-version }}
