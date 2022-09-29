@@ -1,18 +1,20 @@
 
 <!DOCTYPE html>
 
-<html>
+<html lang="en">
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
+
     <title>Getting Started &#8212; PySNC 1.0.2 documentation</title>
-    <link rel="stylesheet" href="../_static/alabaster.css" type="text/css" />
-    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
-    <script id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/alabaster.css" />
+    <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
     <script src="../_static/jquery.js"></script>
     <script src="../_static/underscore.js"></script>
+    <script src="../_static/_sphinx_javascript_frameworks_compat.js"></script>
     <script src="../_static/doctools.js"></script>
-    <script src="../_static/language_data.js"></script>
+    <script src="../_static/sphinx_highlight.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
     <link rel="next" title="Advanced" href="advanced.html" />
@@ -33,11 +35,11 @@
 
           <div class="body" role="main">
             
-  <div class="section" id="getting-started">
-<span id="id1"></span><h1>Getting Started<a class="headerlink" href="#getting-started" title="Permalink to this headline">¶</a></h1>
+  <section id="getting-started">
+<span id="id1"></span><h1>Getting Started<a class="headerlink" href="#getting-started" title="Permalink to this heading">¶</a></h1>
 <p>Ensure you are <a class="reference internal" href="install.html#install"><span class="std std-ref">installed</span></a> and have an instance to talk to. A <a class="reference external" href="https://developer.servicenow.com">PDI</a> may be good start for playing around if you do not have access to a development instance.</p>
-<div class="section" id="the-servicenow-client">
-<h2>The ServiceNow client<a class="headerlink" href="#the-servicenow-client" title="Permalink to this headline">¶</a></h2>
+<section id="the-servicenow-client">
+<h2>The ServiceNow client<a class="headerlink" href="#the-servicenow-client" title="Permalink to this heading">¶</a></h2>
 <p>The <code class="docutils literal notranslate"><span class="pre">ServiceNowClient</span></code> is your interface to an instance.</p>
 <p>First we import:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">pysnc</span> <span class="kn">import</span> <span class="n">ServiceNowClient</span>
@@ -57,9 +59,9 @@
 </pre></div>
 </div>
 <p>This means that instead of Java/JavaScript camelCase we use python standard in PEP-8. For example <code class="docutils literal notranslate"><span class="pre">addQuery</span></code> has become <code class="docutils literal notranslate"><span class="pre">add_query</span></code>.</p>
-</div>
-<div class="section" id="querying-a-record">
-<h2>Querying a record<a class="headerlink" href="#querying-a-record" title="Permalink to this headline">¶</a></h2>
+</section>
+<section id="querying-a-record">
+<h2>Querying a record<a class="headerlink" href="#querying-a-record" title="Permalink to this heading">¶</a></h2>
 <p>The query methods are designed to behave very similarly to the glide implementations:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">gr</span><span class="o">.</span><span class="n">add_query</span><span class="p">(</span><span class="s2">&quot;value&quot;</span><span class="p">,</span> <span class="s2">&quot;&gt;&quot;</span><span class="p">,</span> <span class="s2">&quot;1&quot;</span><span class="p">)</span>
 </pre></div>
@@ -78,9 +80,9 @@
 </pre></div>
 </div>
 <p>No HTTP requests are made until <cite>query()</cite> is called.</p>
-</div>
-<div class="section" id="get-a-single-record">
-<h2>Get a single record<a class="headerlink" href="#get-a-single-record" title="Permalink to this headline">¶</a></h2>
+</section>
+<section id="get-a-single-record">
+<h2>Get a single record<a class="headerlink" href="#get-a-single-record" title="Permalink to this heading">¶</a></h2>
 <p>We can do our standard get:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">gr</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;6816f79cc0a8016401c5a33be04be441&#39;</span><span class="p">)</span>
 <span class="go">True</span>
@@ -91,9 +93,9 @@
 <span class="go">True</span>
 </pre></div>
 </div>
-</div>
-<div class="section" id="iterating-a-record">
-<h2>Iterating a record<a class="headerlink" href="#iterating-a-record" title="Permalink to this headline">¶</a></h2>
+</section>
+<section id="iterating-a-record">
+<h2>Iterating a record<a class="headerlink" href="#iterating-a-record" title="Permalink to this heading">¶</a></h2>
 <p>There are two methods to iterate a GlideRecord:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="k">while</span> <span class="n">gr</span><span class="o">.</span><span class="n">next</span><span class="p">():</span>
 <span class="go">        pass</span>
@@ -102,9 +104,9 @@
 </pre></div>
 </div>
 <p>When using the traditional <cite>next()</cite> function you will have to call <cite>rewind()</cite> if you wish to iterate a second time. The pythonic iteration does not require this and allows for list comprehensions and other python goodies.</p>
-</div>
-<div class="section" id="limiting-results">
-<h2>Limiting Results<a class="headerlink" href="#limiting-results" title="Permalink to this headline">¶</a></h2>
+</section>
+<section id="limiting-results">
+<h2>Limiting Results<a class="headerlink" href="#limiting-results" title="Permalink to this heading">¶</a></h2>
 <p>We are using the REST api after all, and sometimes we want to limit the number of requests we make for testing or sanity checking.</p>
 <p>We can set limits on the number of results returned, the following will return up to 5 records:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">gr</span><span class="o">.</span><span class="n">limit</span> <span class="o">=</span> <span class="mi">5</span>
@@ -129,9 +131,9 @@
 </div>
 <p>Batch size, along with fields and limits, will affect how the API and instance perform. This should be tuned against API usage and instance sempahore set configuration. This documentation does not provide said guidance, when in doubt leave it default.</p>
 <p>As a rule of thumb, query only the fields you actually want.</p>
-</div>
-<div class="section" id="accessing-fields">
-<h2>Accessing fields<a class="headerlink" href="#accessing-fields" title="Permalink to this headline">¶</a></h2>
+</section>
+<section id="accessing-fields">
+<h2>Accessing fields<a class="headerlink" href="#accessing-fields" title="Permalink to this heading">¶</a></h2>
 <p>We can access any field value via dot notation or the standard <cite>get_value</cite> and <cite>get_display_value</cite> methods.</p>
 <p>For example:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">gr</span> <span class="o">=</span> <span class="n">client</span><span class="o">.</span><span class="n">GlideRecord</span><span class="p">(</span><span class="s1">&#39;problem&#39;</span><span class="p">)</span>
@@ -147,9 +149,9 @@
 </pre></div>
 </div>
 <p>The PySNC module has no concept of GlideElement - we cannot infer what a given columns data type may be from the REST API.</p>
-</div>
-<div class="section" id="setting-fields">
-<h2>Setting fields<a class="headerlink" href="#setting-fields" title="Permalink to this headline">¶</a></h2>
+</section>
+<section id="setting-fields">
+<h2>Setting fields<a class="headerlink" href="#setting-fields" title="Permalink to this heading">¶</a></h2>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">gr</span> <span class="o">=</span> <span class="n">client</span><span class="o">.</span><span class="n">GlideRecord</span><span class="p">(</span><span class="s1">&#39;incident&#39;</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">gr</span><span class="o">.</span><span class="n">initialize</span><span class="p">()</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">gr</span><span class="o">.</span><span class="n">state</span> <span class="o">=</span> <span class="mi">4</span>
@@ -158,9 +160,9 @@
 <span class="gp">&gt;&gt;&gt; </span><span class="n">gr</span><span class="o">.</span><span class="n">set_value</span><span class="p">(</span><span class="s1">&#39;state&#39;</span><span class="p">,</span> <span class="mi">4</span><span class="p">)</span>
 </pre></div>
 </div>
-</div>
-<div class="section" id="length">
-<h2>Length<a class="headerlink" href="#length" title="Permalink to this headline">¶</a></h2>
+</section>
+<section id="length">
+<h2>Length<a class="headerlink" href="#length" title="Permalink to this heading">¶</a></h2>
 <p>You can use <cite>len</cite> or <cite>get_row_count()</cite>:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">gr</span> <span class="o">=</span> <span class="n">client</span><span class="o">.</span><span class="n">GlideRecord</span><span class="p">(</span><span class="s1">&#39;incident&#39;</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="nb">len</span><span class="p">(</span><span class="n">gr</span><span class="p">)</span>
@@ -174,9 +176,9 @@
 <span class="go">20</span>
 </pre></div>
 </div>
-</div>
-<div class="section" id="insert-update-delete">
-<h2>Insert, Update, Delete<a class="headerlink" href="#insert-update-delete" title="Permalink to this headline">¶</a></h2>
+</section>
+<section id="insert-update-delete">
+<h2>Insert, Update, Delete<a class="headerlink" href="#insert-update-delete" title="Permalink to this heading">¶</a></h2>
 <p>We can insert new records:</p>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">gr</span> <span class="o">=</span> <span class="n">client</span><span class="o">.</span><span class="n">GlideRecord</span><span class="p">(</span><span class="s1">&#39;problem&#39;</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">gr</span><span class="o">.</span><span class="n">initialize</span><span class="p">()</span>
@@ -203,8 +205,8 @@
 <span class="go">True</span>
 </pre></div>
 </div>
-</div>
-</div>
+</section>
+</section>
 
 
           </div>
@@ -223,7 +225,7 @@
 
 
 <h3>Navigation</h3>
-<p class="caption"><span class="caption-text">Contents:</span></p>
+<p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
 <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="install.html">Installation of PySNC</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Getting Started</a><ul>
@@ -258,12 +260,12 @@
   <h3 id="searchlabel">Quick search</h3>
     <div class="searchformwrapper">
     <form class="search" action="../search.html" method="get">
-      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
       <input type="submit" value="Go" />
     </form>
     </div>
 </div>
-<script>$('#searchbox').show(0);</script>
+<script>document.getElementById('searchbox').style.display = "block"</script>
 
 
 
@@ -280,7 +282,7 @@
       &copy;2018, Matthew Gill.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 3.1.2</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 5.2.2</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
       |
