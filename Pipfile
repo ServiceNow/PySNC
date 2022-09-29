@@ -8,8 +8,8 @@ sphinx = "*"
 nose = "*"
 pyyaml = ">=6.0"
 requests-oauthlib = ">=1.2.0"
+pyjwt = "*"
 
 [packages]
 requests = ">=2.8.1"
 six = ">=1.10.0"
-pyjwt = "*"
