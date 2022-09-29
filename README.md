@@ -64,7 +64,6 @@ The following functions are not (yet?) supported:
 * `is_valid()` TODO
 * `is_valid_record()`
 * `new_record()`
-* `set_new_guid_value(guid)`
 * `update_multiple()` TODO
 * `_next()`
 * `_query()`

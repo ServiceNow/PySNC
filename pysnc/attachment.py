@@ -1,9 +1,9 @@
 import traceback
 import logging
 from tempfile import SpooledTemporaryFile
+from pathlib import Path
 from .query import *
 from .exceptions import *
-
 
 class Attachment(object):
     MAX_MEM_SIZE = 0xFFFF
@@ -93,19 +93,58 @@ class Attachment(object):
             raise StopIteration()
         return False
 
-    def getAsFile(self, chunk_size=512):
+    def getAsFile(self, chunk_size=None):
+        '''
+        Depricated. use asTempFile(...) instead
+        '''
+        return self.asTempFile(chunk_size)
+
+    def asTempFile(self, chunk_size=512):
         """
         Return the attachment as a TempFile
 
-        :param chunk_size:
+        :param chunk_size: bytes to read in at a time from the HTTP stream
         :return: SpooledTemporaryFile
         """
+        assert self._current(), "Cannot read nothing, iterate the attachment"
         tf = SpooledTemporaryFile(max_size=1024*1024, mode='w+b')
         r = self._client.attachment._get_file(self.sys_id)
-        for chunk in r.iter_content(chunk_size=chunk_size):
+        for chunk in r.iter_content(chunk_size):
             tf.write(chunk)
         tf.seek(0)
         return tf
+
+    def write_to(self, path, chunk_size=512):
+        """
+        Write the attachment to the given path - if the path is a directory the file_name will be used
+        """
+        assert self._current(), "Cannot read nothing, iterate the attachment"
+        p = Path(path)
+        # if we specify a dir, auto set the filename
+        if p.is_dir():
+            p = p / self.file_name
+        with open(p, 'wb') as f:
+            r = self._client.attachment._get_file(self.sys_id)
+            for chunk in r.iter_content(chunk_size):
+                f.write(chunk)
+        return p
+
+    def read(self):
+        """
+        Read the entire attachment
+        :return: b''
+        """
+        assert self._current(), "Cannot read nothing, iterate the attachment"
+        return self._client.attachment._get_file(self.sys_id, stream=False).content
+
+    def readlines(self, encoding='UTF-8', delimiter='\n'):
+        """
+        Read the attachment, as text, decoding by default as UTF-8, splitting by the delimiter.
+        :param encoding: encoding to use, defaults to UTF-8
+        :param delimiter: what to split by, defualt \n
+        :return: list
+        """
+        return self.read().decode(encoding).split(delimiter)
 
     def query(self):
         """

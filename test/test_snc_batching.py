@@ -48,14 +48,14 @@ class TestBatching(TestCase):
 
         params = gr._parameters()
         print(params)
-        self.assertEqual(params['sysparm_limit'], 10, "default batch size is not 10?")
+        self.assertEqual(params['sysparm_limit'], 100, "default batch size is not 100?")
 
-        gr.limit = 40
+        gr.limit = 400
         print(gr.limit)
         params = gr._parameters()
         print(params)
         self.assertTrue('sysparm_limit' in params)
-        self.assertEqual(params['sysparm_limit'], 10, "batch size still 10 if we have a limit")
+        self.assertEqual(params['sysparm_limit'], 100, "batch size still 100 if we have a limit over batch size")
         client.session.close()
 
 
