@@ -64,7 +64,7 @@ class TestAuditScoped(TestCase):
         res = gr.insert()
         self.assertIsNotNone(res)
         self.assertIsNotNone(gr.sys_id)
-        self.assertEquals(res, customsysid)
+        self.assertEqual(res, customsysid)
         # make sure it exists
         gr2 = client.GlideRecord('problem')
         self.assertTrue(gr2.get(customsysid))
@@ -100,12 +100,16 @@ class TestAuditScoped(TestCase):
 
     def test_multi_delete(self):
         client = ServiceNowClient(self.c.server, self.c.credentials)
+        gr = client.GlideRecord('problem')
+        gr.add_query('short_description', 'LIKE', 'BUNKZZ')
+        gr.delete_multiple() # try to make sure weh ave none first
+
         # insert five bunk records
         for i in range(5):
             gr = client.GlideRecord('problem')
             gr.initialize()
-            gr.short_description = 'Unit Test - BUNKZZ Multi Delete'
-            gr.insert()
+            gr.short_description = f"Unit Test - BUNKZZ Multi Delete {i}"
+            assert gr.insert(), "Failed to insert a record"
 
         # now make sure they exist...
         gr = client.GlideRecord('problem')

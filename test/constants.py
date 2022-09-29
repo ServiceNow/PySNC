@@ -1,6 +1,13 @@
 import getpass
 import os
 import yaml
+import warnings
+import logging
+
+warnings.filterwarnings(action="ignore", message="unclosed", category=ResourceWarning)
+logging.getLogger("urllib3").propagate = False # get rid of all the extra test logging junk
+logging.getLogger('requests_oauthlib').propagate = False
+
 
 class Constants(object):
     CONF_FILE = 'settings-test.yaml'
