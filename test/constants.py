@@ -18,45 +18,38 @@ class Constants(object):
         except:
             self._settings = {}
 
-        try:
-            # Attempt to pull from environment
-            self._settings['server'] = os.environ['PYSNC_SERVER']
-            self._settings['username'] = os.environ['PYSNC_USERNAME']
-            self._settings['password'] = os.environ['PYSNC_PASSWORD']
-        except:
-            pass
-
     @property
     def password(self):
-        if 'password' in self._settings:
-            self._password = self._settings['password']
         try:
-            with open('.password','r') as f:
-                self._password = f.read().strip()
+            if os.path.exists('.password'):
+                with open('.password', 'r') as f:
+                    return f.read().strip()
         except:
             pass
-        if not hasattr(self, '_password'):
-            self._password = getpass.getpass('\nPassword: ')
-        return self._password
+        pw = self.get_value('password')
+        if pw:
+            return pw
+        return getpass.getpass('\nPassword: ')
 
     @property
     def username(self):
-        if 'username' in self._settings:
-            return self._settings['username']
-        return self._username
+        return self.get_value('username')
 
     @property
     def credentials(self):
-        return (self.username, self.password)
+        return (self.username, self.get_value('password'))
 
     @property
     def server(self):
-        if 'server' in self._settings:
-            return self._settings['server']
-        return self._server
+        return self.get_value('server')
 
     @property
     def plugin(self):
         if 'plugin' in self._settings:
             return self._settings['plugin']
         return self._plugin
+
+    def get_value(self, name):
+        if name in self._settings:
+            return self._settings[name]
+        return os.environ[f"PYSNC_{name.replace('-','_')}".upper()]

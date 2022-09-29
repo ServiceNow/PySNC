@@ -1,4 +1,5 @@
 import requests
+from requests.auth import AuthBase
 import re
 import logging
 from .exceptions import *
@@ -13,7 +14,7 @@ class ServiceNowClient(object):
     ServiceNow Python Client
 
     :param str instance: The instance to connect to e.g. ``https://dev00000.service-now.com`` or ``dev000000``
-    :param auth: Username password combination ``(name,pass)``, :class:`pysnc.ServiceNowOAuth2` or ``requests.sessions.Session`` object
+    :param auth: Username password combination ``(name,pass)`` or :class:`pysnc.ServiceNowOAuth2` or ``requests.sessions.Session`` or ``requests.auth.AuthBase`` object
     :param proxy: HTTP(s) proxy to use as a str ``'http://proxy:8080`` or dict ``{'http':'http://proxy:8080'}``
     :param bool verify: Verify the SSL/TLS certificate. Useful if you're using a self-signed HTTPS proxy.
     """
@@ -25,6 +26,9 @@ class ServiceNowClient(object):
             self.__user = auth[0]
             auth = requests.auth.HTTPBasicAuth(auth[0], auth[1])
 
+            self.__session = requests.session()
+            self.__session.auth = auth
+        elif isinstance(auth, AuthBase):
             self.__session = requests.session()
             self.__session.auth = auth
         elif isinstance(auth, requests.sessions.Session):

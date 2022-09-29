@@ -40,9 +40,9 @@ setup(
     keywords='',
     packages=find_packages(exclude=['contrib', 'docs', 'tests']),
     test_suite='nose.collector',
-    tests_require=['nose', 'PyYAML>=3.12', 'requests-oauthlib>=1.2.0'],
+    tests_require=['nose', 'PyYAML>=3.12', 'requests-oauthlib', 'pyjwt'],
     install_requires=['requests>=2.18.1', 'six>=1.10.0'],
     extras_require= {
-        'oauth': ['requests-oauthlib>=1.2.0']
+        'oauth': ['requests-oauthlib']
     }
 )

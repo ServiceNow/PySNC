@@ -1,11 +1,12 @@
 from unittest import TestCase
 
 from pysnc import ServiceNowClient
-from pysnc import ServiceNowOAuth2
+from pysnc.auth import ServiceNowJWTAuth, ServiceNowOAuth2
 from constants import Constants
 from pysnc import exceptions
 
 import requests
+import time
 from oauthlib.oauth2 import LegacyApplicationClient
 from requests_oauthlib import OAuth2Session
 
@@ -60,6 +61,33 @@ class TestAuth(TestCase):
         gr = client.GlideRecord('sys_user')
         gr.fields = 'sys_id'
         self.assertTrue(gr.get('6816f79cc0a8016401c5a33be04be441'))
+
+    def test_jwt(self):
+        """
+        we act as our own client here, which you should not do.
+        """
+        import jwt
+        client_id = '91c9a3503e5e15104efa8fea3b37c3dd'
+        client_secret = self.c.get_value('jwt-client-secret')
+        key = self.c.get_value('jwt-shared-key')
+
+        payload = {
+            'aud': client_id,
+            'iss': client_id,
+            'sub': 'itil',
+            'exp': int(time.time()+30), # expire in 30 seconds
+        }
+        token = jwt.encode(payload, key, algorithm="HS256")
+
+
+        auth = ServiceNowJWTAuth(client_id, client_secret, token)
+        client = ServiceNowClient(self.c.server, auth)
+
+        gr = client.GlideRecord('sys_user')
+        gr.fields = 'sys_id'
+        assert gr.get('6816f79cc0a8016401c5a33be04be441'), "did not jwt auth"
+
+
 
 
 

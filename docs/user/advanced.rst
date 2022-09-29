@@ -3,6 +3,24 @@
 Advanced
 ========
 
+Attachments
+-----------
+
+The most likely way to interact with an attachment:
+
+    >>> gr = client.GlideRecord('problem')
+    >>> assert gr.get(my_sys_id), 'did not find record'
+    >>> for attachment in gr.get_attachments():
+    >>>     data = attachment.read().decode('utf-8')
+
+or
+
+    >>> for attachment in gr.get_attachments():
+    >>>     for line in attachment.readlines():
+    >>>         ...
+
+Other useful attachment methods being `read()` and `writeto(...)` and `asTempFile()`.
+
 Serialization
 -------------
 

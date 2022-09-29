@@ -1,7 +1,11 @@
 import requests
+import time
+from requests.auth import AuthBase
+from urllib3.util import parse_url, Url
 from .exceptions import *
 from .utils import get_instance
 
+JWT_GRANT_TYPE = 'urn:ietf:params:oauth:grant-type:jwt-bearer'
 
 class ServiceNowOAuth2(object):
 
@@ -40,3 +44,47 @@ class ServiceNowOAuth2(object):
         except ImportError:
             raise AuthenticationException('Install dependency requests-oauthlib')
 
+
+class ServiceNowJWTAuth(AuthBase):
+
+    def __init__(self, client_id, client_secret, assertion):
+        """
+        """
+        assert client_id, "Requires client_id"
+        assert client_secret, "Requires the secret"
+        assert assertion, "Requires assertion, aka the JWT from your providver"
+        self.__secret = client_secret
+        self.client_id = client_id
+        self.assertion = assertion
+        self.__token = None
+        self.__expires_at = None
+
+    def get_assertion(self):
+        """
+        if you need to over-ride this.
+        """
+        return self.assertion
+
+    def _get_access_token(self, request):
+        url = parse_url(request.url)
+        token_url = f"{url.scheme}://{url.host}/oauth_token.do"
+        headers = {
+            'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8'
+        }
+        data = {
+            'grant_type': JWT_GRANT_TYPE,
+            'client_id': self.client_id,
+            'client_secret': self.__secret,
+            'assertion': self.get_assertion()
+        }
+        r = requests.post(token_url, headers=headers, data=data)
+        assert r.status_code == 200, f"Failed to auth, see syslogs {r.text}"
+        data = r.json()
+        expires = int(time.time()+data['expires_in'])
+        return data['access_token'], expires
+
+    def __call__(self, request):
+        if not self.__token or time.time() > self.__expires_at:
+            self.__token, self.__expires_at = self._get_access_token(request)
+        request.headers['Authorization'] = f"Bearer {self.__token}"
+        return request
