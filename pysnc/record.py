@@ -254,7 +254,7 @@ class GlideRecord(object):
             assert isinstance(query, Query), 'cannot query with a non query object'
             self.__query = query
         try:
-            response = self._client._list(self)
+            response = self._client.list(self)
         finally:
             self.__query = stored
         code = response.status_code
@@ -288,7 +288,7 @@ class GlideRecord(object):
             :AuthenticationException: If we do not have rights
         """
         if value == None:
-            response = self._client._get(self, name)
+            response = self._client.get(self, name)
             code = response.status_code
             if code == 200:
                 self.__results = [self._transform_result(response.json()['result'])]
@@ -315,7 +315,7 @@ class GlideRecord(object):
             :AuthenticationException: If we do not have rights
             :InsertException: For any other failure reason
         """
-        response = self._client._post(self)
+        response = self._client.post(self)
         code = response.status_code
         if code == 201:
             self.__results = [self._transform_result(response.json()['result'])]
@@ -338,7 +338,7 @@ class GlideRecord(object):
             :AuthenticationException: If we do not have rights
             :UpdateException: For any other failure reason
         """
-        response = self._client._put(self)
+        response = self._client.put(self)
         code = response.status_code
         if code == 200:
             #self.__results = [response.json()['result']]
@@ -362,7 +362,7 @@ class GlideRecord(object):
             :AuthenticationException: If we do not have rights
             :DeleteException: For any other failure reason
         """
-        response = self._client._delete(self)
+        response = self._client.delete(self)
         code = response.status_code
         if code == 204:
             return True

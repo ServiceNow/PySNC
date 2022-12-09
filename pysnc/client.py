@@ -49,6 +49,7 @@ class ServiceNowClient(object):
 
         self.__session.headers.update(dict(Accept="application/json"))
 
+        self.tableapi = TableAPI(self)
         self.attachment = AttachmentClient(self)
 
     def GlideRecord(self, table, batch_size=100):
@@ -97,81 +98,17 @@ class ServiceNowClient(object):
         """
         return re.match(r'^[A-Za-z0-9]{32}$', value) is not None
 
-    def _target(self, table, sys_id=None):
-        target = "{url}/api/now/table/{table}".format(url=self.__instance, table=table)
-        if sys_id:
-            target = "{}/{}".format(target, sys_id)
-        return target
 
-    def _set_params(self, record=None):
-        params = {} if record == None else record._parameters()
-        params['sysparm_display_value'] = 'all'
-        params['sysparm_exclude_reference_link'] = 'true'  # Scratch it!
-        params['sysparm_suppress_pagination_header'] = 'true'  # Required for large queries
-        return params
+class API(object):
 
-    def _validate_response(self, response):
-        code = response.status_code
-        if code == 403:
-            rjson = response.json()
-            raise RoleException(rjson)
-        if code == 401:
-            rjson = response.json()
-            raise AuthenticationException(rjson)
-        if code == 400:
-            rjson = response.json()
-            raise RequestException(rjson)
-
-    def _list(self, record):
-        params = self._set_params(record)
-        target_url = self._target(record.table)
-        r = self.session.get(target_url,
-                             params=params,
-                             headers=dict(Accept="application/json"))
-        self._validate_response(r)
-        return r
-
-    def _get(self, record, sys_id):
-        # delete extra stuff
-        params = self._set_params(record)
-        if 'sysparm_offset' in params:
-            del params['sysparm_offset']
-        r = self.session.get(self._target(record.table, sys_id),
-                             params=params,
-                             headers=dict(Accept="application/json"))
-        self._validate_response(r)
-        return r
-
-    def _put(self, record):
-        body = record.serialize(changes_only=True)  # changes only because why post data we don't change?
-        params = self._set_params()
-        r = self.session.put(self._target(record.table, record.sys_id),
-                             params=params,
-                             json=body,
-                             headers=dict(Accept="application/json"))
-        return r
-
-    def _post(self, record):
-        body = record.serialize()
-        params = self._set_params()
-        r = self.session.post(self._target(record.table, None),
-                              params=params,
-                              json=body,
-                              headers=dict(Accept="application/json"))
-        return r
-
-    def _delete(self, record):
-        r = self.session.delete(self._target(record.table, record.sys_id),
-                                headers=dict(Accept="application/json"))
-        return r
-
-
-class APIClient(object):
-
-    def __init__(self, session, table):
-        self._session = session
+    def __init__(self, client, table):
+        self._client = client
         self._table = table
 
+    @property
+    def session(self):
+        return self._client.session
+
     def _set_params(self, record=None):
         params = {} if record == None else record._parameters()
         params['sysparm_display_value'] = 'all'
@@ -181,18 +118,25 @@ class APIClient(object):
 
     def _validate_response(self, response):
         code = response.status_code
-        if code == 403:
-            rjson = response.json()
-            raise RoleException(rjson)
-        if code == 401:
-            rjson = response.json()
-            raise AuthenticationException(rjson)
-        if code == 400:
-            rjson = response.json()
-            raise RequestException(rjson)
+        if code >= 400:
+            try:
+                rjson = response.json()
+                if code == 403:
+                    raise RoleException(rjson)
+                if code == 401:
+                    raise AuthenticationException(rjson)
+                if code == 400:
+                    raise RequestException(rjson)
+            except JSONDecodeError:
+                raise RequestException(response.text)
 
+    def _send(self, req):
+        request = self.session.prepare_request(req)
+        r = self.session.send(request)
+        self._validate_response(r)
+        return r
 
-class TableAPI(APIClient):
+class TableAPI(API):
 
     def _target(self, table, sys_id=None):
         target = "{url}/api/now/table/{table}".format(url=self.__instance, table=table)
@@ -203,9 +147,9 @@ class TableAPI(APIClient):
     def list(self, record):
         params = self._set_params(record)
         target_url = self._target(record.table)
-        r = self.session.get(target_url, params=params)
-        self._validate_response(r)
-        return r
+
+        req = requests.Request('GET', target_url, params=params)
+        return self._send(req)
 
     def get(self, record, sys_id):
         params = self._set_params(record)
@@ -243,7 +187,8 @@ class TableAPI(APIClient):
         self._validate_response(r)
         return r
 
-class AttachmentAPI(APIClient):
+
+class AttachmentAPI(API):
     API_VERSION = 'v1'
 
     def _target(self, sys_id=None):
@@ -254,7 +199,7 @@ class AttachmentAPI(APIClient):
 
     def get(self, sys_id=None):
         params = {}
-        r = self._client.session.get(self._target(sys_id),
+        r = self.session.get(self._target(sys_id),
                                      params=params)
         self._validate_response(r)
         return r
@@ -262,57 +207,18 @@ class AttachmentAPI(APIClient):
     def get_file(self, sys_id):
         """ This may be dangerous, as stream is true and if not fully read could leave open handles"""
         url = "{}/file".format(self._target(sys_id))
-        r = self._client.session.get(url, stream=True)
+        r = self.session.get(url, stream=True)
         return r
 
     def list(self, params=None):
         params = self._set_params(params)
-        r = self._client.session.get(self._url,
+        r = self.session.get(self._url,
                                      params=params,
                                      headers=dict(Accept="application/json"))
-        self._client._validate_response(r)
+        self._validate_response(r)
         return r
 
-class AttachmentClient(object):
-    """
-    Internal class.
-    """
-    API_VERSION = 'v1'
-
-    def __init__(self, client):
-        self._client = client
-        self._url = "{url}/api/now/{version}/attachment".format(url=self._client.instance, version=self.API_VERSION)
-
-    def _get(self, sys_id=None):
-        params = {}
-        url = self._url
-        if sys_id:
-            url = "%s/%s" % (url, sys_id)
-        r = self._client.session.get(url,
-                             params=params,
-                             headers=dict(Accept="application/json"))
-        return r
-
-    def _get_file(self, sys_id, stream=True):
-        url = "%s/%s/file" % (self._url, sys_id)
-        r = self._client.session.get(url,
-                             stream=stream)
-        return r
-
-    def _set_params(self, record=None):
-        params = {} if record == None else record._parameters()
-        params['sysparm_suppress_pagination_header'] = 'true'  # Required for large queries
-        return params
-
-    def _list(self, params=None):
-        params = self._set_params(params)
-        r = self._client.session.get(self._url,
-                             params=params,
-                             headers=dict(Accept="application/json"))
-        self._client._validate_response(r)
-        return r
-
-    def _upload_file(self, file_name, table_name, table_sys_id, file, content_type, encryption_context=None):
+    def upload_file(self, file_name, table_name, table_sys_id, file, content_type, encryption_context=None):
         url = "%s/file" % (self._url)
         params = {}
         params['file_name'] = file_name
@@ -325,16 +231,87 @@ class AttachmentClient(object):
         if content_type:
             headers['Content-Type'] = content_type
 
-        r = self._client.session.post(url,
-                            params=params,
-                            headers=headers,
-                            data=file)
-        self._client._validate_response(r)
+        r = self.session.post(url,
+                              params=params,
+                              headers=headers,
+                              data=file)
+        self._validate_response(r)
         return r
 
-    def _delete(self, sys_id):
+    def delete(self, sys_id):
         url = "%s/%s" % (self._url, sys_id)
-        r = self._client.session.delete(url)
+        r = self.session.delete(url)
         return r
 
 
+
+class BatchAPI(APIClient):
+    API_VERSION = 'v1'
+
+    def __init__(self, client, batch_size=50):
+        APIClient.__init__(client)
+        self.request_id = 0
+        self._queue = []
+        self.batch_size = batch_size
+
+    def _target(self):
+        return "{url}/api/now/{version}/batch".format(url=self._client.instance, version=self.API_VERSION)
+
+    def _generate_request(self, method, url, headers, body):
+        return {
+            'method': method,
+            'url': url,
+            'headers': headers,
+            'body': body
+        }
+
+    def execute(self):
+        rid = ++request_id
+        body = {
+            'batch_request_id':rid,
+            'rest_requests': []
+        }
+        r = self.session.post(self._target(),
+                              json=body)
+
+    def list(self, record): # querying is not a batched action... right?
+        params = self._set_params(record)
+        target_url = "{url}/api/now/table/{table}".format(url=self.__instance, table=record.table)
+        r = self.session.get(target_url, params=params)
+        self._validate_response(r)
+        return r
+
+    def get(self, record, sys_id):
+        params = self._set_params(record)
+        if 'sysparm_offset' in params:
+            del params['sysparm_offset']
+        r = self.session.get(self._target(record.table, sys_id),
+                             params=params)
+        r = requests.Request('GET', _self._target(record.table))
+        pass
+
+    def put(self, record):
+        self.patch(record)
+
+    def patch(self, record):
+        body = record.serialize()
+        params = self._set_params()
+        r = self.session.put(self._target(record.table, record.sys_id),
+                             params=params,
+                             json=body)
+        self._validate_response(r)
+        return r
+
+    def post(self, record):
+        body = record.serialize()
+        params = self._set_params()
+        r = self.session.post(self._target(record.table),
+                              params=params,
+                              json=body)
+        self._validate_response(r)
+        return r
+
+    def delete(self, record):
+        r = self.session.delete(self._target(record.table, record.sys_id))
+        self._validate_response(r)
+        return r
