@@ -31,18 +31,22 @@ class TestAuth(TestCase):
         except Exception:
             assert 'Should have got an Auth exception'
 
-    def test_oauth(self):
+    def test_oauth_manual(self):
         # Manual setup using legacy oauth
         server = self.c.server
         creds = self.c.credentials
 
-        client_id = 'ac0dd3408c1031006907010c2cc6ef6d' #mobile
-        secret = '7d8o4teb91hmwumraksf' # not actually a secret
+        client_id = self.c.get_value('CLIENT_ID')
+        secret = self.c.get_value('CLIENT_SECRET')
 
         oauth = OAuth2Session(client=LegacyApplicationClient(client_id=client_id))
-        token = oauth.fetch_token(token_url='%s/oauth_token.do' % server,
+        token_url = "%s/oauth_token.do" % server
+
+        token = oauth.fetch_token(token_url=token_url,
                               username=creds[0], password=creds[1], client_id=client_id,
                               client_secret=secret)
+
+        print("failed after this")
 
         client = ServiceNowClient(self.c.server, oauth)
         gr = client.GlideRecord('sys_user')
@@ -54,38 +58,30 @@ class TestAuth(TestCase):
         server = self.c.server
         creds = self.c.credentials
 
-        client_id = 'ac0dd3408c1031006907010c2cc6ef6d' #mobile
-        secret = '7d8o4teb91hmwumraksf' # not actually a secret
+        client_id = self.c.get_value('CLIENT_ID')
+        secret = self.c.get_value('CLIENT_SECRET')
 
         client = ServiceNowClient(self.c.server, ServiceNowOAuth2(creds[0], creds[1], client_id, secret))
         gr = client.GlideRecord('sys_user')
         gr.fields = 'sys_id'
         self.assertTrue(gr.get('6816f79cc0a8016401c5a33be04be441'))
 
-    def test_jwt(self):
+    def nop_test_jwt(self):
         """
         we act as our own client here, which you should not do.
         """
-        import jwt
-        client_id = '91c9a3503e5e15104efa8fea3b37c3dd'
-        client_secret = self.c.get_value('jwt-client-secret')
-        key = self.c.get_value('jwt-shared-key')
 
-        payload = {
-            'aud': client_id,
-            'iss': client_id,
-            'sub': 'itil',
-            'exp': int(time.time()+30), # expire in 30 seconds
-        }
-        token = jwt.encode(payload, key, algorithm="HS256")
-
-
-        auth = ServiceNowJWTAuth(client_id, client_secret, token)
+        # to test this we would 1st: get a JWT from a provider
+        # jwt = getJwtFromOkta(user, pass)
+        # then we would do something like this...
+        '''
+        auth = ServiceNowJWTAuth(client_id, client_secret, jwt)
         client = ServiceNowClient(self.c.server, auth)
 
         gr = client.GlideRecord('sys_user')
         gr.fields = 'sys_id'
         assert gr.get('6816f79cc0a8016401c5a33be04be441'), "did not jwt auth"
+        '''
 
 
 

@@ -376,6 +376,7 @@ class GlideRecord(object):
         """
         Deletes the current query, funny enough this is the same as iterating and deleting each record since we're
         using the REST api.
+
         :return: ``True`` on success
         :raise:
             :AuthenticationException: If we do not have rights

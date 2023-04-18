@@ -6,6 +6,7 @@ build
 *.egg-info
 .DS_Store
 settings-test.yaml
+.env
 docs/_build
 .password
 .python-version
