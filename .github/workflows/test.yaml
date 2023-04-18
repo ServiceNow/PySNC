@@ -5,7 +5,7 @@ on: [pull_request]
 jobs:
   install-test:
     runs-on: ubuntu-latest
-    if: github.repository_owner == 'ServiceNow'
+    #if: github.repository_owner == 'ServiceNow'
     strategy:
       max-parallel: 1
       matrix:
