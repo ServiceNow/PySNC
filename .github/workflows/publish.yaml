@@ -41,7 +41,7 @@ jobs:
           mkdir gh-pages
           touch gh-pages/.nojekyll
           cd docs
-          poetry run make clean html
+          poetry run sphinx-build -b html . _build
           cp -r _build/* ../gh-pages/
       - name: publish docs
         uses: JamesIves/github-pages-deploy-action@4.1.4

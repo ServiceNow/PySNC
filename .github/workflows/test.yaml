@@ -1,11 +1,13 @@
 name: PySNC Test
 
-on: [pull_request]
+on:
+  pull_request:
+    types: [opened, reopened, synchronize]
 
 jobs:
   install-test:
     runs-on: ubuntu-latest
-    if: github.repository_owner == 'ServiceNow'
+    if: ${{ github.event.pull_request.head.repo.full_name == 'ServiceNow/PySNC' }}
     strategy:
       max-parallel: 1
       matrix:
@@ -14,15 +16,19 @@ jobs:
       PYSNC_SERVER: ${{ secrets.PYSNC_SERVER }}
       PYSNC_USERNAME: ${{ secrets.PYSNC_USERNAME }}
       PYSNC_PASSWORD: ${{ secrets.PYSNC_PASSWORD }}
-      PYSNC_CLIENT_ID: ${{ secrets.PYSNC_CLIENT_ID }}
-      PYSNC_CLIENT_SECRET: ${{ secrets.PYSNC_CLIENT_SECRET }}
+      PYSNC_JWT_CLIENT_SECRET: ${{ secrets.PYSNC_JWT_CLIENT_SECRET }}
+      PYSNC_JWT_SHARED_KEY: ${{ secrets.PYSNC_JWT_SHARED_KEY }}
     steps:
-    - name: check out repository
-      uses: actions/checkout@v3
+    - uses: actions/checkout@v3
     - name: set up python ${{ matrix.python-version }}
       uses: actions/setup-python@v4
       with:
         python-version: ${{ matrix.python-version }}
+    - name: cache poetry install
+      uses: actions/cache@v2
+      with:
+        path: ~/.local
+        key: poetry-1.4.2-0
     - name: setup poetry
       uses: snok/install-poetry@v1
       with:
@@ -31,17 +37,18 @@ jobs:
         virtualenvs-in-project: true
     - name: cache deps
       id: cache-deps
-      uses: actions/cache@v3
+      uses: actions/cache@v2
       with:
         path: .venv
-        key: pydeps-${{ steps.setup-python.outputs.python-version }}-${{ hashFiles('**/poetry.lock') }}
+        key: pydeps-${{ hashFiles('**/poetry.lock') }}
     - name: install dependencies
-      if: steps.cache-deps.outputs.cache-hit != 'true'
-      run: poetry install --no-interaction --no-root
-    - name: install project
-      run: poetry install --no-interaction
+      if: steps.cache-pipenv.outputs.cache-hit != 'true'
+      run: |
+       poetry install --no-interaction --no-root
     - name: run tests
-      run: poetry run pytest
+      run: |
+        poetry run pytest
     - name: build docs
       working-directory: ./docs
-      run: poetry run make clean html
+      run: |
+        poetry run sphinx-build -b html . _build
