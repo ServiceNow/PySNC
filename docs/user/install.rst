@@ -3,10 +3,10 @@
 Installation of PySNC
 =====================
 
-As such:
+As such: ::
 
-    $ pip install pysnc
+   $ pip install pysnc
 
-Or:
+Or: ::
 
     $ python setup.py install

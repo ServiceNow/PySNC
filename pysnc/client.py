@@ -52,7 +52,7 @@ class ServiceNowClient(object):
         self.tableapi = TableAPI(self)
         self.attachment = AttachmentClient(self)
 
-    def GlideRecord(self, table, batch_size=100):
+    def GlideRecord(self, table, batch_size=100) -> GlideRecord:
         """
         Create a :class:`pysnc.GlideRecord` for a given table against the current client
 
@@ -62,7 +62,7 @@ class ServiceNowClient(object):
         """
         return GlideRecord(self, table, batch_size)
 
-    def Attachment(self, table, sys_id=None):
+    def Attachment(self, table, sys_id=None) -> Attachment:
         """
         Create an Attachment object for the current client
 
@@ -71,7 +71,7 @@ class ServiceNowClient(object):
         return Attachment(self, table, sys_id)
 
     @property
-    def instance(self):
+    def instance(self) -> str:
         """
         The instance we're associated with.
 
@@ -88,7 +88,7 @@ class ServiceNowClient(object):
         return self.__session
 
     @staticmethod
-    def guess_is_sys_id(value):
+    def guess_is_sys_id(value) -> bool:
         """
         Attempt to guess if this is a probable sys_id
 

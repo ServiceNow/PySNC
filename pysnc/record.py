@@ -199,7 +199,7 @@ class GlideRecord(object):
 
         :return: Give us a new :class:`GlideRecord` containing only the current record
         """
-        gr = GlideRecord(None, self.__table)
+        gr = GlideRecord(self._client, self.__table)
         c = self.__results[self.__current]
         gr.__results = [copy.deepcopy(c)]
         gr.__current = 0
@@ -327,7 +327,8 @@ class GlideRecord(object):
         elif code == 401:
             raise AuthenticationException(response.json()['error'])
         else:
-            raise InsertException(response.json(), status_code=code)
+            rjson = response.json()
+            raise InsertException(rjson['error'] if 'error' in rjson else f"{code} response on insert -- expected 201", status_code=code)
 
     def update(self):
         """
@@ -375,6 +376,7 @@ class GlideRecord(object):
         """
         Deletes the current query, funny enough this is the same as iterating and deleting each record since we're
         using the REST api.
+
         :return: ``True`` on success
         :raise:
             :AuthenticationException: If we do not have rights

@@ -10,7 +10,10 @@ def get_instance(instance):
     :raise: InstanceException
     """
     if '://' in instance:
-        return instance.rstrip('/')
+        instance = instance.rstrip('/')
+        if instance.startswith('http://'):
+            raise InstanceException("Must provide https:// url not http://")
+        return instance
     if '.' not in instance:
         return 'https://%s.service-now.com' % instance
 

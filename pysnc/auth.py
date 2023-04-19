@@ -47,35 +47,28 @@ class ServiceNowOAuth2(object):
 
 class ServiceNowJWTAuth(AuthBase):
 
-    def __init__(self, client_id, client_secret, assertion):
+    def __init__(self, client_id, client_secret, jwt):
         """
+        You must obtain a signed JWT from your OIDC provider, e.g. okta or auth0 or the like.
+        We then use that JWT to issue an OAuth refresh token, that we then use to auth.
         """
-        assert client_id, "Requires client_id"
-        assert client_secret, "Requires the secret"
-        assert assertion, "Requires assertion, aka the JWT from your providver"
-        self.__secret = client_secret
         self.client_id = client_id
-        self.assertion = assertion
+        self.__secret = client_secret
+        self.__jwt = jwt
         self.__token = None
         self.__expires_at = None
-
-    def get_assertion(self):
-        """
-        if you need to over-ride this.
-        """
-        return self.assertion
 
     def _get_access_token(self, request):
         url = parse_url(request.url)
         token_url = f"{url.scheme}://{url.host}/oauth_token.do"
         headers = {
-            'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8'
+            'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
+            'Authentication': f"Bearer {self.__jwt}"
         }
         data = {
             'grant_type': JWT_GRANT_TYPE,
             'client_id': self.client_id,
-            'client_secret': self.__secret,
-            'assertion': self.get_assertion()
+            'client_secret': self.__secret
         }
         r = requests.post(token_url, headers=headers, data=data)
         assert r.status_code == 200, f"Failed to auth, see syslogs {r.text}"
