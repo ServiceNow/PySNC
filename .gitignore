@@ -12,3 +12,7 @@ docs/_build
 .python-version
 .tox
 Pipefile.lock
+*.key
+*.crt
+*.pem
+*.pkcs12

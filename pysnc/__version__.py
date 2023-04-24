@@ -1,2 +1,3 @@
+import importlib.metadata
 __title__ = 'pysnc'
-__version__ = '1.0.7'
+__version__ = importlib.metadata.version(__title__)

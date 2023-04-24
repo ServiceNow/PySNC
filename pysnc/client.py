@@ -2,11 +2,13 @@ import requests
 from requests.auth import AuthBase
 import re
 import logging
+import base64
+from typing import Callable, Any
 from .exceptions import *
 from .record import GlideRecord
 from .attachment import Attachment
 from .utils import get_instance
-from .auth import ServiceNowOAuth2
+from .auth import ServiceNowFlow
 
 
 class ServiceNowClient(object):
@@ -16,13 +18,16 @@ class ServiceNowClient(object):
     :param str instance: The instance to connect to e.g. ``https://dev00000.service-now.com`` or ``dev000000``
     :param auth: Username password combination ``(name,pass)`` or :class:`pysnc.ServiceNowOAuth2` or ``requests.sessions.Session`` or ``requests.auth.AuthBase`` object
     :param proxy: HTTP(s) proxy to use as a str ``'http://proxy:8080`` or dict ``{'http':'http://proxy:8080'}``
-    :param bool verify: Verify the SSL/TLS certificate. Useful if you're using a self-signed HTTPS proxy.
+    :param bool verify: Verify the SSL/TLS certificate OR the certificate to use. Useful if you're using a self-signed HTTPS proxy.
+    :param cert: if String, path to ssl client cert file (.pem). If Tuple, (‘cert’, ‘key’) pair.
     """
-    def __init__(self, instance, auth, proxy=None, verify=True):
+    def __init__(self, instance, auth, proxy=None, verify=None, cert=None):
         self._log = logging.getLogger(__name__)
         self.__instance = get_instance(instance)
 
-        if isinstance(auth, (list, tuple)) and len(auth) == 2:
+        if auth is not None and cert is not None:
+            raise AuthenticationException('Cannot specify both auth and cert')
+        elif isinstance(auth, (list, tuple)) and len(auth) == 2:
             self.__user = auth[0]
             auth = requests.auth.HTTPBasicAuth(auth[0], auth[1])
 
@@ -34,8 +39,10 @@ class ServiceNowClient(object):
         elif isinstance(auth, requests.sessions.Session):
             # maybe we've got an oauth token? Let this be permissive
             self.__session = auth
-        elif isinstance(auth, ServiceNowOAuth2):
+        elif isinstance(auth, ServiceNowFlow):
             self.__session = auth.authenticate(self.__instance)
+        elif cert is not None:
+            self.__session.cert = cert
         else:
             raise AuthenticationException('No valid authentication method provided')
 
@@ -45,12 +52,16 @@ class ServiceNowClient(object):
             else:
                 proxies = proxy
             self.__session.proxies = proxies
+            if verify is None:
+                verify = True  # default to verify with proxy
+        if verify is not None:
             self.__session.verify = verify
 
         self.__session.headers.update(dict(Accept="application/json"))
 
-        self.tableapi = TableAPI(self)
-        self.attachment = AttachmentClient(self)
+        self.table_api = TableAPI(self)
+        self.attachment_api = AttachmentAPI(self)
+        self.batch_api = BatchAPI(self)
 
     def GlideRecord(self, table, batch_size=100) -> GlideRecord:
         """
@@ -62,13 +73,13 @@ class ServiceNowClient(object):
         """
         return GlideRecord(self, table, batch_size)
 
-    def Attachment(self, table, sys_id=None) -> Attachment:
+    def Attachment(self, table) -> Attachment:
         """
         Create an Attachment object for the current client
 
         :return: :class:`pysnc.Attachment`
         """
-        return Attachment(self, table, sys_id)
+        return Attachment(self, table)
 
     @property
     def instance(self) -> str:
@@ -101,14 +112,14 @@ class ServiceNowClient(object):
 
 class API(object):
 
-    def __init__(self, client, table):
+    def __init__(self, client):
         self._client = client
-        self._table = table
 
     @property
     def session(self):
         return self._client.session
 
+    # noinspection PyMethodMayBeStatic
     def _set_params(self, record=None):
         params = {} if record == None else record._parameters()
         params['sysparm_display_value'] = 'all'
@@ -116,76 +127,96 @@ class API(object):
         params['sysparm_suppress_pagination_header'] = 'true'  # Required for large queries
         return params
 
-    def _validate_response(self, response):
+    # noinspection PyMethodMayBeStatic
+    def _validate_response(self, response: requests.Response) -> None:
+        assert response is not None, f"response argument required"
         code = response.status_code
         if code >= 400:
             try:
                 rjson = response.json()
+                if code == 404:
+                    raise NotFoundException(rjson)
                 if code == 403:
                     raise RoleException(rjson)
                 if code == 401:
                     raise AuthenticationException(rjson)
-                if code == 400:
-                    raise RequestException(rjson)
-            except JSONDecodeError:
+                raise RequestException(rjson)
+            except requests.exceptions.JSONDecodeError:
                 raise RequestException(response.text)
 
-    def _send(self, req):
+    def _send(self, req, stream=False) -> requests.Response:
+        # https://stackoverflow.com/a/55889308/253594
+        # if we're oauth, we have to do magic for prepared requests
+
+        if hasattr(self.session, 'token'):
+            try:
+                req.url, req.headers, req.data = self.session._client.add_token(
+                    req.url, http_method=req.method, body=req.data, headers=req.headers
+                )
+            except Exception as e:
+                if e.__class__.__name__ == 'TokenExpiredError':
+                    # use refresh token to get new token
+                    if self.session.auto_refresh_url:
+                        if hasattr(req, 'auth'):
+                            req.auth = None
+                        self.session.refresh_token(self.session.auto_refresh_url)
+                    else:
+                        raise e
+                else:
+                    raise e
+
         request = self.session.prepare_request(req)
-        r = self.session.send(request)
+        r = self.session.send(request, stream=stream)
         self._validate_response(r)
         return r
 
+
 class TableAPI(API):
 
-    def _target(self, table, sys_id=None):
-        target = "{url}/api/now/table/{table}".format(url=self.__instance, table=table)
+    def _target(self, table, sys_id=None) -> str:
+        target = "{url}/api/now/table/{table}".format(url=self._client.instance, table=table)
         if sys_id:
             target = "{}/{}".format(target, sys_id)
         return target
 
-    def list(self, record):
+    def list(self, record: GlideRecord) -> requests.Response:
         params = self._set_params(record)
         target_url = self._target(record.table)
 
         req = requests.Request('GET', target_url, params=params)
         return self._send(req)
 
-    def get(self, record, sys_id):
+    def get(self, record: GlideRecord, sys_id: str) -> requests.Response:
         params = self._set_params(record)
         # delete extra stuff
         if 'sysparm_offset' in params:
             del params['sysparm_offset']
-        r = self.session.get(self._target(record.table, sys_id),
-                             params=params)
-        self._validate_response(r)
-        return r
 
-    def put(self, record):
-        self.patch(record)
+        target_url = self._target(record.table, sys_id)
+        req = requests.Request('GET', target_url, params=params)
+        return self._send(req)
 
-    def patch(self, record):
+    def put(self, record: GlideRecord) -> requests.Response:
+        return self.patch(record)
+
+    def patch(self, record: GlideRecord) -> requests.Response:
         body = record.serialize()
         params = self._set_params()
-        r = self.session.put(self._target(record.table, record.sys_id),
-                             params=params,
-                             json=body)
-        self._validate_response(r)
-        return r
+        target_url = self._target(record.table, record.sys_id)
+        req = requests.Request('PATCH', target_url, params=params, json=body)
+        return self._send(req)
 
-    def post(self, record):
+    def post(self, record: GlideRecord) -> requests.Response:
         body = record.serialize()
         params = self._set_params()
-        r = self.session.post(self._target(record.table),
-                              params=params,
-                              json=body)
-        self._validate_response(r)
-        return r
+        target_url = self._target(record.table)
+        req = requests.Request('POST', target_url, params=params, json=body)
+        return self._send(req)
 
-    def delete(self, record):
-        r = self.session.delete(self._target(record.table, record.sys_id))
-        self._validate_response(r)
-        return r
+    def delete(self, record: GlideRecord) -> requests.Response:
+        target_url = self._target(record.table, record.sys_id)
+        req = requests.Request('DELETE', target_url)
+        return self._send(req)
 
 
 class AttachmentAPI(API):
@@ -198,120 +229,138 @@ class AttachmentAPI(API):
         return target
 
     def get(self, sys_id=None):
-        params = {}
-        r = self.session.get(self._target(sys_id),
-                                     params=params)
-        self._validate_response(r)
-        return r
+        target_url = self._target(sys_id)
+        req = requests.Request('GET', target_url, params={})
+        return self._send(req)
 
-    def get_file(self, sys_id):
-        """ This may be dangerous, as stream is true and if not fully read could leave open handles"""
-        url = "{}/file".format(self._target(sys_id))
-        r = self.session.get(url, stream=True)
-        return r
+    def get_file(self, sys_id, stream=True):
+        """
+        This may be dangerous, as stream is true and if not fully read could leave open handles
+        One should always ``with api.get_file(sys_id) as f:``
+        """
+        target_url = "{}/file".format(self._target(sys_id))
+        req = requests.Request('GET', target_url)
+        return self._send(req, stream=stream)
 
-    def list(self, params=None):
-        params = self._set_params(params)
-        r = self.session.get(self._url,
-                                     params=params,
-                                     headers=dict(Accept="application/json"))
-        self._validate_response(r)
-        return r
+    def list(self, attachment: Attachment):
+        params = self._set_params(attachment)
+        url = self._target()
+        req = requests.Request('GET', url, params=params, headers=dict(Accept="application/json"))
+        return self._send(req)
 
-    def upload_file(self, file_name, table_name, table_sys_id, file, content_type, encryption_context=None):
-        url = "%s/file" % (self._url)
-        params = {}
-        params['file_name'] = file_name
-        params['table_name'] = table_name
-        params['table_sys_id'] = table_sys_id
+    def upload_file(self, file_name, table_name, table_sys_id, file, content_type=None, encryption_context=None):
+        url = f"{self._target()}/file"
+        params = {'file_name': file_name, 'table_name': table_name, 'table_sys_id': f"{table_sys_id}"}
         if encryption_context:
             params['encryption_context'] = encryption_context
 
-        headers = {'Content-Type': 'application/octet-stream'}
-        if content_type:
-            headers['Content-Type'] = content_type
+        if not content_type:
+            content_type = 'application/octet-stream'
+        headers = {'Content-Type': content_type}
 
-        r = self.session.post(url,
-                              params=params,
-                              headers=headers,
-                              data=file)
-        self._validate_response(r)
-        return r
+        req = requests.Request('POST', url, params=params, headers=headers, data=file)
+        return self._send(req)
 
     def delete(self, sys_id):
-        url = "%s/%s" % (self._url, sys_id)
-        r = self.session.delete(url)
-        return r
+        target_url = self._target(sys_id)
+        req = requests.Request('DELETE', target_url)
+        return self._send(req)
 
 
-
-class BatchAPI(APIClient):
+class BatchAPI(API):
     API_VERSION = 'v1'
 
-    def __init__(self, client, batch_size=50):
-        APIClient.__init__(client)
-        self.request_id = 0
-        self._queue = []
-        self.batch_size = batch_size
+    def __init__(self, client):
+        API.__init__(self, client)
+        self.__requests = []
+        self.__hooks = {}
+        self.__request_id = 0
 
-    def _target(self):
+    def _batch_target(self):
         return "{url}/api/now/{version}/batch".format(url=self._client.instance, version=self.API_VERSION)
 
-    def _generate_request(self, method, url, headers, body):
-        return {
-            'method': method,
-            'url': url,
+    def _table_target(self, table, sys_id=None):
+        # note: the instance is still in here so requests behaves normally when preparing requests
+        target = "{url}/api/now/table/{table}".format(url=self._client.instance, table=table)
+        if sys_id:
+            target = "{}/{}".format(target, sys_id)
+        return target
+
+    def _next_id(self):
+        self.__request_id += 1
+        return self.__request_id
+
+    def _add_request(self, request: requests.Request, hook: Callable):
+        prepared = request.prepare()
+        request_id = str(id(prepared))
+        headers = [{'name': k, 'value': v} for (k,v) in prepared.headers.items()]
+        self.__hooks[request_id] = hook
+        relative_url = prepared.url[prepared.url.index('/', 8):] ## slice from the first non https:// slash
+
+        now_request = {
+            'id': request_id,
+            'method': prepared.method,
+            'url': relative_url,
             'headers': headers,
-            'body': body
+            'exclude_response_headers': True
         }
+        if prepared.body:
+            now_request['body'] = base64.b64encode(prepared.body).decode()
+        self.__requests.append(now_request)
+
+    def _transform_response(self, serviced_request):
+        if 'body' in serviced_request:
+            serviced_request['body'] = base64.b64decode(serviced_request['body'])
+        return serviced_request
 
     def execute(self):
-        rid = ++request_id
+        bid = self._next_id()
         body = {
-            'batch_request_id':rid,
-            'rest_requests': []
+            'batch_request_id': bid,
+            'rest_requests': self.__requests
         }
-        r = self.session.post(self._target(),
-                              json=body)
-
-    def list(self, record): # querying is not a batched action... right?
-        params = self._set_params(record)
-        target_url = "{url}/api/now/table/{table}".format(url=self.__instance, table=record.table)
-        r = self.session.get(target_url, params=params)
+        r = self.session.post(self._batch_target(), json=body)
         self._validate_response(r)
-        return r
+        data = r.json()
+        try:
+            assert str(bid) == data['batch_request_id'], f"How did we get a response id different from {bid}"
+            for response in data['serviced_requests']:
+                assert response['id'] in self.__hooks, f"Somehow has no hook for {response['id']}"
+                self.__hooks[response['id']](**self._transform_response(response))
+            for response in data['unserviced_requests']:
+                assert response['id'] in self.__hooks, f"Somehow has no hook for {response['id']}"
+                self.__hooks[response['id']](**self._transform_response(response))
+        finally:
+            self.__requests = []
+            self.__hooks = {}
 
-    def get(self, record, sys_id):
+    def get(self, record: GlideRecord, sys_id: str, hook: Callable) -> None:
         params = self._set_params(record)
         if 'sysparm_offset' in params:
             del params['sysparm_offset']
-        r = self.session.get(self._target(record.table, sys_id),
-                             params=params)
-        r = requests.Request('GET', _self._target(record.table))
-        pass
+        params = self._set_params(record)
+        target_url = self._table_target(record.table, sys_id)
+        req = requests.Request('GET', target_url, params=params)
+        self._add_request(req, hook)
 
-    def put(self, record):
-        self.patch(record)
+    def put(self, record: GlideRecord, hook: Callable) -> None:
+        self.patch(record, hook)
 
-    def patch(self, record):
+    def patch(self, record: GlideRecord, hook: Callable) -> None:
         body = record.serialize()
         params = self._set_params()
-        r = self.session.put(self._target(record.table, record.sys_id),
-                             params=params,
-                             json=body)
-        self._validate_response(r)
-        return r
+        target_url = self._table_target(record.table, record.sys_id)
+        req = requests.Request('PATCH', target_url, params=params, json=body)
+        self._add_request(req, hook)
 
-    def post(self, record):
+    def post(self, record: GlideRecord, hook: Callable):
         body = record.serialize()
         params = self._set_params()
-        r = self.session.post(self._target(record.table),
-                              params=params,
-                              json=body)
-        self._validate_response(r)
-        return r
+        target_url = self._table_target(record.table)
+        req = requests.Request('POST', target_url, params=params, json=body)
+        self._add_request(req, hook)
 
-    def delete(self, record):
-        r = self.session.delete(self._target(record.table, record.sys_id))
-        self._validate_response(r)
-        return r
+    def delete(self, record: GlideRecord, hook: Callable):
+        target_url = self._table_target(record.table, record.sys_id)
+        req = requests.Request('DELETE', target_url)
+        self._add_request(req, hook)

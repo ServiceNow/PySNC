@@ -1,7 +1,3 @@
-class PackageNotFound(Exception):
-    pass
-
-
 class AuthenticationException(Exception):
     pass
 
@@ -40,6 +36,10 @@ class DeleteException(RestException):
     pass
 
 
+class NotFoundException(Exception):
+    pass
+
+
 class RequestException(Exception):
     pass
 
@@ -47,3 +47,5 @@ class RequestException(Exception):
 class InstanceException(Exception):
     pass
 
+class UploadException(Exception):
+    pass

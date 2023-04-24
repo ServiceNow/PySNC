@@ -7,7 +7,14 @@ from .utils import get_instance
 
 JWT_GRANT_TYPE = 'urn:ietf:params:oauth:grant-type:jwt-bearer'
 
-class ServiceNowOAuth2(object):
+
+class ServiceNowFlow:
+    def authenticate(self, instance: str) -> requests.Session:
+        raise AuthenticationException('authenticate not implemented')
+
+
+# note: not extending LegacyApplicationClient mostly to make oauth libs optional
+class ServiceNowPasswordGrantFlow(ServiceNowFlow):
 
     def __init__(self, username, password, client_id, client_secret):
         """
@@ -27,7 +34,10 @@ class ServiceNowOAuth2(object):
         self.client_id = client_id
         self.__secret = client_secret
 
-    def authenticate(self, instance):
+    def authorization_url(self, authorization_base_url):
+        return f"{authorization_base_url}/oauth_token.do"
+
+    def authenticate(self, instance: str) -> requests.Session:
         """
         Designed to be called by ServiceNowClient - internal method.
         """
@@ -35,8 +45,10 @@ class ServiceNowOAuth2(object):
             from oauthlib.oauth2 import LegacyApplicationClient
             from requests_oauthlib import OAuth2Session
 
-            oauth = OAuth2Session(client=LegacyApplicationClient(client_id=self.client_id))
-            oauth.fetch_token(token_url='%s/oauth_token.do' % instance,
+            oauth = OAuth2Session(client=LegacyApplicationClient(client_id=self.client_id),
+                                  auto_refresh_url=self.authorization_url(instance),
+                                  auto_refresh_kwargs=dict(client_id=self.client_id, client_secret=self.__secret))
+            oauth.fetch_token(token_url=self.authorization_url(instance),
                               username=self.__username, password=self.__password, client_id=self.client_id,
                               client_secret=self.__secret)
             self.__password = None  # no longer need this.

@@ -6,27 +6,27 @@
 Welcome to PySNC's documentation!
 =================================
 
-Release v\ |version|. (:ref:`Installation <install>`)
+Release v\ |version| (:ref:`Installation <install>`)
 
 ------------------
 
-PySNC was created to fill the need for a familiar interface to query data from an instance from python. The interface, modeled after GlideRecord, provides developers who already know ServiceNow record queries an easy, quick, and consistent method to interact with platform data.
+PySNC was created to fill the need for a familiar interface to query data from an instance from python. The interface, modeled after `GlideRecord <https://developer.servicenow.com/dev.do#!/reference/api/latest/client/c_GlideRecordClientSideAPI>`_, provides developers who already know ServiceNow record queries an easy, quick, and consistent method to interact with platform data.
 
-**PySNC at a glance:**
+**Quickstart:**
 
-    >>> client = pysnc.ServiceNowClient('dev00000', ('admin','admin'))
+    >>> client = pysnc.ServiceNowClient('dev00000', ('admin', password))
     >>> gr = client.GlideRecord('sys_user')
     >>> gr.add_query('user_name', 'admin')
     >>> gr.query()
     >>> for r in gr:
-    ...     print(r.sys_id)
+    ...     print(f"{r.user_name}'s sys_id is {r.sys_id}")
     ...
-    6816f79cc0a8016401c5a33be04be441
+    admin's sys_id is 6816f79cc0a8016401c5a33be04be441
 
 Or more traditionally:
 
     >>> while gr.next():
-    ...     print(gr.sys_id)
+    ...     print(gr.get_value('sys_id'))
     ...
     6816f79cc0a8016401c5a33be04be441
 
