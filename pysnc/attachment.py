@@ -5,16 +5,19 @@ from pathlib import Path
 from .query import *
 from .exceptions import *
 
-class Attachment(object):
+
+class Attachment:
     MAX_MEM_SIZE = 0xFFFF
 
-    #TODO refactor this to use a .get method
-    def __init__(self, client, table, sys_id=None):
+    # TODO refactor this to use a .get method
+    def __init__(self, client, table):
+        """
+        :param str table: the table we are associated with
+        """
         self.__is_iter = False
         self._client = client
         self._log = logging.getLogger(__name__)
         self._table = table
-        self._sys_id = sys_id
         self.__results = []
         self.__current = -1
         self.__page = -1
@@ -24,8 +27,6 @@ class Attachment(object):
         self.__query = Query(table)
         # we need to default the table
         self.add_query('table_name', table)
-        if sys_id != None:
-            self.add_query('table_sys_id', sys_id)
 
     def _clear_query(self):
         self.__query = Query(self.__table)
@@ -72,17 +73,17 @@ class Attachment(object):
         :return: ``True`` or ``False`` based on success
         """
         l = len(self.__results)
-        if l > 0 and self.__current+1 < l:
+        if l > 0 and self.__current + 1 < l:
             self.__current = self.__current + 1
             if self.__is_iter:
                 return self
             return True
         if self.__total > 0 and \
-                        (self.__current+1) < self.__total and \
-                        self.__total > len(self.__results) and \
-                        _recursive is False:
+                (self.__current + 1) < self.__total and \
+                self.__total > len(self.__results) and \
+                _recursive is False:
             if self.__limit:
-                if self.__current+1 < self.__limit:
+                if self.__current + 1 < self.__limit:
                     self.query()
                     return self.next(_recursive=True)
             else:
@@ -93,13 +94,7 @@ class Attachment(object):
             raise StopIteration()
         return False
 
-    def getAsFile(self, chunk_size=None):
-        '''
-        Depricated. use asTempFile(...) instead
-        '''
-        return self.asTempFile(chunk_size)
-
-    def asTempFile(self, chunk_size=512):
+    def as_temp_file(self, chunk_size: int = 512) -> SpooledTemporaryFile:
         """
         Return the attachment as a TempFile
 
@@ -107,10 +102,11 @@ class Attachment(object):
         :return: SpooledTemporaryFile
         """
         assert self._current(), "Cannot read nothing, iterate the attachment"
-        tf = SpooledTemporaryFile(max_size=1024*1024, mode='w+b')
-        r = self._client.attachment._get_file(self.sys_id)
-        for chunk in r.iter_content(chunk_size):
-            tf.write(chunk)
+        tf = SpooledTemporaryFile(max_size=1024 * 1024, mode='w+b')
+
+        with self._client.attachment_api.get_file(self.sys_id) as r:
+            for chunk in r.iter_content(chunk_size):
+                tf.write(chunk)
         tf.seek(0)
         return tf
 
@@ -124,9 +120,9 @@ class Attachment(object):
         if p.is_dir():
             p = p / self.file_name
         with open(p, 'wb') as f:
-            r = self._client.attachment._get_file(self.sys_id)
-            for chunk in r.iter_content(chunk_size):
-                f.write(chunk)
+            with self._client.attachment_api.get_file(self.sys_id) as r:
+                for chunk in r.iter_content(chunk_size):
+                    f.write(chunk)
         return p
 
     def read(self):
@@ -135,7 +131,7 @@ class Attachment(object):
         :return: b''
         """
         assert self._current(), "Cannot read nothing, iterate the attachment"
-        return self._client.attachment._get_file(self.sys_id, stream=False).content
+        return self._client.attachment_api.get_file(self.sys_id, stream=False).content
 
     def readlines(self, encoding='UTF-8', delimiter='\n'):
         """
@@ -155,26 +151,41 @@ class Attachment(object):
             :AuthenticationException: If we do not have rights
             :RequestException: If the transaction is canceled due to execution time
         """
-        response = self._client.attachment._list(self)
-        code = response.status_code
-        if code == 200:
-            try:
-                self.__results = self.__results + response.json()['result']
-                self.__page = self.__page + 1
-                self.__total = int(response.headers['X-Total-Count'])
-            except Exception as e:
-                if 'Transaction cancelled: maximum execution time exceeded' in response.text:
-                    raise RequestException('Maximum execution time exceeded. Lower batch size (< %s).' % self.__batch_size)
-                else:
-                    traceback.print_exc()
-                    self._log.debug(response.text)
-                    raise e
+        response = self._client.attachment_api.list(self)
+        try:
+            self.__results = self.__results + response.json()['result']
+            self.__page = self.__page + 1
+            self.__total = int(response.headers['X-Total-Count'])
+        except Exception as e:
+            if 'Transaction cancelled: maximum execution time exceeded' in response.text:
+                raise RequestException(
+                    'Maximum execution time exceeded. Lower batch size (< %s).' % self.__batch_size)
+            else:
+                traceback.print_exc()
+                self._log.debug(response.text)
+                raise e
 
-        elif code == 401:
-            raise AuthenticationException(response.json()['error'])
+    def get(self, sys_id: str) -> bool:
+        """
+        Get a single record, accepting two values. If one value is passed, assumed to be sys_id. If two values are
+        passed in, the first value is the column name to be used. Can return multiple records.
+
+        :param sys_id: the id of the attachment
+        :return: ``True`` or ``False`` based on success
+        """
+        try:
+            response = self._client.attachment_api.get(self, sys_id)
+        except NotFoundException:
+            return False
+        self.__results = [self._transform_result(response.json()['result'])]
+        if len(self.__results) > 0:
+            self.__current = 0
+            self.__total = len(self.__results)
+            return True
+        return False
 
     def delete(self):
-        response = self._client.attachment._delete(self.sys_id)
+        response = self._client.attachment_api.delete(self.sys_id)
         code = response.status_code
         if code != 204:
             raise RequestException(response.text)
@@ -220,10 +231,11 @@ class Attachment(object):
         """
         return self.__query.add_query(name, value, second_value)
 
-    def add_attachment(self, file_name, file, content_type=None, encryption_context=None):
-        if self._sys_id is None:
-            raise UploadException('We can only attach to a specific record')
-        self._client.attachment._upload_file(file_name, self._table, self._sys_id, file, content_type, encryption_context)
+    def add_attachment(self, table_sys_id, file_name, file, content_type=None, encryption_context=None):
+        r = self._client.attachment_api.upload_file(file_name, self._table, table_sys_id, file, content_type,
+                                             encryption_context)
+        print(r.status_code)
+        print(r.text)
 
     def _get_value(self, item, key='value'):
         obj = self._current()
@@ -250,4 +262,3 @@ class Attachment(object):
 
     def __len__(self):
         return self.__total if self.__total else 0
-

@@ -4,9 +4,196 @@ import traceback
 from requests import Request
 from six import string_types
 from collections import OrderedDict
+from datetime import datetime, timezone
+from typing import Any, Union, List
+
 from .query import *
 from .exceptions import *
 from .attachment import Attachment
+
+TIMESTAMP_FORMAT = "%Y-%m-%d %H:%M:%S%z"
+
+
+class GlideElement(object):
+    """
+    Object backing the value/display values of a given record entry.
+    """
+    def __init__(self, name: str, value=None, display_value=None):
+        self._name = name
+        self._value = None
+        self._display_value = None
+        self._changed = False
+        if isinstance(value, dict):
+            self._value = value['value']
+            # only bother to set display value if it's different
+            if self._value != value['display_value']:
+                self._display_value = value['display_value']
+        else:
+            self._value = value
+        if display_value:
+            self._display_value = display_value
+
+    def get_name(self) -> str:
+        """
+        get the name of the field
+        """
+        return self._name
+
+    def get_value(self) -> Any:
+        """
+        get the value of the field
+        """
+        return self._value
+
+    def get_display_value(self) -> Any:
+        """
+        get the display value of the field
+        """
+        if self._display_value:
+            return self._display_value
+        return self.get_value()
+
+    def set_value(self, value):
+        """
+        set the value for the field. Will also set the display_value to `None`
+        """
+        if isinstance(value, GlideElement):
+            value = value.get_value()
+
+        if self._value != value:
+            self._changed = True
+            self._value = value
+            self._display_value = None
+
+    def set_display_value(self, value: Any):
+        """
+        set the display value for the field -- generally speaking does not have any affect upstream (to the server)
+        """
+        if isinstance(value, GlideElement):
+            value = value.get_display_value()
+        if self._display_value != value:
+            self._changed = True
+            self._display_value = value
+
+    def changes(self) -> bool:
+        """
+        :return: if we have changed this value
+        :rtype: bool
+        """
+        return self._changed
+
+    def nil(self) -> bool:
+        """
+        returns True if the value is None or zero length
+
+        :return: if this value is anything
+        :rtype: bool
+        """
+        return not self._value or len(self._value) == 0
+
+    def serialize(self) -> dict:
+        """
+        Returns a dict with the `value`,`display_value` keys
+        """
+        return {
+            'value': self.get_value(),
+            'display_value': self.get_display_value()
+        }
+
+    def date_numeric_value(self) -> int:
+        """
+        Returns the number of milliseconds since January 1, 1970, 00:00:00 GMT for a duration field
+        """
+        return int(self.date_value().timestamp() * 1000)
+
+    def date_value(self) -> datetime:
+        """
+        Returns the current as a UTC datetime or throws if it cannot
+        """
+        # see also https://stackoverflow.com/a/53291299
+        # note: all values are UTC, display values are by user TZ
+        value_with_tz = f"{self.get_value()}+0000"
+        return datetime.strptime(value_with_tz, TIMESTAMP_FORMAT)
+
+    def set_date_numeric_value(self, ms: int) -> None:
+        """
+        Sets the value of a date/time element to the specified number of milliseconds since January 1, 1970 00:00:00 GMT.
+
+        When called, setDateNumericValue() automatically creates the necessary GlideDateTime/GlideDate/GlideDuration object, and then sets the element to the specified value.
+        """
+        dt = datetime.fromtimestamp(ms/1000.0, tz=timezone.utc)
+        self.set_value(dt.strftime(TIMESTAMP_FORMAT)[:-5])  # note: strips UTC from the end
+
+    def __str__(self):
+        #if self._display_value and self._value != self._display_value:
+        #    return dict(value=self._value, display_value=self._display_value)
+        return str(self.get_value())
+
+    def __repr__(self):
+        return f"record.GlideElement(value={self._value!r}, name={self._name!r}, display_value={self._display_value!r}, changed={self._changed!r})"
+
+    def __bool__(self):
+        # help with the truthiness of true/false fields
+        # theoretically could have a false case if we're a string with the value false since we dont know our types
+        if self.get_value() == 'false':
+            return False
+        return bool(self.get_value())
+
+    def __magic(self, attr, arg=None):
+        #print(f"__magic(self, {attr}, {arg}")
+        val = arg.get_value() if isinstance(arg, GlideElement) else arg
+        f = getattr(self.get_value(), attr)
+        return f(val) if val is not None else f()
+
+    def __eq__(self, other):
+        return self.__magic('__eq__', other)
+
+    def __ne__(self, other):
+        return self.__magic('__ne__', other)
+
+    def __len__(self):
+        return self.__magic('__len__')
+
+    def __iter__(self):
+        # unfortunately i don't think we'll ever be smart enough to auto-support List columns
+        return self.__magic('__iter__')
+
+    def __next__(self):
+        return self.__magic('__next__')
+
+
+    ## Note: more complicated type operations than this should probably just be done with the get_value() directly
+    def __add__(self, other):
+        return self.__magic('__add__', other)
+
+    def __sub__(self, other):
+        return self.__magic('__sub__', other)
+
+    def __gt__(self, other):
+        return self.__magic('__gt__', other)
+
+    def __lt__(self, other):
+        return self.__magic('__lt__', other)
+
+    def __le__(self, other):
+        return self.__magic('__le__', other)
+
+    def __ge__(self, other):
+        return self.__magic('__ge__', other)
+
+    def __getattr__(self, item):
+        if item in GlideElement.__class__.__dict__:
+            return self.__getattribute__(item)
+        return getattr(self.get_value(), item)
+
+    def __deepcopy__(self, memo):
+        """
+        ultimately for copy.deepcopy and the use of .pop_record(), avoids recusion doing it this way
+        """
+        ne = GlideElement(self.get_name(), self.get_value())
+        if self._display_value:
+            ne.set_display_value(self._display_value)
+        return ne
 
 
 class GlideRecord(object):
@@ -18,7 +205,7 @@ class GlideRecord(object):
     :param str table: The table are we going to access
     :param int batch_size: Batch size (items returned per HTTP request). Default is ``500``.
     """
-    def __init__(self, client, table, batch_size=500):
+    def __init__(self, client, table: str, batch_size=500):
         self._log = logging.getLogger(__name__)
         self._client = client
         self.__table = table
@@ -79,7 +266,7 @@ class GlideRecord(object):
         return None
 
     @property
-    def table(self):
+    def table(self) -> str:
         """
         :return: The table we are operating on
         """
@@ -88,7 +275,7 @@ class GlideRecord(object):
     def __len__(self):
         return self.get_row_count()
 
-    def get_row_count(self):
+    def get_row_count(self) -> int:
         """
         Glide compatable method.
 
@@ -97,7 +284,7 @@ class GlideRecord(object):
         return self.__total if self.__total is not None else 0
 
     @property
-    def fields(self):
+    def fields(self) -> List[str]:
         """
         :return: Fields in which this record will query OR has queried
         """
@@ -112,7 +299,10 @@ class GlideRecord(object):
         return None
 
     @fields.setter
-    def fields(self, fields):
+    def fields(self, fields: Union[str, List[str]]):
+        """
+        Set the fields to query, in CSV string format or as a list
+        """
         if isinstance(fields, string_types):
             fields = fields.split(',')
         self.__field_limits = fields
@@ -129,31 +319,31 @@ class GlideRecord(object):
         self.__view = view
 
     @property
-    def limit(self):
+    def limit(self) -> int:
         """
         :return: Query number limit
         """
         return self.__limit
 
     @limit.setter
-    def limit(self, count):
+    def limit(self, count: int):
         self.__limit = count
 
     @property
-    def batch_size(self):
+    def batch_size(self) -> int:
         """
         :return: The number of records to query in a single HTTP GET
         """
         return self.__batch_size
 
     @batch_size.setter
-    def batch_size(self, size):
+    def batch_size(self, size: int):
         if self.limit:
             assert size < self.limit
         self.__batch_size = size
 
     @property
-    def location(self):
+    def location(self) -> int:
         """
         Current location within the iteration
         :return: location is -1 if iteration has not started
@@ -162,7 +352,7 @@ class GlideRecord(object):
         return self.__current
 
     @location.setter
-    def location(self, location):
+    def location(self, location: int):
         """
         Set the current location
 
@@ -171,7 +361,7 @@ class GlideRecord(object):
         assert -1 <= location < self.__total
         self.__current = location
 
-    def order_by(self, column):
+    def order_by(self, column: str):
         """
         Set the order in ascending
 
@@ -182,7 +372,7 @@ class GlideRecord(object):
         else:
             self.__order = None
 
-    def order_by_desc(self, column):
+    def order_by_desc(self, column: str):
         """
         Set the order in decending
 
@@ -193,7 +383,7 @@ class GlideRecord(object):
         else:
             self.__order = None
 
-    def pop_record(self):
+    def pop_record(self) -> 'GlideRecord':
         """
         Pop the current record into a new :class:`GlideRecord` object - equivalent to a clone of a singular record
 
@@ -215,11 +405,10 @@ class GlideRecord(object):
         self.__total = 1
         self.__is_new_record = True
 
-    def is_new_record(self):
+    def is_new_record(self) -> bool:
         """
         Is this a new record?
         :return: ``True`` or ``False``
-        :rtype: bool
         """
         return len(self.__results) == 1 and self.__is_new_record
 
@@ -228,11 +417,10 @@ class GlideRecord(object):
         This does make an assumption the guid is a sys_id, if it is not, set the value directly.
 
         :param value: A 32 byte string that is the value
-        :return: None
         """
         value = str(value)
         assert len(value) == 32, "GUID must be a 32 byte string"
-        self.sys_id = value
+        self.set_value('sys_id', value)
 
     def rewind(self):
         """
@@ -244,7 +432,6 @@ class GlideRecord(object):
         """
         Query the table - executes a GET
 
-        :return: void
         :raise:
             :AuthenticationException: If we do not have rights
             :RequestException: If the transaction is canceled due to execution time
@@ -254,7 +441,16 @@ class GlideRecord(object):
             assert isinstance(query, Query), 'cannot query with a non query object'
             self.__query = query
         try:
-            response = self._client._list(self)
+            short_len = len('&'.join([ f"{x}={y}" for (x,y) in self._parameters().items() ]))
+            if short_len > 20000:  # just the approx limit, but a few thousand below (i hope/think)
+
+                def on_resp(r):
+                    nonlocal response
+                    response = r
+                self._client.batch_api.list(self, on_resp)
+                self._client.batch_api.execute()
+            else:
+                response = self._client.table_api.list(self)
         finally:
             self.__query = stored
         code = response.status_code
@@ -276,7 +472,7 @@ class GlideRecord(object):
         elif code == 401:
             raise AuthenticationException(response.json()['error'])
 
-    def get(self, name, value=None):
+    def get(self, name, value=None) -> bool:
         """
         Get a single record, accepting two values. If one value is passed, assumed to be sys_id. If two values are
         passed in, the first value is the column name to be used. Can return multiple records.
@@ -284,29 +480,24 @@ class GlideRecord(object):
         :param value: the ``sys_id`` or the field to query
         :param value2: the field value
         :return: ``True`` or ``False`` based on success
-        :raise:
-            :AuthenticationException: If we do not have rights
         """
-        if value == None:
-            response = self._client._get(self, name)
-            code = response.status_code
-            if code == 200:
-                self.__results = [self._transform_result(response.json()['result'])]
-                if len(self.__results) > 0:
-                    self.__current = 0
-                    self.__total = len(self.__results)
-                    return True
+        if value is None:
+            try:
+                response = self._client.table_api.get(self, name)
+            except NotFoundException:
                 return False
-            elif code == 401:
-                raise AuthenticationException(response.json()['error'])
+            self.__results = [self._transform_result(response.json()['result'])]
+            if len(self.__results) > 0:
+                self.__current = 0
+                self.__total = len(self.__results)
+                return True
+            return False
         else:
             self.add_query(name, value)
             self.query()
-            if self.next():
-                return True
-            return False
+            return self.next()
 
-    def insert(self):
+    def insert(self) -> str:
         """
         Insert a new record.
 
@@ -315,7 +506,7 @@ class GlideRecord(object):
             :AuthenticationException: If we do not have rights
             :InsertException: For any other failure reason
         """
-        response = self._client._post(self)
+        response = self._client.table_api.post(self)
         code = response.status_code
         if code == 201:
             self.__results = [self._transform_result(response.json()['result'])]
@@ -330,7 +521,7 @@ class GlideRecord(object):
             rjson = response.json()
             raise InsertException(rjson['error'] if 'error' in rjson else f"{code} response on insert -- expected 201", status_code=code)
 
-    def update(self):
+    def update(self) -> str:
         """
         Update the current record.
 
@@ -339,14 +530,13 @@ class GlideRecord(object):
             :AuthenticationException: If we do not have rights
             :UpdateException: For any other failure reason
         """
-        response = self._client._put(self)
+        response = self._client.table_api.put(self)
         code = response.status_code
         if code == 200:
-            #self.__results = [response.json()['result']]
-            # TODO: figure out if i should splice in the result...
-            # pro: can avoid data mis-match scenarios
-            # con: unexpected local data-updates without re-query?
-            if len(self.__results) > 0:
+            # splice in the response, mostly important with brs/calc'd fields
+            result = self._transform_result(response.json()['result'])
+            if len(self.__results) > 0: # when would this NOT be true...?
+                self.__results[self.__current] = result
                 return self.sys_id
             return None
         elif code == 401:
@@ -354,7 +544,7 @@ class GlideRecord(object):
         else:
             raise UpdateException(response.json(), status_code=code)
 
-    def delete(self):
+    def delete(self) -> bool:
         """
         Delete the current record
 
@@ -363,7 +553,7 @@ class GlideRecord(object):
             :AuthenticationException: If we do not have rights
             :DeleteException: For any other failure reason
         """
-        response = self._client._delete(self)
+        response = self._client.table_api.delete(self)
         code = response.status_code
         if code == 204:
             return True
@@ -372,7 +562,7 @@ class GlideRecord(object):
         else:
             raise DeleteException(response.json(), status_code=code)
 
-    def delete_multiple(self):
+    def delete_multiple(self) -> bool:
         """
         Deletes the current query, funny enough this is the same as iterating and deleting each record since we're
         using the REST api.
@@ -382,15 +572,37 @@ class GlideRecord(object):
             :AuthenticationException: If we do not have rights
             :DeleteException: For any other failure reason
         """
-        # cannot call query before this...
-        if self.__total != None:
-            raise DeleteException('Cannot deleteMultiple after a query is performed')
+        if self.__total is None:
+            if not self.__field_limits:
+                self.fields = 'sys_id'  # all we need...
+            self.query()
 
-        self.fields = 'sys_id'  # all we need...
-        self.query()
+        allRecordsWereDeleted = True
+        def handle(response):
+            nonlocal  allRecordsWereDeleted
+            if response.status_code != 204:
+                allRecordsWereDeleted = False
+
         for e in self:
-            e.delete()
-        return True
+            self._client.batch_api.delete(e, handle)
+        self._client.batch_api.execute()
+        return allRecordsWereDeleted
+
+    def update_multiple(self) -> bool:
+        """
+        Updates multiple records at once
+        """
+        updated = True
+        def handle(response):
+            nonlocal updated
+            if response.status_code != 200:
+                updated = False
+
+        for e in self:
+            self._client.batch_api.put(e, handle)
+
+        self._client.batch_api.execute()
+        return updated
 
     def _get_value(self, item, key='value'):
         obj = self._current()
@@ -401,7 +613,7 @@ class GlideRecord(object):
             return o.get_value()
         return None
 
-    def get_value(self, field):
+    def get_value(self, field) -> Any:
         """
         Return the value field for the given field
 
@@ -410,16 +622,17 @@ class GlideRecord(object):
         """
         return self._get_value(field, 'value')
 
-    def get_display_value(self, field):
+    def get_display_value(self, field) -> Any:
         """
         Return the display value for the given field
 
-        :param str field: The field
+        :param str field: The field, required
         :return: The field value or ``None``
         """
+        assert field, 'cannot get the display value for the entire record, as the API does not tell us what that is'
         return self._get_value(field, 'display_value')
 
-    def get_element(self, field):
+    def get_element(self, field) -> GlideElement:
         """
         Return the backing GlideElement for the given field. This is the only method to directly access this element.
 
@@ -455,7 +668,7 @@ class GlideRecord(object):
         else:
             c[field].set_display_value(value)
 
-    def get_link(self, no_stack=False):
+    def get_link(self, no_stack=False) -> str:
         """
         Generate a full URL to the current record. sys_id will be null if there is no current record.
 
@@ -472,7 +685,7 @@ class GlideRecord(object):
         id = self.sys_id if obj else 'null'
         return "{}/{}.do?sys_id={}{}".format(ins, self.__table, id, stack)
 
-    def get_link_list(self):
+    def get_link_list(self) -> str:
         """
         Generate a full URL to for the current query.
 
@@ -485,7 +698,7 @@ class GlideRecord(object):
         # Using `requests` as to be py2/3 agnostic and to encode the URL properly.
         return Request('GET', url, params=dict(sysparm_query=sysparm_query)).prepare().url
 
-    def get_encoded_query(self):
+    def get_encoded_query(self) -> str:
         """
         Generate the encoded query. Does not respect limits.
 
@@ -493,39 +706,42 @@ class GlideRecord(object):
         """
         return self.__query.generate_query(encoded_query=self.__encoded_query, order_by=self.__order)
 
-    def get_attachments(self):
+    def get_unique_name(self) -> str:
+        """
+        always give us the sys_id
+        """
+        return self.get_value('sys_id')
+
+    def get_attachments(self) -> Attachment:
         """
         Get the attachments for the current record or the current table
 
         :return: A list of attachments
         :rtype: :class:`pysnc.Attachment`
         """
-        id = self.sys_id if self._current() else None
-        attachment = self._client.Attachment(self.__table, id)
+        attachment = self._client.Attachment(self.__table)
+        if self.sys_id:
+            attachment.add_query('table_sys_id', self.sys_id)
         attachment.query()
         return attachment
 
     def add_attachment(self, file_name, file, content_type=None, encryption_context=None):
-        if self._current() == None:
+        if self._current() is None:
             raise UpdateException('Cannot attach to non existant record')
 
-        id = self.sys_id if self._current() else None
-        attachment = self._client.Attachment(self.__table, id)
-        attachment.query()
+        attachment = self._client.Attachment(self.__table)
+        attachment.add_attachment(self.sys_id, file_name, file, content_type, encryption_context)
 
-        attachment.add_attachment(file_name, file, content_type, encryption_context)
-
-
-    def add_active_query(self):
+    def add_active_query(self) -> QueryCondition:
         """
         Equivilant to the following::
 
            add_query('active', 'true')
 
         """
-        self.__query.add_active_query()
+        return self.__query.add_active_query()
 
-    def add_query(self, name, value, second_value=None):
+    def add_query(self, name, value, second_value=None) -> QueryCondition:
         """
         Add a query to a record. For example::
 
@@ -566,7 +782,7 @@ class GlideRecord(object):
         """
         return self.__query.add_query(name, value, second_value)
 
-    def add_join_query(self, join_table, primary_field=None, join_table_field=None):
+    def add_join_query(self, join_table, primary_field=None, join_table_field=None) -> JoinQuery:
         """
         Do a join query::
 
@@ -591,7 +807,7 @@ class GlideRecord(object):
 
         self.__encoded_query = encoded_query
 
-    def add_null_query(self, field):
+    def add_null_query(self, field) -> QueryCondition:
         """
         If the specified field is empty
         Equivilant to the following::
@@ -600,9 +816,9 @@ class GlideRecord(object):
 
         :param str field: The field to validate
         """
-        self.__query.add_null_query(field)
+        return self.__query.add_null_query(field)
 
-    def add_not_null_query(self, field):
+    def add_not_null_query(self, field) -> QueryCondition:
         """
         If the specified field is `not` empty
         Equivilant to the following::
@@ -611,7 +827,7 @@ class GlideRecord(object):
 
         :param str field: The field to validate
         """
-        self.__query.add_not_null_query(field)
+        return self.__query.add_not_null_query(field)
 
     def _serialize(self, record, display_value, fields=None, changes_only=False):
         if isinstance(display_value, string_types):
@@ -629,8 +845,10 @@ class GlideRecord(object):
                 if isinstance(value, GlideElement):
                     if changes_only and not value.changes():
                         continue
-                    if display_value:
+                    if v_type == 'display_value':
                         ret[key] = value.get_display_value()
+                    elif v_type == 'both':
+                        ret[key] = value.serialize()
                     else:
                         ret[key] = value.get_value()
                 else:
@@ -639,13 +857,14 @@ class GlideRecord(object):
 
         return compress(record)
 
-    def serialize(self, display_value=False, fields=None, fmt=None, changes_only=False):
+    def serialize(self, display_value=False, fields=None, fmt=None, changes_only=False) -> Any:
         """
         Turn current record into a dict
 
         :param display_value: ``True``, ``False``, or ``'both'``
         :param list fields: Fields to serialize. Defaults to all fields.
         :param str fmt: None or ``pandas``. Defaults to None
+        :param changes_only: Do we want to serialize only the fields we've modified?
         :return: dict representation
         """
         if fmt == 'pandas':
@@ -668,7 +887,7 @@ class GlideRecord(object):
             c = self._current()
             return self._serialize(c, display_value, fields, changes_only)
 
-    def serialize_all(self, display_value=False, fields=None, fmt=None):
+    def serialize_all(self, display_value=False, fields=None, fmt=None) -> list:
         """
         Serialize the entire query. See serialize() docs for details on parameters
 
@@ -757,7 +976,7 @@ class GlideRecord(object):
     def __next__(self):
         return self.next()
 
-    def next(self, _recursive=False):
+    def next(self, _recursive=False) -> bool:
         """
         Returns the next record in the record set
 
@@ -785,7 +1004,7 @@ class GlideRecord(object):
             raise StopIteration()
         return False
 
-    def has_next(self):
+    def has_next(self) -> bool:
         """
         Do we have a next record in the iteration?
 
@@ -824,7 +1043,8 @@ class GlideRecord(object):
         # TODO: allow override for record fields which may overload our local properties by prepending _
         obj = self._current()
         if obj:
-            return self.get_value(item)
+            return self.get_element(item)
+            #return self.get_value(item)
         return self.__getattribute__(item)
 
     def __contains__(self, item):
@@ -834,83 +1054,4 @@ class GlideRecord(object):
         return False
 
 
-class GlideElement(object):
-    """
-    Object backing the value/display values of a given record entry.
-    """
-    def __init__(self, name, value=None, display_value=None):
-        """
-        Create a new GlideElement
-
-        :param name:
-        :param value:
-        :param display_value:
-        """
-        self._name = name
-        self._value = None
-        self._display_value = None
-        self._changed = False
-        if isinstance(value, dict):
-            self._value = value['value']
-            self._display_value = value['display_value']
-        else:
-            self._value = value
-        if display_value:
-            self._display_value = display_value
-
-    def get_name(self):
-        return self._name
-
-    def get_value(self):
-        return self._value
-
-    def get_display_value(self):
-        if self._display_value:
-            return self._display_value
-        return self.get_value()
-
-    def set_value(self, value):
-        if isinstance(value, GlideElement):
-            nv = value.get_value()
-
-            if nv != self._value:
-                self._changed = True
-
-            self._value = nv
-        else:
-            if self._value != value:
-                self._changed = True
-                self._value = value
-
-    def set_display_value(self, value):
-        if isinstance(value, GlideElement):
-            nv = value.get_display_value()
-            if nv != self._display_value:
-                self._changed = True
-            self._display_value = nv
-        else:
-            if self._display_value != value:
-                self._changed = True
-                self._display_value = value
-
-    def __str__(self):
-        if self._display_value and self._value != self._display_value:
-            return dict(value=self._value, display_value=self._display_value)
-        return self._value
-
-    def changes(self):
-        """
-        :return: if we have changed this value
-        :rtype: bool
-        """
-        return self._changed
-
-    def nil(self):
-        """
-        returns True if the value is None or zero length
-
-        :return: if this value is anything
-        :rtype: bool
-        """
-        return not self._value or len(self._value) == 0
 

@@ -16,6 +16,8 @@ First we import::
 
 Then we create a client::
 
+    >>> client = ServiceNowClient('dev00000', ServiceNowPasswordGrantFlow('admin', password, client_id, client_secret))
+    # or more insecurely...
     >>> client = pysnc.ServiceNowClient('dev00000', ('admin', password))
 
 We use the client to create a ``GlideRecord`` object::
@@ -26,6 +28,10 @@ Familiar? The real difference is we follow python naming conventions::
 
     >>> gr.add_query("active", "true")
     >>> gr.query()
+
+Or even:
+
+    >>> gr.add_active_query()
 
 This means that instead of Java/JavaScript camelCase we use python standard in PEP-8. For example ``addQuery`` has become ``add_query``.
 
@@ -109,7 +115,7 @@ As a rule of thumb, query only the fields you actually want.
 Accessing fields
 ----------------
 
-We can access any field value via dot notation or the standard `get_value` and `get_display_value` methods.
+We can access any field value via dot notation or the standard :py:func:`get_value` and :py:func:`get_display_value` methods. Fields are backed by :py:class:`record.GlideElement`
 
 For example::
 
@@ -118,13 +124,25 @@ For example::
     >>> gr.next()
     True
     >>> gr.state
-    u'3'
+    record.GlideElement(name='state', value='3', display_value='Pending Change', changed=False)
     >>> gr.get_value('state')
-    u'3'
+    '3'
     >>> gr.get_display_value('state')
-    u'Pending Change'
+    'Pending Change'
+    >>> gr.state == '3'
+    True
+    >>> f"State is {gr.state}"
+    'State is 3'
+    >>> gr.state.nil()
+    False
+    >>> gr.state = '4'
+    >>> gr.state
+    record.GlideElement(name='state', value='4', display_value=None, changed=True)
+    >>> gr.state.get_value()
+    '4'
 
-The PySNC module has no concept of GlideElement - we cannot infer what a given columns data type may be from the REST API.
+
+The PySNC module cannot infer what a given columns data type may be from the REST API -- this gives some limitations on possible methods such as the `getRefRecord`
 
 Setting fields
 --------------
@@ -132,14 +150,14 @@ Setting fields
     >>> gr = client.GlideRecord('incident')
     >>> gr.initialize()
     >>> gr.state = 4
-    >>> gr.state
+    >>> gr.get_value('state')
     4
     >>> gr.set_value('state', 4)
 
 Length
 --------------
 
-You can use `len` or `get_row_count()`::
+You can use `len` or `get_row_count()` (they are the same)::
 
     >>> gr = client.GlideRecord('incident')
     >>> len(gr)
@@ -156,14 +174,14 @@ You can use `len` or `get_row_count()`::
 Insert, Update, Delete
 ----------------------
 
-We can insert new records:
+We can insert new records (you must call `initialize()` first):
 
     >>> gr = client.GlideRecord('problem')
     >>> gr.initialize()
     >>> gr.short_description = "Example Problem"
     >>> gr.description = "Example Description"
     >>> gr.insert()
-    u'a06252790b6693009fde8a4b33673aed'
+    'a06252790b6693009fde8a4b33673aed'
 
 And update:
 
@@ -172,7 +190,7 @@ And update:
     True
     >>> gr.short_description = "Updated Problem"
     >>> gr.update()
-    u'a06252790b6693009fde8a4b33673aed'
+    'a06252790b6693009fde8a4b33673aed'
 
 And delete:
 

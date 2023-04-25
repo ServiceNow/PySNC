@@ -19,7 +19,7 @@ or
     >>>     for line in attachment.readlines():
     >>>         ...
 
-Other useful attachment methods being `read()` and `writeto(...)` and `asTempFile()`.
+Other useful attachment methods being `read()` and `writeto(...)` and `as_temp_file()`.
 
 Serialization
 -------------

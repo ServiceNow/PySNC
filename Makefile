@@ -3,7 +3,7 @@ test:
 	poetry run pytest
 
 docs:
-	cd docs; poetry run sphinx-build -b html . _build; cd -
+	cd docs; poetry install && poetry run make clean html; cd -
 	@echo "\033[95m\n\nBuild successful! View the docs homepage at docs/_build/html/index.html.\n\033[0m"
 
 gh-pages:

@@ -4,32 +4,54 @@ Authentication
 ==============
 
 Basic Authentication
--------------------------
+--------------------
 
 Standard BasicAuth, every request contains your username and password base64 encoded in the request header. The most
 insecure, but simplest, way to authenticate. Remember to scope the user's ACLs to the minimum if using with automations.
 
     >>> client = pysnc.ServiceNowClient('dev00000', ('admin','password'))
 
-OAuth Authentication
---------------------
+This is not recommended for any production or machine to machine activity
 
-OAuth2 password flow is currently supported and recommended - one must setup an OAuth Client to use.
+OAuth2 - Password Grant Flow
+----------------------------
+
+OAuth2 password flow is currently supported and recommended
 
     >>> from pysnc import ServiceNowClient
-    >>> from pysnc.auth import ServiceNowOauth2
+    >>> from pysnc.auth import ServiceNowPasswordGrantFlow
     >>> client_id = 'ac0dd3408c1031006907010c2cc6ef6d' # oauth_entity.client_id
     >>> secret = '...' # oauth_entity.client_secret
-    >>> client = ServiceNowClient(server_url, ServiceNowOAuth2(username, password, client_id, secret))
+    >>> auth = ServiceNowPasswordGrantFlow(username, password, client_id, secret))
+    >>> client = ServiceNowClient(server_url, auth)
 
 This will use a users credentials to retrieve and store an OAuth2 auth and refresh token, sending your auth token with
-every request and dropping your user and password from memory. If this sleeps for a long enough time your refresh token
-may requiring re-auth.
+every request and dropping your user and password from memory. This will automatically update your access tokens.
 
-JWT Authentication
-------------------
+To configure this flow, create a new OAuth Application by selecting a new OAuth API endpoint:
 
-Create a new [JWT Provider](https://docs.servicenow.com/en-US/bundle/tokyo-platform-security/page/administer/security/task/create-jwt-endpoint.html)
+.. image:: images/oauth2-01.png
+
+Name it, save/insert it, and note your new client_id and client_secret. This flow is sometimes called a Legacy flow, as it
+is not the ideal method OAuth usage. In this flow it is tolerable to share/embed your client_secret.
+
+.. image:: images/oauth2-02.png
+
+
+OAuth2 - Auth Code Grant Flow
+-----------------------------
+
+No instructions, currently. Typically what you would want to use if you're a client doing things on behalf of users.
+
+OAuth2 - Client Credential Grant Flow
+-------------------------------------
+
+ServiceNow does not support this OAuth flow
+
+OAuth2 - JWT Bearer Grant Flow
+------------------------------
+
+Create a new `JWT Provider <https://docs.servicenow.com/en-US/bundle/tokyo-platform-security/page/administer/security/task/create-jwt-endpoint.html>`_
 and use it with whomever generates your JWT tokens. Once you have your JWT you may use it to request a Bearer token for
 standard auth:
 
@@ -40,6 +62,13 @@ Wherein client_id and client_secret are the `oauth_jwt` record entry values and 
 
 The token contains who are are logging in as - as such the PySNC library does not attempt to act as a provider. We do however
 have an example of how that is done in the tests.
+
+mTLS - Mutual TLS Authentication (Certificate-Based Authentication)
+-------------------------------------------------------------------
+
+The most ideal form of authentication for machine to machine communication. Follow `KB0993615 <https://support.servicenow.com/kb?id=kb_article_view&sysparm_article=KB0993615>`_ then:
+
+    >>> client = ServiceNowClient(instance, cert=('/path/to/client.cert', '/path/to/client.key'))
 
 Requests Authentication
 -----------------------
@@ -54,6 +83,7 @@ Storing Passwords
 The keystore module is highly recommended. For example::
 
     import keyring
+
 
     def check_keyring(instance, user):
         passw = keyring.get_password(instance, user)
@@ -71,4 +101,4 @@ The keystore module is highly recommended. For example::
             print('No Password specified and none found in keyring')
             sys.exit(1)
 
-    client = pysnc.ServiceNowClient(options.instance, ServiceNowOAuth2(options.user, passw))
+    client = pysnc.ServiceNowClient(options.instance, ...)

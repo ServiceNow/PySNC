@@ -2,13 +2,20 @@ from unittest import TestCase
 
 from pysnc import ServiceNowClient
 from constants import Constants
+from pysnc.record import GlideElement
 
 class TestRecordFields(TestCase):
     c = Constants()
 
+    def setUp(self):
+        self.client = ServiceNowClient(self.c.server, self.c.credentials)
+
+    def tearDown(self):
+        self.client.session.close()
+        self.client = None
+
     def test_field_limit(self):
-        client = ServiceNowClient(self.c.server, self.c.credentials)
-        gr = client.GlideRecord('sys_user')
+        gr = self.client.GlideRecord('sys_user')
         gr.fields = 'sys_id,name'
         r = gr.get('6816f79cc0a8016401c5a33be04be441')
 
@@ -17,11 +24,9 @@ class TestRecordFields(TestCase):
         sobj = gr.serialize()
         self.assertTrue('sys_id' in sobj)
         self.assertFalse('sys_created_on' in sobj)
-        client.session.close()
 
     def test_field_limit_query(self):
-        client = ServiceNowClient(self.c.server, self.c.credentials)
-        gr = client.GlideRecord('sys_user')
+        gr = self.client.GlideRecord('sys_user')
         gr.limit = 1
         gr.fields = 'sys_id,name'
         gr.query()
@@ -31,22 +36,18 @@ class TestRecordFields(TestCase):
         sobj = gr.serialize()
         self.assertTrue('sys_id' in sobj)
         self.assertFalse('sys_created_on' in sobj)
-        client.session.close()
 
     def test_field_bool(self):
-        client = ServiceNowClient(self.c.server, self.c.credentials)
-        gr = client.GlideRecord('sys_user')
+        gr = self.client.GlideRecord('sys_user')
         gr.fields = 'sys_id,active'
         gr.get('6816f79cc0a8016401c5a33be04be441')
 
         print(gr.serialize())
 
         self.assertEqual(gr.active, 'true')
-        client.session.close()
 
     def test_field_access(self):
-        client = ServiceNowClient(self.c.server, self.c.credentials)
-        gr = client.GlideRecord('sys_user')
+        gr = self.client.GlideRecord('sys_user')
         gr.fields = 'sys_id,name'
         gr.get('6816f79cc0a8016401c5a33be04be441')
 
@@ -56,21 +57,17 @@ class TestRecordFields(TestCase):
         self.assertEqual(gr.name, name)
         self.assertEqual(gr.get_value('name'), name)
         self.assertEqual(gr.get_display_value('name'), name)
-        client.session.close()
 
     def test_field_contains(self):
-        client = ServiceNowClient(self.c.server, self.c.credentials)
-        gr = client.GlideRecord('sys_user')
+        gr = self.client.GlideRecord('sys_user')
         gr.fields = 'sys_id,name'
         gr.get('6816f79cc0a8016401c5a33be04be441')
         print(gr.serialize())
         self.assertTrue('name' in gr)
         self.assertFalse('whatever' in gr)
-        client.session.close()
 
     def test_field_set(self):
-        client = ServiceNowClient(self.c.server, self.c.credentials)
-        gr = client.GlideRecord('sys_user')
+        gr = self.client.GlideRecord('sys_user')
         gr.fields = 'sys_id,name'
         gr.get('6816f79cc0a8016401c5a33be04be441')
         print(gr.serialize())
@@ -81,11 +78,9 @@ class TestRecordFields(TestCase):
         gr.set_value('name', 'Test')
         self.assertEqual(gr.name, 'Test')
         self.assertEqual(gr.get_value('name'), 'Test')
-        client.session.close()
 
     def test_field_set_init(self):
-        client = ServiceNowClient(self.c.server, self.c.credentials)
-        gr = client.GlideRecord('sys_user')
+        gr = self.client.GlideRecord('sys_user')
         gr.initialize()
         name = 'System Administrator'
         gr.name = name
@@ -93,11 +88,9 @@ class TestRecordFields(TestCase):
         gr.set_value('name', 'Test')
         self.assertEqual(gr.name, 'Test')
         self.assertEqual(gr.get_value('name'), 'Test')
-        client.session.close()
 
     def test_fields(self):
-        client = ServiceNowClient(self.c.server, self.c.credentials)
-        gr = client.GlideRecord('sys_user')
+        gr = self.client.GlideRecord('sys_user')
         gr.fields = ['sys_id']
         gr.limit = 4
         gr.query()
@@ -106,26 +99,20 @@ class TestRecordFields(TestCase):
             count = count + 1
             assert len(gr._current().keys()) == 1
         self.assertEqual(count, 4)
-        client.session.close()
 
     def test_field_getter(self):
-        client = ServiceNowClient(self.c.server, self.c.credentials)
-        gr = client.GlideRecord('sys_user')
+        gr = self.client.GlideRecord('sys_user')
         gr.fields = ['sys_id']
         self.assertEqual(gr.fields, ['sys_id'])
-        client.session.close()
 
     def test_field_all(self):
-        client = ServiceNowClient(self.c.server, self.c.credentials)
-        gr = client.GlideRecord('sys_user')
+        gr = self.client.GlideRecord('sys_user')
         self.assertIsNone(gr.fields)
         gr.query()
         self.assertIsNotNone(gr.fields)
-        client.session.close()
 
     def test_field_getter_query(self):
-        client = ServiceNowClient(self.c.server, self.c.credentials)
-        gr = client.GlideRecord('sys_user')
+        gr = self.client.GlideRecord('sys_user')
         self.assertEqual(gr.fields, None)
         gr.limit = 1
         gr.query()
@@ -134,33 +121,49 @@ class TestRecordFields(TestCase):
         gr.next()
         print(gr.fields)
         self.assertGreater(len(gr.fields), 10)
-        client.session.close()
+
+    def test_boolean(self):
+        gr = self.client.GlideRecord('sys_user')
+        gr.fields = ['sys_id', 'active']
+        gr.query()
+        self.assertTrue(gr.next())
+        # as a string, because that's the actual JSON response value
+        self.assertEqual(gr.active, 'true')
+        self.assertEqual(gr.get_value('active'), 'true')
+        self.assertEqual(gr.get_display_value('active'), 'true')
+        self.assertEqual(gr.get_element('active'), 'true')
+        self.assertTrue(bool(gr.active))
+        if not gr.active:
+            assert 'should have been true'
+        gr.active = 'false'
+        print(repr(gr.active))
+        self.assertFalse(bool(gr.active))
+        if gr.active:
+            assert 'should have been false'
+
 
     def test_attrs(self):
-        client = ServiceNowClient(self.c.server, self.c.credentials)
-        gr = client.GlideRecord('sys_user')
+        gr = self.client.GlideRecord('sys_user')
         r = gr.get('6816f79cc0a8016401c5a33be04be441')
         self.assertEqual(r, True)
         self.assertEqual(gr.sys_id, '6816f79cc0a8016401c5a33be04be441')
         self.assertEqual(gr.get_value('sys_id'), '6816f79cc0a8016401c5a33be04be441')
         self.assertEqual(gr.get_display_value('user_password'), '********')
-        client.session.close()
 
     def test_attrs_nil(self):
-        client = ServiceNowClient(self.c.server, self.c.credentials)
-        gr = client.GlideRecord('sys_user')
+        gr = self.client.GlideRecord('sys_user')
         r = gr.get('6816f79cc0a8016401c5a33be04be441')
         self.assertEqual(r, True)
         self.assertIsNotNone(gr.get_element('sys_id'))
         self.assertIsNone(gr.get_element('asdf'))
-        self.assertEqual(gr.get_element('sys_id').nil(), False)
+        self.assertFalse(gr.get_element('sys_id').nil())
+        self.assertFalse(gr.sys_id.nil())
         gr.sys_id = ''
-        self.assertEqual(gr.get_element('sys_id').nil(), True)
-        client.session.close()
+        self.assertTrue(gr.get_element('sys_id').nil())
+        self.assertTrue(gr.sys_id.nil())
 
     def test_attrs_changes(self):
-        client = ServiceNowClient(self.c.server, self.c.credentials)
-        gr = client.GlideRecord('sys_user')
+        gr = self.client.GlideRecord('sys_user')
         r = gr.get('6816f79cc0a8016401c5a33be04be441')
         self.assertEqual(r, True)
         self.assertIsNotNone(gr.get_element('sys_id'))
@@ -168,11 +171,9 @@ class TestRecordFields(TestCase):
         self.assertEqual(gr.get_element('sys_id').changes(), False)
         gr.sys_id = '1234'
         self.assertEqual(gr.get_element('sys_id').changes(), True)
-        client.session.close()
 
     def test_attrs_changes(self):
-        client = ServiceNowClient(self.c.server, self.c.credentials)
-        gr = client.GlideRecord('sys_user')
+        gr = self.client.GlideRecord('sys_user')
         gr.initialize()
         self.assertTrue(gr.is_new_record())
         self.assertIsNone(gr.get_element('sys_id'))
@@ -181,5 +182,5 @@ class TestRecordFields(TestCase):
         self.assertEqual(gr.get_element('sys_id').changes(), False)
         gr.sys_id = '1234'
         self.assertEqual(gr.get_element('sys_id').changes(), True)
-        client.session.close()
+
 

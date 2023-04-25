@@ -5,8 +5,16 @@ Installation of PySNC
 
 As such: ::
 
-   $ pip install pysnc
+    $ pip install pysnc
 
-Or: ::
+Or you can build and install it yourself ::
 
-    $ python setup.py install
+    $ poetry install
+    ...
+    $ poetry build
+    Building pysnc (1.0.7)
+      - Building sdist
+      - Built pysnc-1.0.7.tar.gz
+      - Building wheel
+      - Built pysnc-1.0.7-py3-none-any.wh
+    $ pip install pysnc-1.0.7-py3-none-any.wh

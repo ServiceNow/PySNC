@@ -14,7 +14,6 @@ pip install pysnc
 
 ## Quick Start
 
-
 ```python
 from pysnc import ServiceNowClient
 
@@ -25,22 +24,6 @@ gr.add_query('user_name', 'admin')
 gr.query()
 for r in gr:
 	print(r.sys_id)
-
-```
-
-Or you can more traditionally:
-
-```
-while gr.next():
-	print(gr.sys_id);
-```
-
-It is recommended you use OAuth, however:
-
-```python
-from pysnc import ServiceNowClient, ServiceNowOAuth2
-
-client = ServiceNowClient('dev0000', ServiceNowOAuth2('integration.user', password))
 ```
 
 ## Documentation
@@ -60,11 +43,9 @@ The following functions are not (yet?) supported:
 * `choose_window(first_row, last_row, force_count=True)`  TODO
 * `get_class_display_value()`
 * `get_record_class_name()`
-* `get_unique_value()` 
 * `is_valid()` TODO
 * `is_valid_record()`
 * `new_record()`
-* `update_multiple()` TODO
 * `_next()`
 * `_query()`
 
@@ -80,10 +61,6 @@ The following will not be implemented:
 * `is_valid_field()` Not Possible
 * `is_action_aborted()` Not Applicable
 
-## Further Reading
-
-See the documentation.
-
 # Feature Wants and TODO
 
 * GlideAggregate support (`/api/now/stats/{tableName}`)
@@ -91,5 +68,3 @@ See the documentation.
 And we want to:
 
 * Improve documentation
-* Refactor session abstraction
-* Improve Attachment OO

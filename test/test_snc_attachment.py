@@ -47,6 +47,7 @@ class TestAttachment(TestCase):
     def test_add_delete(self):
         client = ServiceNowClient(self.c.server, self.c.credentials)
         with TempTestRecord(client, 'problem') as gr:
+            self.assertIsNotNone(gr.sys_id)
             attachments = gr.get_attachments()
             self.assertNotEqual(attachments, None)
             self.assertEqual(len(attachments), 0)
@@ -73,11 +74,11 @@ class TestAttachment(TestCase):
                     lines = a.readlines()
                     print(lines)
                     print(repr(lines))
-                    self.assertEquals(lines[0], "this is a sample attachment")
-                    self.assertEquals(len(lines), 4)
+                    self.assertEqual(lines[0], "this is a sample attachment")
+                    self.assertEqual(len(lines), 4)
                 if a.file_name.endswith('bin'):
                     raw = a.read()
-                    self.assertEquals(raw, bcontent, "binary content did not match")
+                    self.assertEqual(raw, bcontent, "binary content did not match")
 
         client.session.close()
 

@@ -1,14 +1,12 @@
 from unittest import TestCase
 
 from pysnc import ServiceNowClient
-from pysnc.auth import ServiceNowJWTAuth, ServiceNowOAuth2
+from pysnc.auth import *
 from constants import Constants
 from pysnc import exceptions
 
 import requests
 import time
-from oauthlib.oauth2 import LegacyApplicationClient
-from requests_oauthlib import OAuth2Session
 
 class TestAuth(TestCase):
     c = Constants()
@@ -31,28 +29,6 @@ class TestAuth(TestCase):
         except Exception:
             assert 'Should have got an Auth exception'
 
-    def test_oauth_manual(self):
-        # Manual setup using legacy oauth
-        server = self.c.server
-        creds = self.c.credentials
-
-        client_id = self.c.get_value('CLIENT_ID')
-        secret = self.c.get_value('CLIENT_SECRET')
-
-        oauth = OAuth2Session(client=LegacyApplicationClient(client_id=client_id))
-        token_url = "%s/oauth_token.do" % server
-
-        token = oauth.fetch_token(token_url=token_url,
-                              username=creds[0], password=creds[1], client_id=client_id,
-                              client_secret=secret)
-
-        print("failed after this")
-
-        client = ServiceNowClient(self.c.server, oauth)
-        gr = client.GlideRecord('sys_user')
-        gr.fields = 'sys_id'
-        self.assertTrue(gr.get('6816f79cc0a8016401c5a33be04be441'))
-
     def test_oauth(self):
         # Manual setup using legacy oauth
         server = self.c.server
@@ -61,10 +37,14 @@ class TestAuth(TestCase):
         client_id = self.c.get_value('CLIENT_ID')
         secret = self.c.get_value('CLIENT_SECRET')
 
-        client = ServiceNowClient(self.c.server, ServiceNowOAuth2(creds[0], creds[1], client_id, secret))
+        client = ServiceNowClient(self.c.server, ServiceNowPasswordGrantFlow(creds[0], creds[1], client_id, secret))
         gr = client.GlideRecord('sys_user')
         gr.fields = 'sys_id'
         self.assertTrue(gr.get('6816f79cc0a8016401c5a33be04be441'))
+
+    def test_auth_param_check(self):
+        self.assertRaisesRegex(AuthenticationException, r'Cannot specify both.+', lambda: ServiceNowClient('anyinstance', auth='asdf', cert='asdf'))
+        self.assertRaisesRegex(AuthenticationException, r'No valid auth.+', lambda: ServiceNowClient('anyinstance', auth='zzz'))
 
     def nop_test_jwt(self):
         """
