@@ -438,7 +438,16 @@ class GlideRecord(object):
             assert isinstance(query, Query), 'cannot query with a non query object'
             self.__query = query
         try:
-            response = self._client.table_api.list(self)
+            short_len = len('&'.join([ f"{x}={y}" for (x,y) in self._parameters().items() ]))
+            if short_len > 20000:  # just the approx limit, but a few thousand below (i hope/think)
+
+                def on_resp(r):
+                    nonlocal response
+                    response = r
+                self._client.batch_api.list(self, on_resp)
+                self._client.batch_api.execute()
+            else:
+                response = self._client.table_api.list(self)
         finally:
             self.__query = stored
         code = response.status_code
@@ -566,9 +575,9 @@ class GlideRecord(object):
             self.query()
 
         allRecordsWereDeleted = True
-        def handle(**kwargs):
+        def handle(response):
             nonlocal  allRecordsWereDeleted
-            if kwargs['status_code'] != 204:
+            if response.status_code != 204:
                 allRecordsWereDeleted = False
 
         for e in self:
@@ -581,9 +590,9 @@ class GlideRecord(object):
         Updates multiple records at once
         """
         updated = True
-        def handle(**kwargs):
+        def handle(response):
             nonlocal updated
-            if kwargs['status_code'] != 200:
+            if response.status_code != 200:
                 updated = False
 
         for e in self:

@@ -18,3 +18,14 @@ def get_instance(instance):
         return 'https://%s.service-now.com' % instance
 
     raise InstanceException("Instance name not well-formed. Pass a full URL or instance name.")
+
+
+class MockHeaders:
+    def __init__(self, headers):
+        self._headers = headers
+
+    def getheaders(self, name):
+        return self._headers[name]
+
+    def get_all(self, name, default):
+        return getattr(self._headers, name, default)

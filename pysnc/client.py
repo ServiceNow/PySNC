@@ -1,13 +1,20 @@
+from io import BytesIO
+
 import requests
 from requests.auth import AuthBase
 import re
 import logging
 import base64
 from typing import Callable, Any
+
+from requests.cookies import MockRequest, MockResponse
+from requests.structures import CaseInsensitiveDict
+from requests.utils import get_encoding_from_headers
+
 from .exceptions import *
 from .record import GlideRecord
 from .attachment import Attachment
-from .utils import get_instance
+from .utils import get_instance, MockHeaders
 from .auth import ServiceNowFlow
 
 
@@ -273,6 +280,7 @@ class BatchAPI(API):
     def __init__(self, client):
         API.__init__(self, client)
         self.__requests = []
+        self.__stored_requests = {}
         self.__hooks = {}
         self.__request_id = 0
 
@@ -294,7 +302,6 @@ class BatchAPI(API):
         prepared = request.prepare()
         request_id = str(id(prepared))
         headers = [{'name': k, 'value': v} for (k,v) in prepared.headers.items()]
-        self.__hooks[request_id] = hook
         relative_url = prepared.url[prepared.url.index('/', 8):] ## slice from the first non https:// slash
 
         now_request = {
@@ -302,16 +309,46 @@ class BatchAPI(API):
             'method': prepared.method,
             'url': relative_url,
             'headers': headers,
-            'exclude_response_headers': True
+            #'exclude_response_headers': False
         }
         if prepared.body:
             now_request['body'] = base64.b64encode(prepared.body).decode()
+        self.__hooks[request_id] = hook
+        self.__stored_requests[request_id] = prepared
         self.__requests.append(now_request)
 
-    def _transform_response(self, serviced_request):
-        if 'body' in serviced_request:
-            serviced_request['body'] = base64.b64decode(serviced_request['body'])
-        return serviced_request
+    def _transform_response(self, req: requests.PreparedRequest, serviced_request) -> requests.Response:
+        #if 'body' in serviced_request:
+        #    serviced_request['body'] = base64.b64decode(serviced_request['body'])
+
+        # modeled after requests.adapters.HttpAdapter.build_response
+        response = requests.Response()
+        response.status_code = serviced_request['status_code']
+        headers = {k: v for (k, v) in [(e['name'], e['value']) for e in serviced_request.get("headers", [])]}
+        print(serviced_request)
+        print(headers)
+        response.headers = CaseInsensitiveDict(headers)
+        response.encoding = get_encoding_from_headers(response.headers)
+
+        body = base64.b64decode(serviced_request.get('body', ''))
+        response.raw = BytesIO(body)
+
+        if isinstance(req.url, bytes):
+            response.url = req.url.decode("utf-8")
+        else:
+            response.url = req.url
+
+        # cookies - kinda hack an adapter in
+        req = MockRequest(req)
+        res = MockResponse(MockHeaders(headers))
+        response.cookies.extract_cookies(res, req)
+
+        response.req = req
+        # response.connection = None
+
+        return response
+
+        #return serviced_request
 
     def execute(self):
         bid = self._next_id()
@@ -324,13 +361,18 @@ class BatchAPI(API):
         data = r.json()
         try:
             assert str(bid) == data['batch_request_id'], f"How did we get a response id different from {bid}"
+
             for response in data['serviced_requests']:
-                assert response['id'] in self.__hooks, f"Somehow has no hook for {response['id']}"
-                self.__hooks[response['id']](**self._transform_response(response))
-            for response in data['unserviced_requests']:
-                assert response['id'] in self.__hooks, f"Somehow has no hook for {response['id']}"
-                self.__hooks[response['id']](**self._transform_response(response))
+                response_id = response['id']
+                assert response_id in self.__hooks, f"Somehow has no hook for {response_id}"
+                assert response_id in self.__stored_requests, f"Somehow we did not store request for {response_id}"
+                self.__hooks[response['id']](self._transform_response(self.__stored_requests[response_id], response))
+
+            for response_id in data['unserviced_requests']:
+                assert response_id in self.__hooks, f"Somehow has no hook for {response_id}"
+                self.__hooks[response_id]()  # just call it with no args...
         finally:
+            self.__stored_requests = {}
             self.__requests = []
             self.__hooks = {}
 
@@ -338,7 +380,6 @@ class BatchAPI(API):
         params = self._set_params(record)
         if 'sysparm_offset' in params:
             del params['sysparm_offset']
-        params = self._set_params(record)
         target_url = self._table_target(record.table, sys_id)
         req = requests.Request('GET', target_url, params=params)
         self._add_request(req, hook)
@@ -363,4 +404,11 @@ class BatchAPI(API):
     def delete(self, record: GlideRecord, hook: Callable):
         target_url = self._table_target(record.table, record.sys_id)
         req = requests.Request('DELETE', target_url)
+        self._add_request(req, hook)
+
+    def list(self, record: GlideRecord, hook: Callable):
+        params = self._set_params(record)
+        target_url = self._table_target(record.table)
+
+        req = requests.Request('GET', target_url, params=params)
         self._add_request(req, hook)

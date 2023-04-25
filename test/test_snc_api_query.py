@@ -209,6 +209,26 @@ class TestRecordQuery(TestCase):
         gr.query()
         self.assertEqual(len(gr), 1)
 
+    def test_extra_long_query(self):
+        client = ServiceNowClient(self.c.server, self.c.credentials)
+
+        true_id = '6816f79cc0a8016401c5a33be04be441'
+        gr = client.GlideRecord('sys_user')
+        self.assertTrue(gr.get(true_id), 'failed to get true_id')
+
+        # make an extra long query...
+        gr = client.GlideRecord('sys_user')
+        for _ in range(2300):
+            # designed to be 10 chars long including ^
+            gr.add_query('AAAA', 'BBBB')  # 'AAAA=BBBB^'
+        gr.add_query('sys_id', true_id) # i want this at the end of the query just to be sure
+        self.assertGreater(len(gr.get_encoded_query()), 23000)
+        gr.query()  # would throw normally
+        self.assertEqual(len(gr), 1)
+        self.assertTrue(gr.next())
+        self.assertEqual(gr.sys_id, true_id)
+
+
 
 
 
