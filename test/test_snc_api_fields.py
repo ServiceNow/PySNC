@@ -184,3 +184,24 @@ class TestRecordFields(TestCase):
         self.assertEqual(gr.get_element('sys_id').changes(), True)
 
 
+    def test_dotwalk_with_element(self):
+        gr = self.client.GlideRecord('sys_user')
+        gr.fields = 'sys_id,active,email,department,department.name,department.dept_head,department.dept_head.email'
+        gr.get('6816f79cc0a8016401c5a33be04be441')
+        print(gr.serialize(display_value='both'))
+
+        self.assertEqual(gr.email, 'admin@example.com')
+
+        self.assertEqual(gr.department, 'a581ab703710200044e0bfc8bcbe5de8')
+
+        self.assertEqual(gr.department.name, 'Finance')
+
+        self.assertEqual(gr.department.dept_head, '46c5bf6ca9fe1981010713e3ac7d3384')
+        self.assertEqual(type(gr.department.dept_head), GlideElement)
+        self.assertEqual(gr.department.dept_head.get_value(), '46c5bf6ca9fe1981010713e3ac7d3384')
+        self.assertFalse(gr.department.dept_head.nil())
+
+        self.assertEqual(gr.department.dept_head.email, 'natasha.ingram@example.com')
+        self.assertEqual(type(gr.department.dept_head.email), GlideElement)
+
+

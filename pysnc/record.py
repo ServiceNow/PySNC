@@ -18,7 +18,7 @@ class GlideElement(object):
     """
     Object backing the value/display values of a given record entry.
     """
-    def __init__(self, name: str, value=None, display_value=None):
+    def __init__(self, name: str, value=None, display_value=None, parent_record=None):
         self._name = name
         self._value = None
         self._display_value = None
@@ -32,6 +32,8 @@ class GlideElement(object):
             self._value = value
         if display_value:
             self._display_value = display_value
+
+        self._parent_record = parent_record
 
     def get_name(self) -> str:
         """
@@ -184,6 +186,11 @@ class GlideElement(object):
     def __getattr__(self, item):
         if item in GlideElement.__class__.__dict__:
             return self.__getattribute__(item)
+
+        print(f"__getattr__ {self._name} . {item}")
+        if self._parent_record:
+            if tv := self._parent_record.get_element(f"{self._name}.{item}"):
+                return tv
         return getattr(self.get_value(), item)
 
     def __deepcopy__(self, memo):
@@ -651,7 +658,7 @@ class GlideRecord(object):
         """
         c = self._current()
         if field not in c:
-            c[field] = GlideElement(field, value)
+            c[field] = GlideElement(field, value, parent_record=self)
         else:
             c[field].set_value(value)
 
@@ -664,7 +671,7 @@ class GlideRecord(object):
         """
         c = self._current()
         if field not in c:
-            c[field] = GlideElement(field, display_value=value)
+            c[field] = GlideElement(field, display_value=value, parent_record=self)
         else:
             c[field].set_display_value(value)
 
@@ -1017,7 +1024,7 @@ class GlideRecord(object):
 
     def _transform_result(self, result):
         for key, value in result.items():
-            result[key] = GlideElement(key, value)
+            result[key] = GlideElement(key, value, parent_record=self)
         return result
 
     def __str__(self):
