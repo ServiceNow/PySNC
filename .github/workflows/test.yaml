@@ -14,8 +14,8 @@ jobs:
       PYSNC_SERVER: ${{ secrets.PYSNC_SERVER }}
       PYSNC_USERNAME: ${{ secrets.PYSNC_USERNAME }}
       PYSNC_PASSWORD: ${{ secrets.PYSNC_PASSWORD }}
-      PYSNC_JWT_CLIENT_SECRET: ${{ secrets.PYSNC_JWT_CLIENT_SECRET }}
-      PYSNC_JWT_SHARED_KEY: ${{ secrets.PYSNC_JWT_SHARED_KEY }}
+      PYSNC_CLIENT_ID: ${{ secrets.PYSNC_CLIENT_ID }}
+      PYSNC_CLIENT_SECRET: ${{ secrets.PYSNC_CLIENT_SECRET }}
     steps:
     - name: check out repository
       uses: actions/checkout@v3
