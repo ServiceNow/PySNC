@@ -25,6 +25,12 @@ class TestAuditScoped(TestCase):
         gr3.get(res)
         self.assertEqual(gr3.short_description, "ABCDEFG0123")
 
+        gr4 = gr3.pop_record()
+        gr4.short_description = 'ZZZ123'
+        self.assertTrue(gr4.update())
+
+
+
         self.assertTrue(gr3.delete())
 
         # make sure it is deleted

@@ -1,6 +1,6 @@
 import getpass
 import os
-import yaml
+from dotenv import load_dotenv
 import warnings
 import logging
 
@@ -10,20 +10,14 @@ logging.getLogger('requests_oauthlib').propagate = False
 
 
 class Constants(object):
-    CONF_FILE = 'settings-test.yaml'
 
     _server = None
     _username = 'admin'
     _plugin = None
 
-    def __init__(self, conf=None):
-        if conf:
-            self.CONF_FILE = conf
-        try:
-            with open(self.CONF_FILE, 'r') as f:
-                self._settings = yaml.load(f, Loader=yaml.BaseLoader)
-        except:
-            self._settings = {}
+    def __init__(self):
+        load_dotenv()
+        self._settings = {}
 
     @property
     def password(self):
