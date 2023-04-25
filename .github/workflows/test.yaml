@@ -49,4 +49,4 @@ jobs:
     - name: build docs
       working-directory: ./docs
       run: |
-        poetry run sphinx-build -b html . _build
+        poetry run make clean html
