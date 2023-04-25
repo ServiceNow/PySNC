@@ -1,5 +1,7 @@
 from unittest import TestCase
 from pysnc.record import GlideElement
+import datetime
+
 
 class TestElement(TestCase):
 
@@ -47,6 +49,8 @@ class TestElement(TestCase):
         self.assertTrue(element.changes())
         self.assertIsNone(element._display_value)
         self.assertEqual(element.get_display_value(), '4')
+        self.assertEqual(repr(element), "record.GlideElement(value='4', name='state', display_value=None, changed=True)")
+        self.assertEqual(str(element), "4")
 
     def test_int(self):
         ten = GlideElement('num', 10)
@@ -72,10 +76,16 @@ class TestElement(TestCase):
 
     def test_time(self):
         time = GlideElement('sys_created_on', '2007-07-03 18:48:47')
+        # parse this into a known datetime
+        same = datetime.datetime(2007, 7, 3, 18, 48, 47, tzinfo=datetime.timezone.utc)
 
         self.assertIsNotNone(time.date_value())
-        self.assertEqual(time.date_numeric_value(), 1183513727000)
-        time.set_date_numeric_value(1183513728000)
+        self.assertEqual(time.date_value(), same)
+        time_in_ms = 1183488527000
+        self.assertEqual(time.date_numeric_value(), time_in_ms)
+        dt = datetime.datetime.fromtimestamp(time_in_ms/1000.0, tz=datetime.timezone.utc)
+        self.assertEqual(same, dt)
+        time.set_date_numeric_value(1183488528000)
         self.assertEqual(time, '2007-07-03 18:48:48')
 
         time2 = GlideElement('sys_created_on', '2008-07-03 18:48:47')

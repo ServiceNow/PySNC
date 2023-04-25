@@ -4,14 +4,14 @@ import traceback
 from requests import Request
 from six import string_types
 from collections import OrderedDict
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Any, Union, List
 
 from .query import *
 from .exceptions import *
 from .attachment import Attachment
 
-TIMESTAMP_FORMAT = "%Y-%m-%d %H:%M:%S%Z"
+TIMESTAMP_FORMAT = "%Y-%m-%d %H:%M:%S%z"
 
 
 class GlideElement(object):
@@ -112,7 +112,7 @@ class GlideElement(object):
         """
         # see also https://stackoverflow.com/a/53291299
         # note: all values are UTC, display values are by user TZ
-        value_with_tz = f"{self.get_value()}UTC"
+        value_with_tz = f"{self.get_value()}+0000"
         return datetime.strptime(value_with_tz, TIMESTAMP_FORMAT)
 
     def set_date_numeric_value(self, ms: int) -> None:
@@ -121,8 +121,8 @@ class GlideElement(object):
 
         When called, setDateNumericValue() automatically creates the necessary GlideDateTime/GlideDate/GlideDuration object, and then sets the element to the specified value.
         """
-        dt = datetime.fromtimestamp(ms/1000.0)
-        self.set_value(dt.strftime(TIMESTAMP_FORMAT))
+        dt = datetime.fromtimestamp(ms/1000.0, tz=timezone.utc)
+        self.set_value(dt.strftime(TIMESTAMP_FORMAT)[:-5])  # note: strips UTC from the end
 
     def __str__(self):
         #if self._display_value and self._value != self._display_value:
@@ -130,7 +130,7 @@ class GlideElement(object):
         return str(self.get_value())
 
     def __repr__(self):
-        return f"record.GlideElement(name={self._name!r}, value={self._value!r}, display_value={self._display_value!r}, changed={self._changed!r})"
+        return f"record.GlideElement(value={self._value!r}, name={self._name!r}, display_value={self._display_value!r}, changed={self._changed!r})"
 
     def __bool__(self):
         # help with the truthiness of true/false fields
