@@ -127,9 +127,10 @@ class API(object):
         return self._client.session
 
     # noinspection PyMethodMayBeStatic
-    def _set_params(self, record=None):
-        params = {} if record == None else record._parameters()
-        params['sysparm_display_value'] = 'all'
+    def _set_params(self, record: GlideRecord=None):
+        params = {} if record is None else record._parameters()
+        if 'sysparm_display_value' not in params:
+            params['sysparm_display_value'] = 'all'
         params['sysparm_exclude_reference_link'] = 'true'  # Scratch it!
         params['sysparm_suppress_pagination_header'] = 'true'  # Required for large queries
         return params

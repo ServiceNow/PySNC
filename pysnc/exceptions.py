@@ -47,5 +47,10 @@ class RequestException(Exception):
 class InstanceException(Exception):
     pass
 
+
 class UploadException(Exception):
+    pass
+
+
+class NoRecordException(Exception):
     pass

@@ -183,7 +183,6 @@ class TestRecordFields(TestCase):
         gr.sys_id = '1234'
         self.assertEqual(gr.get_element('sys_id').changes(), True)
 
-
     def test_dotwalk_with_element(self):
         gr = self.client.GlideRecord('sys_user')
         gr.fields = 'sys_id,active,email,department,department.name,department.dept_head,department.dept_head.email'
@@ -204,4 +203,5 @@ class TestRecordFields(TestCase):
         self.assertEqual(gr.department.dept_head.email, 'natasha.ingram@example.com')
         self.assertEqual(type(gr.department.dept_head.email), GlideElement)
 
+        self.assertRaisesRegex(AttributeError, r'.+has no attribute.+nor GlideElement.+', lambda: gr.department.description)
 

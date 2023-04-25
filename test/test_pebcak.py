@@ -35,3 +35,13 @@ class TestPEBCAK(TestCase):
             assert "Should not have iterated!"
         client.session.close()
 
+    def test_forgot_to_iterate(self):
+        client = ServiceNowClient(self.c.server, self.c.credentials)
+        gr = client.GlideRecord('sys_user')
+        gr.limit = 1
+        gr.query()
+
+        self.assertRaises(AttributeError, lambda: gr.sys_id)
+        self.assertRaises(NoRecordException, lambda: gr.set_value('sys_id', 1))
+        self.assertRaises(NoRecordException, lambda: gr.get_value('sys_id'))
+

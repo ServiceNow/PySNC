@@ -228,10 +228,22 @@ class TestRecordQuery(TestCase):
         self.assertTrue(gr.next())
         self.assertEqual(gr.sys_id, true_id)
 
+    def test_disable_display_values(self):
+        client = ServiceNowClient(self.c.server, self.c.credentials)
+        gr = client.GlideRecord('sys_user')
+        gr.display_value = False
+        gr.limit = 1
+        gr.query()
+        self.assertTrue(gr.next())
+        #print(gr.serialize(display_value='all'))
+        self.assertFalse(gr.sys_updated_on.nil())
+        ele = gr.sys_updated_on
+        print(repr(ele))
+        self.assertEqual(ele.get_value(), ele.get_display_value(), 'expected timestamps to equal')
 
-
-
-
-
-
-
+        gr = client.GlideRecord('sys_user')
+        gr.display_value = True
+        gr.limit = 1
+        gr.query()
+        gr.next()
+        self.assertNotEqual(ele.get_value(), gr.get_value('sys_updated_on'))
