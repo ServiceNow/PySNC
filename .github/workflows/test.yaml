@@ -5,7 +5,7 @@ on: [pull_request]
 jobs:
   install-test:
     runs-on: ubuntu-latest
-    #if: github.repository_owner == 'ServiceNow'
+    if: github.repository_owner == 'ServiceNow'
     strategy:
       max-parallel: 1
       matrix:
@@ -17,16 +17,12 @@ jobs:
       PYSNC_JWT_CLIENT_SECRET: ${{ secrets.PYSNC_JWT_CLIENT_SECRET }}
       PYSNC_JWT_SHARED_KEY: ${{ secrets.PYSNC_JWT_SHARED_KEY }}
     steps:
-    - uses: actions/checkout@v3
+    - name: check out repository
+      uses: actions/checkout@v3
     - name: set up python ${{ matrix.python-version }}
       uses: actions/setup-python@v4
       with:
         python-version: ${{ matrix.python-version }}
-    - name: cache poetry install
-      uses: actions/cache@v2
-      with:
-        path: ~/.local
-        key: poetry-1.4.2-0
     - name: setup poetry
       uses: snok/install-poetry@v1
       with:
@@ -35,18 +31,17 @@ jobs:
         virtualenvs-in-project: true
     - name: cache deps
       id: cache-deps
-      uses: actions/cache@v2
+      uses: actions/cache@v3
       with:
         path: .venv
-        key: pydeps-${{ hashFiles('**/poetry.lock') }}
+        key: pydeps-${{ steps.setup-python.outputs.python-version }}-${{ hashFiles('**/poetry.lock') }}
     - name: install dependencies
-      if: steps.cache-pipenv.outputs.cache-hit != 'true'
-      run: |
-       poetry install --no-interaction --no-root
+      if: steps.cache-deps.outputs.cache-hit != 'true'
+      run: poetry install --no-interaction --no-root
+    - name: install project
+      run: poetry install --no-interaction
     - name: run tests
-      run: |
-        poetry run pytest
+      run: poetry run pytest
     - name: build docs
       working-directory: ./docs
-      run: |
-        poetry run make clean html
+      run: poetry run make clean html
