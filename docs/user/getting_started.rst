@@ -108,7 +108,7 @@ We can also modify the batch size, which is by default 10:
     >>> gr = client.GlideRecord('...', batch_size=50)
     >>> gr.batch_size = 60
 
-Batch size, along with fields and limits, will affect how the API and instance perform. This should be tuned against API usage and instance sempahore set configuration. This documentation does not provide said guidance, when in doubt leave it default.
+Batch size, along with fields and limits, will affect how the API and instance perform. This should be tuned against API usage and instance semaphore set configuration. This documentation does not provide said guidance, when in doubt leave it default.
 
 As a rule of thumb, query only the fields you actually want.
 
