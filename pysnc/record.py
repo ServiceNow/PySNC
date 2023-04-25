@@ -11,7 +11,7 @@ from .query import *
 from .exceptions import *
 from .attachment import Attachment
 
-TIMESTAMP_FORMAT = "%Y-%m-%d %H:%M:%S"
+TIMESTAMP_FORMAT = "%Y-%m-%d %H:%M:%S%Z"
 
 
 class GlideElement(object):
@@ -108,9 +108,12 @@ class GlideElement(object):
 
     def date_value(self) -> datetime:
         """
-        Returns the current as a datetime or throws if it cannot
+        Returns the current as a UTC datetime or throws if it cannot
         """
-        return datetime.strptime(self.get_value(), TIMESTAMP_FORMAT)
+        # see also https://stackoverflow.com/a/53291299
+        # note: all values are UTC, display values are by user TZ
+        value_with_tz = f"{self.get_value()}UTC"
+        return datetime.strptime(value_with_tz, TIMESTAMP_FORMAT)
 
     def set_date_numeric_value(self, ms: int) -> None:
         """
