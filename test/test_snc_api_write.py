@@ -63,6 +63,12 @@ class TestWrite(TestCase):
         gr4.short_description = 'ZZZ123'
         self.assertTrue(gr4.update())
 
+        gr4 = gr3.pop_record()
+        gr4.short_description = 'ZZZ123'
+        self.assertTrue(gr4.update())
+
+
+
         self.assertTrue(gr3.delete())
 
         # make sure it is deleted
