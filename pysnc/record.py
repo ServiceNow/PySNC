@@ -18,7 +18,7 @@ class GlideElement(object):
     """
     Object backing the value/display values of a given record entry.
     """
-    def __init__(self, name: str, value=None, display_value=None):
+    def __init__(self, name: str, value=None, display_value=None, parent_record=None):
         self._name = name
         self._value = None
         self._display_value = None
@@ -33,6 +33,8 @@ class GlideElement(object):
         if display_value:
             self._display_value = display_value
 
+        self._parent_record = parent_record
+
     def get_name(self) -> str:
         """
         get the name of the field
@@ -43,15 +45,17 @@ class GlideElement(object):
         """
         get the value of the field
         """
-        return self._value
+        if self._value is not None:
+            return self._value
+        return self._display_value  # if we are display only
 
     def get_display_value(self) -> Any:
         """
-        get the display value of the field
+        get the display value of the field, if it has one, else just the value
         """
         if self._display_value:
             return self._display_value
-        return self.get_value()
+        return self._value
 
     def set_value(self, value):
         """
@@ -184,7 +188,15 @@ class GlideElement(object):
     def __getattr__(self, item):
         if item in GlideElement.__class__.__dict__:
             return self.__getattribute__(item)
-        return getattr(self.get_value(), item)
+
+        if self._parent_record:
+            if tv := self._parent_record.get_element(f"{self._name}.{item}"):
+                return tv
+
+        if hasattr(self.get_value(), item):
+            return getattr(self.get_value(), item)
+
+        raise AttributeError(f"{type(self.get_value())} has no attribute '{item}' nor GlideElement '{self._name}.{item}' -- did you mean to add this to the GlideRecord fields?")
 
     def __deepcopy__(self, memo):
         """
@@ -222,6 +234,7 @@ class GlideRecord(object):
         self.__page = -1
         self.__order = None
         self.__is_new_record = False
+        self.__display_value = 'all'
 
     def _clear_query(self):
         self.__query = Query(self.__table)
@@ -238,6 +251,8 @@ class GlideRecord(object):
             ret['sysparm_fields'] = ','.join(c)
         if self.__view:
             ret['sysparm_view'] = self.__view
+
+        ret['sysparm_display_value'] = str(self.display_value).lower()
         # Batch size matters! Transaction limits will exceed.
         # This also means we have to be pretty specific with limits
         limit = None
@@ -360,6 +375,20 @@ class GlideRecord(object):
         """
         assert -1 <= location < self.__total
         self.__current = location
+
+    @property
+    def display_value(self):
+        return self.__display_value
+
+    @display_value.setter
+    def display_value(self, display_value):
+        """
+        True: Returns the display values for all fields.
+        False: Returns the actual values from the database.
+        all: Returns both actual and display values.
+        """
+        assert display_value in [True, False, 'all']
+        self.__display_value = display_value
 
     def order_by(self, column: str):
         """
@@ -606,6 +635,8 @@ class GlideRecord(object):
 
     def _get_value(self, item, key='value'):
         obj = self._current()
+        if obj is None:
+            raise NoRecordException('cannot get a value from nothing, did you forget to call next() or initialize()?')
         if item in obj:
             o = obj[item]
             if key == 'display_value':
@@ -640,6 +671,8 @@ class GlideRecord(object):
         :return: The GlideElement class or ``None``
         """
         c = self._current()
+        if c is None:
+            raise NoRecordException('cannot get a value from nothing, did you forget to call next() or initialize()?')
         return self._current()[field] if field in c else None
 
     def set_value(self, field, value):
@@ -650,8 +683,10 @@ class GlideRecord(object):
         :param value: The Value
         """
         c = self._current()
+        if c is None:
+            raise NoRecordException('cannot get a value from nothing, did you forget to call next() or initialize()?')
         if field not in c:
-            c[field] = GlideElement(field, value)
+            c[field] = GlideElement(field, value, parent_record=self)
         else:
             c[field].set_value(value)
 
@@ -663,8 +698,10 @@ class GlideRecord(object):
         :param value: The Value
         """
         c = self._current()
+        if c is None:
+            raise NoRecordException('cannot get a value from nothing, did you forget to call next() or initialize()?')
         if field not in c:
-            c[field] = GlideElement(field, display_value=value)
+            c[field] = GlideElement(field, display_value=value, parent_record=self)
         else:
             c[field].set_display_value(value)
 
@@ -727,7 +764,7 @@ class GlideRecord(object):
 
     def add_attachment(self, file_name, file, content_type=None, encryption_context=None):
         if self._current() is None:
-            raise UpdateException('Cannot attach to non existant record')
+            raise NoRecordException('cannot add attachment to nothing, did you forget to call next() or initialize()?')
 
         attachment = self._client.Attachment(self.__table)
         attachment.add_attachment(self.sys_id, file_name, file, content_type, encryption_context)
@@ -1017,7 +1054,7 @@ class GlideRecord(object):
 
     def _transform_result(self, result):
         for key, value in result.items():
-            result[key] = GlideElement(key, value)
+            result[key] = GlideElement(key, value, parent_record=self)
         return result
 
     def __str__(self):
