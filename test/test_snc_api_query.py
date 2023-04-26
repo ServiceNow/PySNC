@@ -1,7 +1,6 @@
 from unittest import TestCase
 
-from pysnc import ServiceNowClient
-import pysnc
+from pysnc import ServiceNowClient, exceptions
 from constants import Constants
 
 class TestRecordQuery(TestCase):
@@ -247,3 +246,10 @@ class TestRecordQuery(TestCase):
         gr.query()
         gr.next()
         self.assertNotEqual(ele.get_value(), gr.get_value('sys_updated_on'))
+        
+    def test_nonjson_error(self):
+        client = ServiceNowClient(self.c.server, self.c.credentials)
+
+        super_long_non_existant_name = "A" * 23000
+        gr = client.GlideRecord(super_long_non_existant_name)
+        self.assertRaisesRegex(exceptions.RequestException, r'^<!DOCTYPE html>.*', lambda: gr.get('doesntmatter'))

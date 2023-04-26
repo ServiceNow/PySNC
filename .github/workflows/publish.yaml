@@ -30,7 +30,7 @@ jobs:
         with:
           path: .venv
           key: pydeps-${{ hashFiles('**/poetry.lock') }}
-      - name: publish pypi
+      - name: build and publish pypi
         env:
           PYPI_TOKEN: ${{ secrets.PYPI_API_TOKEN }}
         run: |
@@ -41,6 +41,7 @@ jobs:
           mkdir gh-pages
           touch gh-pages/.nojekyll
           cd docs
+          poetry install --no-interaction
           poetry run make clean html
           cp -r _build/* ../gh-pages/
       - name: publish docs
