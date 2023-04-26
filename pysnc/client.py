@@ -319,15 +319,10 @@ class BatchAPI(API):
         self.__requests.append(now_request)
 
     def _transform_response(self, req: requests.PreparedRequest, serviced_request) -> requests.Response:
-        #if 'body' in serviced_request:
-        #    serviced_request['body'] = base64.b64decode(serviced_request['body'])
-
         # modeled after requests.adapters.HttpAdapter.build_response
         response = requests.Response()
         response.status_code = serviced_request['status_code']
         headers = {k: v for (k, v) in [(e['name'], e['value']) for e in serviced_request.get("headers", [])]}
-        print(serviced_request)
-        print(headers)
         response.headers = CaseInsensitiveDict(headers)
         response.encoding = get_encoding_from_headers(response.headers)
 
@@ -348,8 +343,6 @@ class BatchAPI(API):
         # response.connection = None
 
         return response
-
-        #return serviced_request
 
     def execute(self):
         bid = self._next_id()
