@@ -5,7 +5,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Index &#8212; PySNC 1.0.7 documentation</title>
+    <title>Index &#8212; PySNC 1.1.0 documentation</title>
     <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
     <link rel="stylesheet" type="text/css" href="_static/alabaster.css" />
     <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
@@ -38,7 +38,9 @@
 <div class="genindex-jumpbox">
  <a href="#A"><strong>A</strong></a>
  | <a href="#B"><strong>B</strong></a>
+ | <a href="#C"><strong>C</strong></a>
  | <a href="#D"><strong>D</strong></a>
+ | <a href="#E"><strong>E</strong></a>
  | <a href="#F"><strong>F</strong></a>
  | <a href="#G"><strong>G</strong></a>
  | <a href="#H"><strong>H</strong></a>
@@ -60,6 +62,8 @@
 <h2 id="A">A</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="api.html#pysnc.exceptions.AclQueryException">AclQueryException</a>
+</li>
       <li><a href="api.html#pysnc.GlideRecord.add_active_query">add_active_query() (pysnc.GlideRecord method)</a>
 </li>
       <li><a href="api.html#pysnc.GlideRecord.add_encoded_query">add_encoded_query() (pysnc.GlideRecord method)</a>
@@ -70,21 +74,31 @@
 </li>
       <li><a href="api.html#pysnc.GlideRecord.add_null_query">add_null_query() (pysnc.GlideRecord method)</a>
 </li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="api.html#pysnc.Attachment.add_query">add_query() (pysnc.Attachment method)</a>
 
       <ul>
         <li><a href="api.html#pysnc.GlideRecord.add_query">(pysnc.GlideRecord method)</a>
 </li>
       </ul></li>
-      <li><a href="api.html#pysnc.Attachment.asTempFile">asTempFile() (pysnc.Attachment method)</a>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="api.html#pysnc.API">API (class in pysnc)</a>
+</li>
+      <li><a href="api.html#pysnc.AttachmentAPI.API_VERSION">API_VERSION (pysnc.AttachmentAPI attribute)</a>
+
+      <ul>
+        <li><a href="api.html#pysnc.BatchAPI.API_VERSION">(pysnc.BatchAPI attribute)</a>
+</li>
+      </ul></li>
+      <li><a href="api.html#pysnc.Attachment.as_temp_file">as_temp_file() (pysnc.Attachment method)</a>
 </li>
       <li><a href="api.html#pysnc.Attachment">Attachment (class in pysnc)</a>
 </li>
       <li><a href="api.html#pysnc.ServiceNowClient.Attachment">Attachment() (pysnc.ServiceNowClient method)</a>
 </li>
-      <li><a href="api.html#pysnc.ServiceNowOAuth2.authenticate">authenticate() (pysnc.ServiceNowOAuth2 method)</a>
+      <li><a href="api.html#pysnc.AttachmentAPI">AttachmentAPI (class in pysnc)</a>
+</li>
+      <li><a href="api.html#pysnc.exceptions.AuthenticationException">AuthenticationException</a>
 </li>
   </ul></td>
 </tr></table>
@@ -95,16 +109,54 @@
       <li><a href="api.html#pysnc.GlideRecord.batch_size">batch_size (pysnc.GlideRecord property)</a>
 </li>
   </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="api.html#pysnc.BatchAPI">BatchAPI (class in pysnc)</a>
+</li>
+  </ul></td>
+</tr></table>
+
+<h2 id="C">C</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="api.html#pysnc.GlideElement.changes">changes() (pysnc.GlideElement method)</a>
+</li>
+  </ul></td>
 </tr></table>
 
 <h2 id="D">D</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="api.html#pysnc.GlideRecord.delete">delete() (pysnc.GlideRecord method)</a>
+      <li><a href="api.html#pysnc.GlideElement.date_numeric_value">date_numeric_value() (pysnc.GlideElement method)</a>
 </li>
+      <li><a href="api.html#pysnc.GlideElement.date_value">date_value() (pysnc.GlideElement method)</a>
+</li>
+      <li><a href="api.html#pysnc.AttachmentAPI.delete">delete() (pysnc.AttachmentAPI method)</a>
+
+      <ul>
+        <li><a href="api.html#pysnc.BatchAPI.delete">(pysnc.BatchAPI method)</a>
+</li>
+        <li><a href="api.html#pysnc.GlideRecord.delete">(pysnc.GlideRecord method)</a>
+</li>
+        <li><a href="api.html#pysnc.TableAPI.delete">(pysnc.TableAPI method)</a>
+</li>
+      </ul></li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="api.html#pysnc.GlideRecord.delete_multiple">delete_multiple() (pysnc.GlideRecord method)</a>
+</li>
+      <li><a href="api.html#pysnc.exceptions.DeleteException">DeleteException</a>
+</li>
+  </ul></td>
+</tr></table>
+
+<h2 id="E">E</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="api.html#pysnc.exceptions.EvaluationException">EvaluationException</a>
+</li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="api.html#pysnc.BatchAPI.execute">execute() (pysnc.BatchAPI method)</a>
 </li>
   </ul></td>
 </tr></table>
@@ -120,27 +172,51 @@
 <h2 id="G">G</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="api.html#pysnc.GlideRecord.get">get() (pysnc.GlideRecord method)</a>
+      <li><a href="api.html#pysnc.Attachment.get">get() (pysnc.Attachment method)</a>
+
+      <ul>
+        <li><a href="api.html#pysnc.AttachmentAPI.get">(pysnc.AttachmentAPI method)</a>
 </li>
+        <li><a href="api.html#pysnc.BatchAPI.get">(pysnc.BatchAPI method)</a>
+</li>
+        <li><a href="api.html#pysnc.GlideRecord.get">(pysnc.GlideRecord method)</a>
+</li>
+        <li><a href="api.html#pysnc.TableAPI.get">(pysnc.TableAPI method)</a>
+</li>
+      </ul></li>
       <li><a href="api.html#pysnc.GlideRecord.get_attachments">get_attachments() (pysnc.GlideRecord method)</a>
 </li>
-      <li><a href="api.html#pysnc.GlideRecord.get_display_value">get_display_value() (pysnc.GlideRecord method)</a>
+      <li><a href="api.html#pysnc.GlideElement.get_display_value">get_display_value() (pysnc.GlideElement method)</a>
+
+      <ul>
+        <li><a href="api.html#pysnc.GlideRecord.get_display_value">(pysnc.GlideRecord method)</a>
 </li>
+      </ul></li>
       <li><a href="api.html#pysnc.GlideRecord.get_element">get_element() (pysnc.GlideRecord method)</a>
 </li>
       <li><a href="api.html#pysnc.GlideRecord.get_encoded_query">get_encoded_query() (pysnc.GlideRecord method)</a>
 </li>
-      <li><a href="api.html#pysnc.GlideRecord.get_link">get_link() (pysnc.GlideRecord method)</a>
+      <li><a href="api.html#pysnc.AttachmentAPI.get_file">get_file() (pysnc.AttachmentAPI method)</a>
 </li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="api.html#pysnc.GlideRecord.get_link">get_link() (pysnc.GlideRecord method)</a>
+</li>
       <li><a href="api.html#pysnc.GlideRecord.get_link_list">get_link_list() (pysnc.GlideRecord method)</a>
+</li>
+      <li><a href="api.html#pysnc.GlideElement.get_name">get_name() (pysnc.GlideElement method)</a>
 </li>
       <li><a href="api.html#pysnc.GlideRecord.get_row_count">get_row_count() (pysnc.GlideRecord method)</a>
 </li>
-      <li><a href="api.html#pysnc.GlideRecord.get_value">get_value() (pysnc.GlideRecord method)</a>
+      <li><a href="api.html#pysnc.GlideRecord.get_unique_name">get_unique_name() (pysnc.GlideRecord method)</a>
 </li>
-      <li><a href="api.html#pysnc.Attachment.getAsFile">getAsFile() (pysnc.Attachment method)</a>
+      <li><a href="api.html#pysnc.GlideElement.get_value">get_value() (pysnc.GlideElement method)</a>
+
+      <ul>
+        <li><a href="api.html#pysnc.GlideRecord.get_value">(pysnc.GlideRecord method)</a>
+</li>
+      </ul></li>
+      <li><a href="api.html#pysnc.GlideElement">GlideElement (class in pysnc)</a>
 </li>
       <li><a href="api.html#pysnc.GlideRecord">GlideRecord (class in pysnc)</a>
 </li>
@@ -166,9 +242,13 @@
 </li>
       <li><a href="api.html#pysnc.GlideRecord.insert">insert() (pysnc.GlideRecord method)</a>
 </li>
+      <li><a href="api.html#pysnc.exceptions.InsertException">InsertException</a>
+</li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="api.html#pysnc.ServiceNowClient.instance">instance (pysnc.ServiceNowClient property)</a>
+</li>
+      <li><a href="api.html#pysnc.exceptions.InstanceException">InstanceException</a>
 </li>
       <li><a href="api.html#pysnc.GlideRecord.is_new_record">is_new_record() (pysnc.GlideRecord method)</a>
 </li>
@@ -180,6 +260,14 @@
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="api.html#pysnc.GlideRecord.limit">limit (pysnc.GlideRecord property)</a>
 </li>
+      <li><a href="api.html#pysnc.AttachmentAPI.list">list() (pysnc.AttachmentAPI method)</a>
+
+      <ul>
+        <li><a href="api.html#pysnc.BatchAPI.list">(pysnc.BatchAPI method)</a>
+</li>
+        <li><a href="api.html#pysnc.TableAPI.list">(pysnc.TableAPI method)</a>
+</li>
+      </ul></li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="api.html#pysnc.GlideRecord.location">location (pysnc.GlideRecord property)</a>
@@ -196,6 +284,8 @@
       <ul>
         <li><a href="api.html#module-pysnc">pysnc</a>
 </li>
+        <li><a href="api.html#module-pysnc.exceptions">pysnc.exceptions</a>
+</li>
       </ul></li>
   </ul></td>
 </tr></table>
@@ -209,6 +299,12 @@
         <li><a href="api.html#pysnc.GlideRecord.next">(pysnc.GlideRecord method)</a>
 </li>
       </ul></li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="api.html#pysnc.GlideElement.nil">nil() (pysnc.GlideElement method)</a>
+</li>
+      <li><a href="api.html#pysnc.exceptions.NotFoundException">NotFoundException</a>
+</li>
   </ul></td>
 </tr></table>
 
@@ -227,15 +323,40 @@
 <h2 id="P">P</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="api.html#pysnc.BatchAPI.patch">patch() (pysnc.BatchAPI method)</a>
+
+      <ul>
+        <li><a href="api.html#pysnc.TableAPI.patch">(pysnc.TableAPI method)</a>
+</li>
+      </ul></li>
       <li><a href="api.html#pysnc.GlideRecord.pop_record">pop_record() (pysnc.GlideRecord method)</a>
 </li>
+      <li><a href="api.html#pysnc.BatchAPI.post">post() (pysnc.BatchAPI method)</a>
+
+      <ul>
+        <li><a href="api.html#pysnc.TableAPI.post">(pysnc.TableAPI method)</a>
+</li>
+      </ul></li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="api.html#pysnc.BatchAPI.put">put() (pysnc.BatchAPI method)</a>
+
+      <ul>
+        <li><a href="api.html#pysnc.TableAPI.put">(pysnc.TableAPI method)</a>
+</li>
+      </ul></li>
       <li>
     pysnc
 
       <ul>
         <li><a href="api.html#module-pysnc">module</a>
+</li>
+      </ul></li>
+      <li>
+    pysnc.exceptions
+
+      <ul>
+        <li><a href="api.html#module-pysnc.exceptions">module</a>
 </li>
       </ul></li>
   </ul></td>
@@ -258,11 +379,17 @@
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="api.html#pysnc.Attachment.read">read() (pysnc.Attachment method)</a>
 </li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="api.html#pysnc.Attachment.readlines">readlines() (pysnc.Attachment method)</a>
 </li>
+      <li><a href="api.html#pysnc.exceptions.RequestException">RequestException</a>
+</li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="api.html#pysnc.exceptions.RestException">RestException</a>
+</li>
       <li><a href="api.html#pysnc.GlideRecord.rewind">rewind() (pysnc.GlideRecord method)</a>
+</li>
+      <li><a href="api.html#pysnc.exceptions.RoleException">RoleException</a>
 </li>
   </ul></td>
 </tr></table>
@@ -270,24 +397,46 @@
 <h2 id="S">S</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="api.html#pysnc.GlideRecord.serialize">serialize() (pysnc.GlideRecord method)</a>
+      <li><a href="api.html#pysnc.GlideElement.serialize">serialize() (pysnc.GlideElement method)</a>
+
+      <ul>
+        <li><a href="api.html#pysnc.GlideRecord.serialize">(pysnc.GlideRecord method)</a>
 </li>
+      </ul></li>
       <li><a href="api.html#pysnc.GlideRecord.serialize_all">serialize_all() (pysnc.GlideRecord method)</a>
 </li>
       <li><a href="api.html#pysnc.ServiceNowClient">ServiceNowClient (class in pysnc)</a>
 </li>
-      <li><a href="api.html#pysnc.ServiceNowOAuth2">ServiceNowOAuth2 (class in pysnc)</a>
+      <li><a href="api.html#pysnc.API.session">session (pysnc.API property)</a>
+
+      <ul>
+        <li><a href="api.html#pysnc.AttachmentAPI.session">(pysnc.AttachmentAPI property)</a>
 </li>
+        <li><a href="api.html#pysnc.BatchAPI.session">(pysnc.BatchAPI property)</a>
+</li>
+        <li><a href="api.html#pysnc.ServiceNowClient.session">(pysnc.ServiceNowClient property)</a>
+</li>
+        <li><a href="api.html#pysnc.TableAPI.session">(pysnc.TableAPI property)</a>
+</li>
+      </ul></li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="api.html#pysnc.ServiceNowClient.session">session (pysnc.ServiceNowClient property)</a>
+      <li><a href="api.html#pysnc.GlideElement.set_date_numeric_value">set_date_numeric_value() (pysnc.GlideElement method)</a>
 </li>
-      <li><a href="api.html#pysnc.GlideRecord.set_display_value">set_display_value() (pysnc.GlideRecord method)</a>
+      <li><a href="api.html#pysnc.GlideElement.set_display_value">set_display_value() (pysnc.GlideElement method)</a>
+
+      <ul>
+        <li><a href="api.html#pysnc.GlideRecord.set_display_value">(pysnc.GlideRecord method)</a>
 </li>
+      </ul></li>
       <li><a href="api.html#pysnc.GlideRecord.set_new_guid_value">set_new_guid_value() (pysnc.GlideRecord method)</a>
 </li>
-      <li><a href="api.html#pysnc.GlideRecord.set_value">set_value() (pysnc.GlideRecord method)</a>
+      <li><a href="api.html#pysnc.GlideElement.set_value">set_value() (pysnc.GlideElement method)</a>
+
+      <ul>
+        <li><a href="api.html#pysnc.GlideRecord.set_value">(pysnc.GlideRecord method)</a>
 </li>
+      </ul></li>
   </ul></td>
 </tr></table>
 
@@ -298,6 +447,8 @@
 </li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="api.html#pysnc.TableAPI">TableAPI (class in pysnc)</a>
+</li>
       <li><a href="api.html#pysnc.GlideRecord.to_pandas">to_pandas() (pysnc.GlideRecord method)</a>
 </li>
   </ul></td>
@@ -307,6 +458,16 @@
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="api.html#pysnc.GlideRecord.update">update() (pysnc.GlideRecord method)</a>
+</li>
+      <li><a href="api.html#pysnc.GlideRecord.update_multiple">update_multiple() (pysnc.GlideRecord method)</a>
+</li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="api.html#pysnc.exceptions.UpdateException">UpdateException</a>
+</li>
+      <li><a href="api.html#pysnc.AttachmentAPI.upload_file">upload_file() (pysnc.AttachmentAPI method)</a>
+</li>
+      <li><a href="api.html#pysnc.exceptions.UploadException">UploadException</a>
 </li>
   </ul></td>
 </tr></table>
@@ -386,11 +547,11 @@
       <div class="clearer"></div>
     </div>
     <div class="footer">
-      &copy;2018, Matthew Gill.
+      &copy;2023, Matthew Gill.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 5.2.2</a>
-      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 5.3.0</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.13</a>
       
     </div>
 

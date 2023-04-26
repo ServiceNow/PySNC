@@ -6,7 +6,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
 
-    <title>Getting Started &#8212; PySNC 1.0.7 documentation</title>
+    <title>Getting Started &#8212; PySNC 1.1.0 documentation</title>
     <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
     <link rel="stylesheet" type="text/css" href="../_static/alabaster.css" />
     <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
@@ -46,7 +46,9 @@
 </pre></div>
 </div>
 <p>Then we create a client:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">client</span> <span class="o">=</span> <span class="n">pysnc</span><span class="o">.</span><span class="n">ServiceNowClient</span><span class="p">(</span><span class="s1">&#39;dev00000&#39;</span><span class="p">,</span> <span class="p">(</span><span class="s1">&#39;admin&#39;</span><span class="p">,</span> <span class="n">password</span><span class="p">))</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">client</span> <span class="o">=</span> <span class="n">ServiceNowClient</span><span class="p">(</span><span class="s1">&#39;dev00000&#39;</span><span class="p">,</span> <span class="n">ServiceNowPasswordGrantFlow</span><span class="p">(</span><span class="s1">&#39;admin&#39;</span><span class="p">,</span> <span class="n">password</span><span class="p">,</span> <span class="n">client_id</span><span class="p">,</span> <span class="n">client_secret</span><span class="p">))</span>
+<span class="go"># or more insecurely...</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">client</span> <span class="o">=</span> <span class="n">pysnc</span><span class="o">.</span><span class="n">ServiceNowClient</span><span class="p">(</span><span class="s1">&#39;dev00000&#39;</span><span class="p">,</span> <span class="p">(</span><span class="s1">&#39;admin&#39;</span><span class="p">,</span> <span class="n">password</span><span class="p">))</span>
 </pre></div>
 </div>
 <p>We use the client to create a <code class="docutils literal notranslate"><span class="pre">GlideRecord</span></code> object:</p>
@@ -56,6 +58,10 @@
 <p>Familiar? The real difference is we follow python naming conventions:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">gr</span><span class="o">.</span><span class="n">add_query</span><span class="p">(</span><span class="s2">&quot;active&quot;</span><span class="p">,</span> <span class="s2">&quot;true&quot;</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">gr</span><span class="o">.</span><span class="n">query</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>Or even:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">gr</span><span class="o">.</span><span class="n">add_active_query</span><span class="p">()</span>
 </pre></div>
 </div>
 <p>This means that instead of Java/JavaScript camelCase we use python standard in PEP-8. For example <code class="docutils literal notranslate"><span class="pre">addQuery</span></code> has become <code class="docutils literal notranslate"><span class="pre">add_query</span></code>.</p>
@@ -129,33 +135,44 @@
 <span class="gp">&gt;&gt;&gt; </span><span class="n">gr</span><span class="o">.</span><span class="n">batch_size</span> <span class="o">=</span> <span class="mi">60</span>
 </pre></div>
 </div>
-<p>Batch size, along with fields and limits, will affect how the API and instance perform. This should be tuned against API usage and instance sempahore set configuration. This documentation does not provide said guidance, when in doubt leave it default.</p>
+<p>Batch size, along with fields and limits, will affect how the API and instance perform. This should be tuned against API usage and instance semaphore set configuration. This documentation does not provide said guidance, when in doubt leave it default.</p>
 <p>As a rule of thumb, query only the fields you actually want.</p>
 </section>
 <section id="accessing-fields">
 <h2>Accessing fields<a class="headerlink" href="#accessing-fields" title="Permalink to this heading">¶</a></h2>
-<p>We can access any field value via dot notation or the standard <cite>get_value</cite> and <cite>get_display_value</cite> methods.</p>
+<p>We can access any field value via dot notation or the standard <code class="xref py py-func docutils literal notranslate"><span class="pre">get_value()</span></code> and <code class="xref py py-func docutils literal notranslate"><span class="pre">get_display_value()</span></code> methods. Fields are backed by <code class="xref py py-class docutils literal notranslate"><span class="pre">record.GlideElement</span></code></p>
 <p>For example:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">gr</span> <span class="o">=</span> <span class="n">client</span><span class="o">.</span><span class="n">GlideRecord</span><span class="p">(</span><span class="s1">&#39;problem&#39;</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">gr</span><span class="o">.</span><span class="n">query</span><span class="p">()</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">gr</span><span class="o">.</span><span class="n">next</span><span class="p">()</span>
 <span class="go">True</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">gr</span><span class="o">.</span><span class="n">state</span>
-<span class="go">u&#39;3&#39;</span>
+<span class="go">record.GlideElement(name=&#39;state&#39;, value=&#39;3&#39;, display_value=&#39;Pending Change&#39;, changed=False)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">gr</span><span class="o">.</span><span class="n">get_value</span><span class="p">(</span><span class="s1">&#39;state&#39;</span><span class="p">)</span>
-<span class="go">u&#39;3&#39;</span>
+<span class="go">&#39;3&#39;</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">gr</span><span class="o">.</span><span class="n">get_display_value</span><span class="p">(</span><span class="s1">&#39;state&#39;</span><span class="p">)</span>
-<span class="go">u&#39;Pending Change&#39;</span>
+<span class="go">&#39;Pending Change&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">gr</span><span class="o">.</span><span class="n">state</span> <span class="o">==</span> <span class="s1">&#39;3&#39;</span>
+<span class="go">True</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="sa">f</span><span class="s2">&quot;State is </span><span class="si">{</span><span class="n">gr</span><span class="o">.</span><span class="n">state</span><span class="si">}</span><span class="s2">&quot;</span>
+<span class="go">&#39;State is 3&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">gr</span><span class="o">.</span><span class="n">state</span><span class="o">.</span><span class="n">nil</span><span class="p">()</span>
+<span class="go">False</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">gr</span><span class="o">.</span><span class="n">state</span> <span class="o">=</span> <span class="s1">&#39;4&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">gr</span><span class="o">.</span><span class="n">state</span>
+<span class="go">record.GlideElement(name=&#39;state&#39;, value=&#39;4&#39;, display_value=None, changed=True)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">gr</span><span class="o">.</span><span class="n">state</span><span class="o">.</span><span class="n">get_value</span><span class="p">()</span>
+<span class="go">&#39;4&#39;</span>
 </pre></div>
 </div>
-<p>The PySNC module has no concept of GlideElement - we cannot infer what a given columns data type may be from the REST API.</p>
+<p>The PySNC module cannot infer what a given columns data type may be from the REST API – this gives some limitations on possible methods such as the <cite>getRefRecord</cite></p>
 </section>
 <section id="setting-fields">
 <h2>Setting fields<a class="headerlink" href="#setting-fields" title="Permalink to this heading">¶</a></h2>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">gr</span> <span class="o">=</span> <span class="n">client</span><span class="o">.</span><span class="n">GlideRecord</span><span class="p">(</span><span class="s1">&#39;incident&#39;</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">gr</span><span class="o">.</span><span class="n">initialize</span><span class="p">()</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">gr</span><span class="o">.</span><span class="n">state</span> <span class="o">=</span> <span class="mi">4</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">gr</span><span class="o">.</span><span class="n">state</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">gr</span><span class="o">.</span><span class="n">get_value</span><span class="p">(</span><span class="s1">&#39;state&#39;</span><span class="p">)</span>
 <span class="go">4</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">gr</span><span class="o">.</span><span class="n">set_value</span><span class="p">(</span><span class="s1">&#39;state&#39;</span><span class="p">,</span> <span class="mi">4</span><span class="p">)</span>
 </pre></div>
@@ -163,7 +180,7 @@
 </section>
 <section id="length">
 <h2>Length<a class="headerlink" href="#length" title="Permalink to this heading">¶</a></h2>
-<p>You can use <cite>len</cite> or <cite>get_row_count()</cite>:</p>
+<p>You can use <cite>len</cite> or <cite>get_row_count()</cite> (they are the same):</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">gr</span> <span class="o">=</span> <span class="n">client</span><span class="o">.</span><span class="n">GlideRecord</span><span class="p">(</span><span class="s1">&#39;incident&#39;</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="nb">len</span><span class="p">(</span><span class="n">gr</span><span class="p">)</span>
 <span class="go">0</span>
@@ -179,13 +196,13 @@
 </section>
 <section id="insert-update-delete">
 <h2>Insert, Update, Delete<a class="headerlink" href="#insert-update-delete" title="Permalink to this heading">¶</a></h2>
-<p>We can insert new records:</p>
+<p>We can insert new records (you must call <cite>initialize()</cite> first):</p>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">gr</span> <span class="o">=</span> <span class="n">client</span><span class="o">.</span><span class="n">GlideRecord</span><span class="p">(</span><span class="s1">&#39;problem&#39;</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">gr</span><span class="o">.</span><span class="n">initialize</span><span class="p">()</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">gr</span><span class="o">.</span><span class="n">short_description</span> <span class="o">=</span> <span class="s2">&quot;Example Problem&quot;</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">gr</span><span class="o">.</span><span class="n">description</span> <span class="o">=</span> <span class="s2">&quot;Example Description&quot;</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">gr</span><span class="o">.</span><span class="n">insert</span><span class="p">()</span>
-<span class="go">u&#39;a06252790b6693009fde8a4b33673aed&#39;</span>
+<span class="go">&#39;a06252790b6693009fde8a4b33673aed&#39;</span>
 </pre></div>
 </div>
 <p>And update:</p>
@@ -194,7 +211,7 @@
 <span class="go">True</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">gr</span><span class="o">.</span><span class="n">short_description</span> <span class="o">=</span> <span class="s2">&quot;Updated Problem&quot;</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">gr</span><span class="o">.</span><span class="n">update</span><span class="p">()</span>
-<span class="go">u&#39;a06252790b6693009fde8a4b33673aed&#39;</span>
+<span class="go">&#39;a06252790b6693009fde8a4b33673aed&#39;</span>
 </pre></div>
 </div>
 <p>And delete:</p>
@@ -279,11 +296,11 @@
       <div class="clearer"></div>
     </div>
     <div class="footer">
-      &copy;2018, Matthew Gill.
+      &copy;2023, Matthew Gill.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 5.2.2</a>
-      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 5.3.0</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.13</a>
       
       |
       <a href="../_sources/user/getting_started.rst.txt"

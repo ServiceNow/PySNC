@@ -6,7 +6,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
 
-    <title>Authentication &#8212; PySNC 1.0.7 documentation</title>
+    <title>Authentication &#8212; PySNC 1.1.0 documentation</title>
     <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
     <link rel="stylesheet" type="text/css" href="../_static/alabaster.css" />
     <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
@@ -44,24 +44,38 @@ insecure, but simplest, way to authenticate. Remember to scope the user’s ACLs
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">client</span> <span class="o">=</span> <span class="n">pysnc</span><span class="o">.</span><span class="n">ServiceNowClient</span><span class="p">(</span><span class="s1">&#39;dev00000&#39;</span><span class="p">,</span> <span class="p">(</span><span class="s1">&#39;admin&#39;</span><span class="p">,</span><span class="s1">&#39;password&#39;</span><span class="p">))</span>
 </pre></div>
 </div>
+<p>This is not recommended for any production or machine to machine activity</p>
 </section>
-<section id="oauth-authentication">
-<h2>OAuth Authentication<a class="headerlink" href="#oauth-authentication" title="Permalink to this heading">¶</a></h2>
-<p>OAuth2 password flow is currently supported and recommended - one must setup an OAuth Client to use.</p>
+<section id="oauth2-password-grant-flow">
+<h2>OAuth2 - Password Grant Flow<a class="headerlink" href="#oauth2-password-grant-flow" title="Permalink to this heading">¶</a></h2>
+<p>OAuth2 password flow is currently supported and recommended</p>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">pysnc</span> <span class="kn">import</span> <span class="n">ServiceNowClient</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">pysnc.auth</span> <span class="kn">import</span> <span class="n">ServiceNowOauth2</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">pysnc.auth</span> <span class="kn">import</span> <span class="n">ServiceNowPasswordGrantFlow</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">client_id</span> <span class="o">=</span> <span class="s1">&#39;ac0dd3408c1031006907010c2cc6ef6d&#39;</span> <span class="c1"># oauth_entity.client_id</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">secret</span> <span class="o">=</span> <span class="s1">&#39;...&#39;</span> <span class="c1"># oauth_entity.client_secret</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">client</span> <span class="o">=</span> <span class="n">ServiceNowClient</span><span class="p">(</span><span class="n">server_url</span><span class="p">,</span> <span class="n">ServiceNowOAuth2</span><span class="p">(</span><span class="n">username</span><span class="p">,</span> <span class="n">password</span><span class="p">,</span> <span class="n">client_id</span><span class="p">,</span> <span class="n">secret</span><span class="p">))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">auth</span> <span class="o">=</span> <span class="n">ServiceNowPasswordGrantFlow</span><span class="p">(</span><span class="n">username</span><span class="p">,</span> <span class="n">password</span><span class="p">,</span> <span class="n">client_id</span><span class="p">,</span> <span class="n">secret</span><span class="p">))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">client</span> <span class="o">=</span> <span class="n">ServiceNowClient</span><span class="p">(</span><span class="n">server_url</span><span class="p">,</span> <span class="n">auth</span><span class="p">)</span>
 </pre></div>
 </div>
 <p>This will use a users credentials to retrieve and store an OAuth2 auth and refresh token, sending your auth token with
-every request and dropping your user and password from memory. If this sleeps for a long enough time your refresh token
-may requiring re-auth.</p>
+every request and dropping your user and password from memory. This will automatically update your access tokens.</p>
+<p>To configure this flow, create a new OAuth Application by selecting a new OAuth API endpoint:</p>
+<img alt="../_images/oauth2-01.png" src="../_images/oauth2-01.png" />
+<p>Name it, save/insert it, and note your new client_id and client_secret. This flow is sometimes called a Legacy flow, as it
+is not the ideal method OAuth usage. In this flow it is tolerable to share/embed your client_secret.</p>
+<img alt="../_images/oauth2-02.png" src="../_images/oauth2-02.png" />
 </section>
-<section id="jwt-authentication">
-<h2>JWT Authentication<a class="headerlink" href="#jwt-authentication" title="Permalink to this heading">¶</a></h2>
-<p>Create a new [JWT Provider](<a class="reference external" href="https://docs.servicenow.com/en-US/bundle/tokyo-platform-security/page/administer/security/task/create-jwt-endpoint.html">https://docs.servicenow.com/en-US/bundle/tokyo-platform-security/page/administer/security/task/create-jwt-endpoint.html</a>)
+<section id="oauth2-auth-code-grant-flow">
+<h2>OAuth2 - Auth Code Grant Flow<a class="headerlink" href="#oauth2-auth-code-grant-flow" title="Permalink to this heading">¶</a></h2>
+<p>No instructions, currently. Typically what you would want to use if you’re a client doing things on behalf of users.</p>
+</section>
+<section id="oauth2-client-credential-grant-flow">
+<h2>OAuth2 - Client Credential Grant Flow<a class="headerlink" href="#oauth2-client-credential-grant-flow" title="Permalink to this heading">¶</a></h2>
+<p>ServiceNow does not support this OAuth flow</p>
+</section>
+<section id="oauth2-jwt-bearer-grant-flow">
+<h2>OAuth2 - JWT Bearer Grant Flow<a class="headerlink" href="#oauth2-jwt-bearer-grant-flow" title="Permalink to this heading">¶</a></h2>
+<p>Create a new <a class="reference external" href="https://docs.servicenow.com/en-US/bundle/tokyo-platform-security/page/administer/security/task/create-jwt-endpoint.html">JWT Provider</a>
 and use it with whomever generates your JWT tokens. Once you have your JWT you may use it to request a Bearer token for
 standard auth:</p>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">auth</span> <span class="o">=</span> <span class="n">ServiceNowJWTAuth</span><span class="p">(</span><span class="n">client_id</span><span class="p">,</span> <span class="n">client_secret</span><span class="p">,</span> <span class="n">token</span><span class="p">)</span>
@@ -72,6 +86,13 @@ standard auth:</p>
 <p>The token contains who are are logging in as - as such the PySNC library does not attempt to act as a provider. We do however
 have an example of how that is done in the tests.</p>
 </section>
+<section id="mtls-mutual-tls-authentication-certificate-based-authentication">
+<h2>mTLS - Mutual TLS Authentication (Certificate-Based Authentication)<a class="headerlink" href="#mtls-mutual-tls-authentication-certificate-based-authentication" title="Permalink to this heading">¶</a></h2>
+<p>The most ideal form of authentication for machine to machine communication. Follow <a class="reference external" href="https://support.servicenow.com/kb?id=kb_article_view&amp;sysparm_article=KB0993615">KB0993615</a> then:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">client</span> <span class="o">=</span> <span class="n">ServiceNowClient</span><span class="p">(</span><span class="n">instance</span><span class="p">,</span> <span class="n">cert</span><span class="o">=</span><span class="p">(</span><span class="s1">&#39;/path/to/client.cert&#39;</span><span class="p">,</span> <span class="s1">&#39;/path/to/client.key&#39;</span><span class="p">))</span>
+</pre></div>
+</div>
+</section>
 <section id="requests-authentication">
 <h2>Requests Authentication<a class="headerlink" href="#requests-authentication" title="Permalink to this heading">¶</a></h2>
 <p>Ultimately any authentication method supported by python requests (<a class="reference external" href="https://2.python-requests.org/en/master/user/authentication/">https://2.python-requests.org/en/master/user/authentication/</a>) can be passed directly to ServiceNowClient.</p>
@@ -81,6 +102,7 @@ have an example of how that is done in the tests.</p>
 <h2>Storing Passwords<a class="headerlink" href="#storing-passwords" title="Permalink to this heading">¶</a></h2>
 <p>The keystore module is highly recommended. For example:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">keyring</span>
+
 
 <span class="k">def</span> <span class="nf">check_keyring</span><span class="p">(</span><span class="n">instance</span><span class="p">,</span> <span class="n">user</span><span class="p">):</span>
     <span class="n">passw</span> <span class="o">=</span> <span class="n">keyring</span><span class="o">.</span><span class="n">get_password</span><span class="p">(</span><span class="n">instance</span><span class="p">,</span> <span class="n">user</span><span class="p">)</span>
@@ -98,7 +120,7 @@ have an example of how that is done in the tests.</p>
         <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;No Password specified and none found in keyring&#39;</span><span class="p">)</span>
         <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
 
-<span class="n">client</span> <span class="o">=</span> <span class="n">pysnc</span><span class="o">.</span><span class="n">ServiceNowClient</span><span class="p">(</span><span class="n">options</span><span class="o">.</span><span class="n">instance</span><span class="p">,</span> <span class="n">ServiceNowOAuth2</span><span class="p">(</span><span class="n">options</span><span class="o">.</span><span class="n">user</span><span class="p">,</span> <span class="n">passw</span><span class="p">))</span>
+<span class="n">client</span> <span class="o">=</span> <span class="n">pysnc</span><span class="o">.</span><span class="n">ServiceNowClient</span><span class="p">(</span><span class="n">options</span><span class="o">.</span><span class="n">instance</span><span class="p">,</span> <span class="o">...</span><span class="p">)</span>
 </pre></div>
 </div>
 </section>
@@ -128,8 +150,11 @@ have an example of how that is done in the tests.</p>
 <li class="toctree-l1"><a class="reference internal" href="advanced.html">Advanced</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Authentication</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#basic-authentication">Basic Authentication</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#oauth-authentication">OAuth Authentication</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#jwt-authentication">JWT Authentication</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#oauth2-password-grant-flow">OAuth2 - Password Grant Flow</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#oauth2-auth-code-grant-flow">OAuth2 - Auth Code Grant Flow</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#oauth2-client-credential-grant-flow">OAuth2 - Client Credential Grant Flow</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#oauth2-jwt-bearer-grant-flow">OAuth2 - JWT Bearer Grant Flow</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#mtls-mutual-tls-authentication-certificate-based-authentication">mTLS - Mutual TLS Authentication (Certificate-Based Authentication)</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#requests-authentication">Requests Authentication</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#storing-passwords">Storing Passwords</a></li>
 </ul>
@@ -171,11 +196,11 @@ have an example of how that is done in the tests.</p>
       <div class="clearer"></div>
     </div>
     <div class="footer">
-      &copy;2018, Matthew Gill.
+      &copy;2023, Matthew Gill.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 5.2.2</a>
-      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 5.3.0</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.13</a>
       
       |
       <a href="../_sources/user/authentication.rst.txt"

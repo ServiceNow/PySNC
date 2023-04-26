@@ -6,7 +6,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
 
-    <title>The API &#8212; PySNC 1.0.7 documentation</title>
+    <title>The API &#8212; PySNC 1.1.0 documentation</title>
     <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
     <link rel="stylesheet" type="text/css" href="_static/alabaster.css" />
     <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
@@ -36,25 +36,26 @@
             
   <section id="module-pysnc">
 <span id="the-api"></span><span id="api"></span><h1>The API<a class="headerlink" href="#module-pysnc" title="Permalink to this heading">¶</a></h1>
-<section id="the-client">
-<h2>The Client<a class="headerlink" href="#the-client" title="Permalink to this heading">¶</a></h2>
+<section id="the-servicenowclient">
+<h2>The ServiceNowClient<a class="headerlink" href="#the-servicenowclient" title="Permalink to this heading">¶</a></h2>
 <dl class="py class">
 <dt class="sig sig-object py" id="pysnc.ServiceNowClient">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pysnc.</span></span><span class="sig-name descname"><span class="pre">ServiceNowClient</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">instance</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">auth</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">proxy</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verify</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pysnc/client.html#ServiceNowClient"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pysnc.ServiceNowClient" title="Permalink to this definition">¶</a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pysnc.</span></span><span class="sig-name descname"><span class="pre">ServiceNowClient</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">instance</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">auth</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">proxy</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verify</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cert</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pysnc/client.html#ServiceNowClient"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pysnc.ServiceNowClient" title="Permalink to this definition">¶</a></dt>
 <dd><p>ServiceNow Python Client</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>instance</strong> (<em>str</em>) – The instance to connect to e.g. <code class="docutils literal notranslate"><span class="pre">https://dev00000.service-now.com</span></code> or <code class="docutils literal notranslate"><span class="pre">dev000000</span></code></p></li>
-<li><p><strong>auth</strong> – Username password combination <code class="docutils literal notranslate"><span class="pre">(name,pass)</span></code> or <a class="reference internal" href="#pysnc.ServiceNowOAuth2" title="pysnc.ServiceNowOAuth2"><code class="xref py py-class docutils literal notranslate"><span class="pre">pysnc.ServiceNowOAuth2</span></code></a> or <code class="docutils literal notranslate"><span class="pre">requests.sessions.Session</span></code> or <code class="docutils literal notranslate"><span class="pre">requests.auth.AuthBase</span></code> object</p></li>
+<li><p><strong>auth</strong> – Username password combination <code class="docutils literal notranslate"><span class="pre">(name,pass)</span></code> or <code class="xref py py-class docutils literal notranslate"><span class="pre">pysnc.ServiceNowOAuth2</span></code> or <code class="docutils literal notranslate"><span class="pre">requests.sessions.Session</span></code> or <code class="docutils literal notranslate"><span class="pre">requests.auth.AuthBase</span></code> object</p></li>
 <li><p><strong>proxy</strong> – HTTP(s) proxy to use as a str <code class="docutils literal notranslate"><span class="pre">'http://proxy:8080</span></code> or dict <code class="docutils literal notranslate"><span class="pre">{'http':'http://proxy:8080'}</span></code></p></li>
-<li><p><strong>verify</strong> (<em>bool</em>) – Verify the SSL/TLS certificate. Useful if you’re using a self-signed HTTPS proxy.</p></li>
+<li><p><strong>verify</strong> (<em>bool</em>) – Verify the SSL/TLS certificate OR the certificate to use. Useful if you’re using a self-signed HTTPS proxy.</p></li>
+<li><p><strong>cert</strong> – if String, path to ssl client cert file (.pem). If Tuple, (‘cert’, ‘key’) pair.</p></li>
 </ul>
 </dd>
 </dl>
 <dl class="py method">
 <dt class="sig sig-object py" id="pysnc.ServiceNowClient.Attachment">
-<span class="sig-name descname"><span class="pre">Attachment</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">table</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sys_id</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pysnc/client.html#ServiceNowClient.Attachment"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pysnc.ServiceNowClient.Attachment" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">Attachment</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">table</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#pysnc.Attachment" title="pysnc.attachment.Attachment"><span class="pre">Attachment</span></a></span></span><a class="reference internal" href="_modules/pysnc/client.html#ServiceNowClient.Attachment"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pysnc.ServiceNowClient.Attachment" title="Permalink to this definition">¶</a></dt>
 <dd><p>Create an Attachment object for the current client</p>
 <dl class="field-list simple">
 <dt class="field-odd">Returns<span class="colon">:</span></dt>
@@ -65,7 +66,7 @@
 
 <dl class="py method">
 <dt class="sig sig-object py" id="pysnc.ServiceNowClient.GlideRecord">
-<span class="sig-name descname"><span class="pre">GlideRecord</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">table</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">batch_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">100</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pysnc/client.html#ServiceNowClient.GlideRecord"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pysnc.ServiceNowClient.GlideRecord" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">GlideRecord</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">table</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">batch_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">100</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#pysnc.GlideRecord" title="pysnc.record.GlideRecord"><span class="pre">GlideRecord</span></a></span></span><a class="reference internal" href="_modules/pysnc/client.html#ServiceNowClient.GlideRecord"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pysnc.ServiceNowClient.GlideRecord" title="Permalink to this definition">¶</a></dt>
 <dd><p>Create a <a class="reference internal" href="#pysnc.GlideRecord" title="pysnc.GlideRecord"><code class="xref py py-class docutils literal notranslate"><span class="pre">pysnc.GlideRecord</span></code></a> for a given table against the current client</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -82,7 +83,7 @@
 
 <dl class="py method">
 <dt class="sig sig-object py" id="pysnc.ServiceNowClient.guess_is_sys_id">
-<em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">guess_is_sys_id</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">value</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pysnc/client.html#ServiceNowClient.guess_is_sys_id"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pysnc.ServiceNowClient.guess_is_sys_id" title="Permalink to this definition">¶</a></dt>
+<em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">guess_is_sys_id</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">value</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">bool</span></span></span><a class="reference internal" href="_modules/pysnc/client.html#ServiceNowClient.guess_is_sys_id"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pysnc.ServiceNowClient.guess_is_sys_id" title="Permalink to this definition">¶</a></dt>
 <dd><p>Attempt to guess if this is a probable sys_id</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -99,7 +100,7 @@
 
 <dl class="py property">
 <dt class="sig sig-object py" id="pysnc.ServiceNowClient.instance">
-<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">instance</span></span><a class="headerlink" href="#pysnc.ServiceNowClient.instance" title="Permalink to this definition">¶</a></dt>
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">instance</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></em><a class="headerlink" href="#pysnc.ServiceNowClient.instance" title="Permalink to this definition">¶</a></dt>
 <dd><p>The instance we’re associated with.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Returns<span class="colon">:</span></dt>
@@ -128,7 +129,7 @@
 <h2>GlideRecord<a class="headerlink" href="#gliderecord" title="Permalink to this heading">¶</a></h2>
 <dl class="py class">
 <dt class="sig sig-object py" id="pysnc.GlideRecord">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pysnc.</span></span><span class="sig-name descname"><span class="pre">GlideRecord</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">client</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">table</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">batch_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">500</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pysnc/record.html#GlideRecord"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pysnc.GlideRecord" title="Permalink to this definition">¶</a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pysnc.</span></span><span class="sig-name descname"><span class="pre">GlideRecord</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">client</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">table</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">batch_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">500</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pysnc/record.html#GlideRecord"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pysnc.GlideRecord" title="Permalink to this definition">¶</a></dt>
 <dd><p>The GlideRecord object. Normally instantiated via convenience method <a class="reference internal" href="#pysnc.ServiceNowClient.GlideRecord" title="pysnc.ServiceNowClient.GlideRecord"><code class="xref py py-func docutils literal notranslate"><span class="pre">pysnc.ServiceNowClient.GlideRecord()</span></code></a>.
 This object allows us to interact with a specific table via the table rest api.</p>
 <dl class="field-list simple">
@@ -142,7 +143,7 @@ This object allows us to interact with a specific table via the table rest api.<
 </dl>
 <dl class="py method">
 <dt class="sig sig-object py" id="pysnc.GlideRecord.add_active_query">
-<span class="sig-name descname"><span class="pre">add_active_query</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/pysnc/record.html#GlideRecord.add_active_query"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pysnc.GlideRecord.add_active_query" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">add_active_query</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">QueryCondition</span></span></span><a class="reference internal" href="_modules/pysnc/record.html#GlideRecord.add_active_query"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pysnc.GlideRecord.add_active_query" title="Permalink to this definition">¶</a></dt>
 <dd><p>Equivilant to the following:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">add_query</span><span class="p">(</span><span class="s1">&#39;active&#39;</span><span class="p">,</span> <span class="s1">&#39;true&#39;</span><span class="p">)</span>
 </pre></div>
@@ -162,7 +163,7 @@ This object allows us to interact with a specific table via the table rest api.<
 
 <dl class="py method">
 <dt class="sig sig-object py" id="pysnc.GlideRecord.add_join_query">
-<span class="sig-name descname"><span class="pre">add_join_query</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">join_table</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">primary_field</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">join_table_field</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pysnc/record.html#GlideRecord.add_join_query"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pysnc.GlideRecord.add_join_query" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">add_join_query</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">join_table</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">primary_field</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">join_table_field</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">JoinQuery</span></span></span><a class="reference internal" href="_modules/pysnc/record.html#GlideRecord.add_join_query"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pysnc.GlideRecord.add_join_query" title="Permalink to this definition">¶</a></dt>
 <dd><p>Do a join query:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">gr</span> <span class="o">=</span> <span class="n">client</span><span class="o">.</span><span class="n">GlideRecord</span><span class="p">(</span><span class="s1">&#39;sys_user&#39;</span><span class="p">)</span>
 <span class="n">join_query</span> <span class="o">=</span> <span class="n">gr</span><span class="o">.</span><span class="n">add_join_query</span><span class="p">(</span><span class="s1">&#39;sys_user_group&#39;</span><span class="p">,</span> <span class="n">join_table_field</span><span class="o">=</span><span class="s1">&#39;manager&#39;</span><span class="p">)</span>
@@ -186,7 +187,7 @@ This object allows us to interact with a specific table via the table rest api.<
 
 <dl class="py method">
 <dt class="sig sig-object py" id="pysnc.GlideRecord.add_not_null_query">
-<span class="sig-name descname"><span class="pre">add_not_null_query</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">field</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pysnc/record.html#GlideRecord.add_not_null_query"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pysnc.GlideRecord.add_not_null_query" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">add_not_null_query</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">field</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">QueryCondition</span></span></span><a class="reference internal" href="_modules/pysnc/record.html#GlideRecord.add_not_null_query"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pysnc.GlideRecord.add_not_null_query" title="Permalink to this definition">¶</a></dt>
 <dd><p>If the specified field is <cite>not</cite> empty
 Equivilant to the following:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">add_query</span><span class="p">(</span><span class="n">field</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="s1">&#39;ISNOTEMPTY&#39;</span><span class="p">)</span>
@@ -201,7 +202,7 @@ Equivilant to the following:</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="pysnc.GlideRecord.add_null_query">
-<span class="sig-name descname"><span class="pre">add_null_query</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">field</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pysnc/record.html#GlideRecord.add_null_query"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pysnc.GlideRecord.add_null_query" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">add_null_query</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">field</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">QueryCondition</span></span></span><a class="reference internal" href="_modules/pysnc/record.html#GlideRecord.add_null_query"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pysnc.GlideRecord.add_null_query" title="Permalink to this definition">¶</a></dt>
 <dd><p>If the specified field is empty
 Equivilant to the following:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">add_query</span><span class="p">(</span><span class="n">field</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="s1">&#39;ISEMPTY&#39;</span><span class="p">)</span>
@@ -216,7 +217,7 @@ Equivilant to the following:</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="pysnc.GlideRecord.add_query">
-<span class="sig-name descname"><span class="pre">add_query</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">value</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">second_value</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pysnc/record.html#GlideRecord.add_query"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pysnc.GlideRecord.add_query" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">add_query</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">value</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">second_value</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">QueryCondition</span></span></span><a class="reference internal" href="_modules/pysnc/record.html#GlideRecord.add_query"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pysnc.GlideRecord.add_query" title="Permalink to this definition">¶</a></dt>
 <dd><p>Add a query to a record. For example:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">add_query</span><span class="p">(</span><span class="s1">&#39;active&#39;</span><span class="p">,</span> <span class="s1">&#39;true&#39;</span><span class="p">)</span>
 </pre></div>
@@ -261,7 +262,7 @@ Equivilant to the following:</p>
 
 <dl class="py property">
 <dt class="sig sig-object py" id="pysnc.GlideRecord.batch_size">
-<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">batch_size</span></span><a class="headerlink" href="#pysnc.GlideRecord.batch_size" title="Permalink to this definition">¶</a></dt>
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">batch_size</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></em><a class="headerlink" href="#pysnc.GlideRecord.batch_size" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="field-list simple">
 <dt class="field-odd">Returns<span class="colon">:</span></dt>
 <dd class="field-odd"><p>The number of records to query in a single HTTP GET</p>
@@ -271,7 +272,7 @@ Equivilant to the following:</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="pysnc.GlideRecord.delete">
-<span class="sig-name descname"><span class="pre">delete</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/pysnc/record.html#GlideRecord.delete"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pysnc.GlideRecord.delete" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">delete</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">bool</span></span></span><a class="reference internal" href="_modules/pysnc/record.html#GlideRecord.delete"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pysnc.GlideRecord.delete" title="Permalink to this definition">¶</a></dt>
 <dd><p>Delete the current record</p>
 <dl class="field-list simple">
 <dt class="field-odd">Returns<span class="colon">:</span></dt>
@@ -292,13 +293,15 @@ Equivilant to the following:</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="pysnc.GlideRecord.delete_multiple">
-<span class="sig-name descname"><span class="pre">delete_multiple</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/pysnc/record.html#GlideRecord.delete_multiple"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pysnc.GlideRecord.delete_multiple" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">delete_multiple</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">bool</span></span></span><a class="reference internal" href="_modules/pysnc/record.html#GlideRecord.delete_multiple"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pysnc.GlideRecord.delete_multiple" title="Permalink to this definition">¶</a></dt>
 <dd><p>Deletes the current query, funny enough this is the same as iterating and deleting each record since we’re
-using the REST api.
-:return: <code class="docutils literal notranslate"><span class="pre">True</span></code> on success
-:raise:</p>
-<blockquote>
-<div><dl class="field-list simple">
+using the REST api.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p><code class="docutils literal notranslate"><span class="pre">True</span></code> on success</p>
+</dd>
+<dt class="field-even">Raise<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="field-list simple">
 <dt class="field-odd">AuthenticationException<span class="colon">:</span></dt>
 <dd class="field-odd"><p>If we do not have rights</p>
 </dd>
@@ -306,12 +309,13 @@ using the REST api.
 <dd class="field-even"><p>For any other failure reason</p>
 </dd>
 </dl>
-</div></blockquote>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py property">
 <dt class="sig sig-object py" id="pysnc.GlideRecord.fields">
-<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">fields</span></span><a class="headerlink" href="#pysnc.GlideRecord.fields" title="Permalink to this definition">¶</a></dt>
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">fields</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#pysnc.GlideRecord.fields" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="field-list simple">
 <dt class="field-odd">Returns<span class="colon">:</span></dt>
 <dd class="field-odd"><p>Fields in which this record will query OR has queried</p>
@@ -321,7 +325,7 @@ using the REST api.
 
 <dl class="py method">
 <dt class="sig sig-object py" id="pysnc.GlideRecord.get">
-<span class="sig-name descname"><span class="pre">get</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">value</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pysnc/record.html#GlideRecord.get"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pysnc.GlideRecord.get" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">get</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">value</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">bool</span></span></span><a class="reference internal" href="_modules/pysnc/record.html#GlideRecord.get"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pysnc.GlideRecord.get" title="Permalink to this definition">¶</a></dt>
 <dd><p>Get a single record, accepting two values. If one value is passed, assumed to be sys_id. If two values are
 passed in, the first value is the column name to be used. Can return multiple records.</p>
 <dl class="field-list simple">
@@ -334,19 +338,12 @@ passed in, the first value is the column name to be used. Can return multiple re
 <dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><p><code class="docutils literal notranslate"><span class="pre">True</span></code> or <code class="docutils literal notranslate"><span class="pre">False</span></code> based on success</p>
 </dd>
-<dt class="field-odd">Raise<span class="colon">:</span></dt>
-<dd class="field-odd"><dl class="field-list simple">
-<dt class="field-odd">AuthenticationException<span class="colon">:</span></dt>
-<dd class="field-odd"><p>If we do not have rights</p>
-</dd>
-</dl>
-</dd>
 </dl>
 </dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="pysnc.GlideRecord.get_attachments">
-<span class="sig-name descname"><span class="pre">get_attachments</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/pysnc/record.html#GlideRecord.get_attachments"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pysnc.GlideRecord.get_attachments" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">get_attachments</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#pysnc.Attachment" title="pysnc.attachment.Attachment"><span class="pre">Attachment</span></a></span></span><a class="reference internal" href="_modules/pysnc/record.html#GlideRecord.get_attachments"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pysnc.GlideRecord.get_attachments" title="Permalink to this definition">¶</a></dt>
 <dd><p>Get the attachments for the current record or the current table</p>
 <dl class="field-list simple">
 <dt class="field-odd">Returns<span class="colon">:</span></dt>
@@ -360,11 +357,11 @@ passed in, the first value is the column name to be used. Can return multiple re
 
 <dl class="py method">
 <dt class="sig sig-object py" id="pysnc.GlideRecord.get_display_value">
-<span class="sig-name descname"><span class="pre">get_display_value</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">field</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pysnc/record.html#GlideRecord.get_display_value"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pysnc.GlideRecord.get_display_value" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">get_display_value</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">field</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Any</span></span></span><a class="reference internal" href="_modules/pysnc/record.html#GlideRecord.get_display_value"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pysnc.GlideRecord.get_display_value" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return the display value for the given field</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>field</strong> (<em>str</em>) – The field</p>
+<dd class="field-odd"><p><strong>field</strong> (<em>str</em>) – The field, required</p>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><p>The field value or <code class="docutils literal notranslate"><span class="pre">None</span></code></p>
@@ -374,7 +371,7 @@ passed in, the first value is the column name to be used. Can return multiple re
 
 <dl class="py method">
 <dt class="sig sig-object py" id="pysnc.GlideRecord.get_element">
-<span class="sig-name descname"><span class="pre">get_element</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">field</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pysnc/record.html#GlideRecord.get_element"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pysnc.GlideRecord.get_element" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">get_element</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">field</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#pysnc.GlideElement" title="pysnc.record.GlideElement"><span class="pre">GlideElement</span></a></span></span><a class="reference internal" href="_modules/pysnc/record.html#GlideRecord.get_element"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pysnc.GlideRecord.get_element" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return the backing GlideElement for the given field. This is the only method to directly access this element.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -388,7 +385,7 @@ passed in, the first value is the column name to be used. Can return multiple re
 
 <dl class="py method">
 <dt class="sig sig-object py" id="pysnc.GlideRecord.get_encoded_query">
-<span class="sig-name descname"><span class="pre">get_encoded_query</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/pysnc/record.html#GlideRecord.get_encoded_query"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pysnc.GlideRecord.get_encoded_query" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">get_encoded_query</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">str</span></span></span><a class="reference internal" href="_modules/pysnc/record.html#GlideRecord.get_encoded_query"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pysnc.GlideRecord.get_encoded_query" title="Permalink to this definition">¶</a></dt>
 <dd><p>Generate the encoded query. Does not respect limits.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Returns<span class="colon">:</span></dt>
@@ -399,7 +396,7 @@ passed in, the first value is the column name to be used. Can return multiple re
 
 <dl class="py method">
 <dt class="sig sig-object py" id="pysnc.GlideRecord.get_link">
-<span class="sig-name descname"><span class="pre">get_link</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">no_stack</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pysnc/record.html#GlideRecord.get_link"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pysnc.GlideRecord.get_link" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">get_link</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">no_stack</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">str</span></span></span><a class="reference internal" href="_modules/pysnc/record.html#GlideRecord.get_link"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pysnc.GlideRecord.get_link" title="Permalink to this definition">¶</a></dt>
 <dd><p>Generate a full URL to the current record. sys_id will be null if there is no current record.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -419,7 +416,7 @@ passed in, the first value is the column name to be used. Can return multiple re
 
 <dl class="py method">
 <dt class="sig sig-object py" id="pysnc.GlideRecord.get_link_list">
-<span class="sig-name descname"><span class="pre">get_link_list</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/pysnc/record.html#GlideRecord.get_link_list"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pysnc.GlideRecord.get_link_list" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">get_link_list</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">str</span></span></span><a class="reference internal" href="_modules/pysnc/record.html#GlideRecord.get_link_list"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pysnc.GlideRecord.get_link_list" title="Permalink to this definition">¶</a></dt>
 <dd><p>Generate a full URL to for the current query.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Returns<span class="colon">:</span></dt>
@@ -433,7 +430,7 @@ passed in, the first value is the column name to be used. Can return multiple re
 
 <dl class="py method">
 <dt class="sig sig-object py" id="pysnc.GlideRecord.get_row_count">
-<span class="sig-name descname"><span class="pre">get_row_count</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/pysnc/record.html#GlideRecord.get_row_count"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pysnc.GlideRecord.get_row_count" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">get_row_count</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">int</span></span></span><a class="reference internal" href="_modules/pysnc/record.html#GlideRecord.get_row_count"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pysnc.GlideRecord.get_row_count" title="Permalink to this definition">¶</a></dt>
 <dd><p>Glide compatable method.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Returns<span class="colon">:</span></dt>
@@ -443,8 +440,14 @@ passed in, the first value is the column name to be used. Can return multiple re
 </dd></dl>
 
 <dl class="py method">
+<dt class="sig sig-object py" id="pysnc.GlideRecord.get_unique_name">
+<span class="sig-name descname"><span class="pre">get_unique_name</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">str</span></span></span><a class="reference internal" href="_modules/pysnc/record.html#GlideRecord.get_unique_name"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pysnc.GlideRecord.get_unique_name" title="Permalink to this definition">¶</a></dt>
+<dd><p>always give us the sys_id</p>
+</dd></dl>
+
+<dl class="py method">
 <dt class="sig sig-object py" id="pysnc.GlideRecord.get_value">
-<span class="sig-name descname"><span class="pre">get_value</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">field</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pysnc/record.html#GlideRecord.get_value"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pysnc.GlideRecord.get_value" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">get_value</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">field</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Any</span></span></span><a class="reference internal" href="_modules/pysnc/record.html#GlideRecord.get_value"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pysnc.GlideRecord.get_value" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return the value field for the given field</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -458,7 +461,7 @@ passed in, the first value is the column name to be used. Can return multiple re
 
 <dl class="py method">
 <dt class="sig sig-object py" id="pysnc.GlideRecord.has_next">
-<span class="sig-name descname"><span class="pre">has_next</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/pysnc/record.html#GlideRecord.has_next"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pysnc.GlideRecord.has_next" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">has_next</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">bool</span></span></span><a class="reference internal" href="_modules/pysnc/record.html#GlideRecord.has_next"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pysnc.GlideRecord.has_next" title="Permalink to this definition">¶</a></dt>
 <dd><p>Do we have a next record in the iteration?</p>
 <dl class="field-list simple">
 <dt class="field-odd">Returns<span class="colon">:</span></dt>
@@ -475,7 +478,7 @@ passed in, the first value is the column name to be used. Can return multiple re
 
 <dl class="py method">
 <dt class="sig sig-object py" id="pysnc.GlideRecord.insert">
-<span class="sig-name descname"><span class="pre">insert</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/pysnc/record.html#GlideRecord.insert"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pysnc.GlideRecord.insert" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">insert</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">str</span></span></span><a class="reference internal" href="_modules/pysnc/record.html#GlideRecord.insert"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pysnc.GlideRecord.insert" title="Permalink to this definition">¶</a></dt>
 <dd><p>Insert a new record.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Returns<span class="colon">:</span></dt>
@@ -496,15 +499,14 @@ passed in, the first value is the column name to be used. Can return multiple re
 
 <dl class="py method">
 <dt class="sig sig-object py" id="pysnc.GlideRecord.is_new_record">
-<span class="sig-name descname"><span class="pre">is_new_record</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/pysnc/record.html#GlideRecord.is_new_record"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pysnc.GlideRecord.is_new_record" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">is_new_record</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">bool</span></span></span><a class="reference internal" href="_modules/pysnc/record.html#GlideRecord.is_new_record"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pysnc.GlideRecord.is_new_record" title="Permalink to this definition">¶</a></dt>
 <dd><p>Is this a new record?
-:return: <code class="docutils literal notranslate"><span class="pre">True</span></code> or <code class="docutils literal notranslate"><span class="pre">False</span></code>
-:rtype: bool</p>
+:return: <code class="docutils literal notranslate"><span class="pre">True</span></code> or <code class="docutils literal notranslate"><span class="pre">False</span></code></p>
 </dd></dl>
 
 <dl class="py property">
 <dt class="sig sig-object py" id="pysnc.GlideRecord.limit">
-<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">limit</span></span><a class="headerlink" href="#pysnc.GlideRecord.limit" title="Permalink to this definition">¶</a></dt>
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">limit</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></em><a class="headerlink" href="#pysnc.GlideRecord.limit" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="field-list simple">
 <dt class="field-odd">Returns<span class="colon">:</span></dt>
 <dd class="field-odd"><p>Query number limit</p>
@@ -514,7 +516,7 @@ passed in, the first value is the column name to be used. Can return multiple re
 
 <dl class="py property">
 <dt class="sig sig-object py" id="pysnc.GlideRecord.location">
-<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">location</span></span><a class="headerlink" href="#pysnc.GlideRecord.location" title="Permalink to this definition">¶</a></dt>
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">location</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></em><a class="headerlink" href="#pysnc.GlideRecord.location" title="Permalink to this definition">¶</a></dt>
 <dd><p>Current location within the iteration
 :return: location is -1 if iteration has not started
 :rtype: int</p>
@@ -522,7 +524,7 @@ passed in, the first value is the column name to be used. Can return multiple re
 
 <dl class="py method">
 <dt class="sig sig-object py" id="pysnc.GlideRecord.next">
-<span class="sig-name descname"><span class="pre">next</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">_recursive</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pysnc/record.html#GlideRecord.next"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pysnc.GlideRecord.next" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">next</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">_recursive</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">bool</span></span></span><a class="reference internal" href="_modules/pysnc/record.html#GlideRecord.next"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pysnc.GlideRecord.next" title="Permalink to this definition">¶</a></dt>
 <dd><p>Returns the next record in the record set</p>
 <dl class="field-list simple">
 <dt class="field-odd">Returns<span class="colon">:</span></dt>
@@ -533,7 +535,7 @@ passed in, the first value is the column name to be used. Can return multiple re
 
 <dl class="py method">
 <dt class="sig sig-object py" id="pysnc.GlideRecord.order_by">
-<span class="sig-name descname"><span class="pre">order_by</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">column</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pysnc/record.html#GlideRecord.order_by"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pysnc.GlideRecord.order_by" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">order_by</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">column</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pysnc/record.html#GlideRecord.order_by"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pysnc.GlideRecord.order_by" title="Permalink to this definition">¶</a></dt>
 <dd><p>Set the order in ascending</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -544,7 +546,7 @@ passed in, the first value is the column name to be used. Can return multiple re
 
 <dl class="py method">
 <dt class="sig sig-object py" id="pysnc.GlideRecord.order_by_desc">
-<span class="sig-name descname"><span class="pre">order_by_desc</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">column</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pysnc/record.html#GlideRecord.order_by_desc"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pysnc.GlideRecord.order_by_desc" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">order_by_desc</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">column</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pysnc/record.html#GlideRecord.order_by_desc"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pysnc.GlideRecord.order_by_desc" title="Permalink to this definition">¶</a></dt>
 <dd><p>Set the order in decending</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -555,7 +557,7 @@ passed in, the first value is the column name to be used. Can return multiple re
 
 <dl class="py method">
 <dt class="sig sig-object py" id="pysnc.GlideRecord.pop_record">
-<span class="sig-name descname"><span class="pre">pop_record</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/pysnc/record.html#GlideRecord.pop_record"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pysnc.GlideRecord.pop_record" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">pop_record</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#pysnc.GlideRecord" title="pysnc.record.GlideRecord"><span class="pre">GlideRecord</span></a></span></span><a class="reference internal" href="_modules/pysnc/record.html#GlideRecord.pop_record"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pysnc.GlideRecord.pop_record" title="Permalink to this definition">¶</a></dt>
 <dd><p>Pop the current record into a new <a class="reference internal" href="#pysnc.GlideRecord" title="pysnc.GlideRecord"><code class="xref py py-class docutils literal notranslate"><span class="pre">GlideRecord</span></code></a> object - equivalent to a clone of a singular record</p>
 <dl class="field-list simple">
 <dt class="field-odd">Returns<span class="colon">:</span></dt>
@@ -569,11 +571,8 @@ passed in, the first value is the column name to be used. Can return multiple re
 <span class="sig-name descname"><span class="pre">query</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">query</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pysnc/record.html#GlideRecord.query"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pysnc.GlideRecord.query" title="Permalink to this definition">¶</a></dt>
 <dd><p>Query the table - executes a GET</p>
 <dl class="field-list simple">
-<dt class="field-odd">Returns<span class="colon">:</span></dt>
-<dd class="field-odd"><p>void</p>
-</dd>
-<dt class="field-even">Raise<span class="colon">:</span></dt>
-<dd class="field-even"><dl class="field-list simple">
+<dt class="field-odd">Raise<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="field-list simple">
 <dt class="field-odd">AuthenticationException<span class="colon">:</span></dt>
 <dd class="field-odd"><p>If we do not have rights</p>
 </dd>
@@ -593,7 +592,7 @@ passed in, the first value is the column name to be used. Can return multiple re
 
 <dl class="py method">
 <dt class="sig sig-object py" id="pysnc.GlideRecord.serialize">
-<span class="sig-name descname"><span class="pre">serialize</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">display_value</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fields</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fmt</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">changes_only</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pysnc/record.html#GlideRecord.serialize"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pysnc.GlideRecord.serialize" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">serialize</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">display_value</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fields</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fmt</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">changes_only</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Any</span></span></span><a class="reference internal" href="_modules/pysnc/record.html#GlideRecord.serialize"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pysnc.GlideRecord.serialize" title="Permalink to this definition">¶</a></dt>
 <dd><p>Turn current record into a dict</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -601,6 +600,7 @@ passed in, the first value is the column name to be used. Can return multiple re
 <li><p><strong>display_value</strong> – <code class="docutils literal notranslate"><span class="pre">True</span></code>, <code class="docutils literal notranslate"><span class="pre">False</span></code>, or <code class="docutils literal notranslate"><span class="pre">'both'</span></code></p></li>
 <li><p><strong>fields</strong> (<em>list</em>) – Fields to serialize. Defaults to all fields.</p></li>
 <li><p><strong>fmt</strong> (<em>str</em>) – None or <code class="docutils literal notranslate"><span class="pre">pandas</span></code>. Defaults to None</p></li>
+<li><p><strong>changes_only</strong> – Do we want to serialize only the fields we’ve modified?</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
@@ -611,7 +611,7 @@ passed in, the first value is the column name to be used. Can return multiple re
 
 <dl class="py method">
 <dt class="sig sig-object py" id="pysnc.GlideRecord.serialize_all">
-<span class="sig-name descname"><span class="pre">serialize_all</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">display_value</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fields</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fmt</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pysnc/record.html#GlideRecord.serialize_all"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pysnc.GlideRecord.serialize_all" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">serialize_all</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">display_value</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fields</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fmt</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">list</span></span></span><a class="reference internal" href="_modules/pysnc/record.html#GlideRecord.serialize_all"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pysnc.GlideRecord.serialize_all" title="Permalink to this definition">¶</a></dt>
 <dd><p>Serialize the entire query. See serialize() docs for details on parameters</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -649,9 +649,6 @@ passed in, the first value is the column name to be used. Can return multiple re
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><p><strong>value</strong> – A 32 byte string that is the value</p>
 </dd>
-<dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>None</p>
-</dd>
 </dl>
 </dd></dl>
 
@@ -671,7 +668,7 @@ passed in, the first value is the column name to be used. Can return multiple re
 
 <dl class="py property">
 <dt class="sig sig-object py" id="pysnc.GlideRecord.table">
-<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">table</span></span><a class="headerlink" href="#pysnc.GlideRecord.table" title="Permalink to this definition">¶</a></dt>
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">table</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></em><a class="headerlink" href="#pysnc.GlideRecord.table" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="field-list simple">
 <dt class="field-odd">Returns<span class="colon">:</span></dt>
 <dd class="field-odd"><p>The table we are operating on</p>
@@ -704,7 +701,7 @@ follows their name.</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="pysnc.GlideRecord.update">
-<span class="sig-name descname"><span class="pre">update</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/pysnc/record.html#GlideRecord.update"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pysnc.GlideRecord.update" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">update</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">str</span></span></span><a class="reference internal" href="_modules/pysnc/record.html#GlideRecord.update"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pysnc.GlideRecord.update" title="Permalink to this definition">¶</a></dt>
 <dd><p>Update the current record.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Returns<span class="colon">:</span></dt>
@@ -723,6 +720,12 @@ follows their name.</p>
 </dl>
 </dd></dl>
 
+<dl class="py method">
+<dt class="sig sig-object py" id="pysnc.GlideRecord.update_multiple">
+<span class="sig-name descname"><span class="pre">update_multiple</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">bool</span></span></span><a class="reference internal" href="_modules/pysnc/record.html#GlideRecord.update_multiple"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pysnc.GlideRecord.update_multiple" title="Permalink to this definition">¶</a></dt>
+<dd><p>Updates multiple records at once</p>
+</dd></dl>
+
 <dl class="py property">
 <dt class="sig sig-object py" id="pysnc.GlideRecord.view">
 <em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">view</span></span><a class="headerlink" href="#pysnc.GlideRecord.view" title="Permalink to this definition">¶</a></dt>
@@ -735,12 +738,100 @@ follows their name.</p>
 
 </dd></dl>
 
+<dl class="py class">
+<dt class="sig sig-object py" id="pysnc.GlideElement">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pysnc.</span></span><span class="sig-name descname"><span class="pre">GlideElement</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">value</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">display_value</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pysnc/record.html#GlideElement"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pysnc.GlideElement" title="Permalink to this definition">¶</a></dt>
+<dd><p>Object backing the value/display values of a given record entry.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="pysnc.GlideElement.changes">
+<span class="sig-name descname"><span class="pre">changes</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">bool</span></span></span><a class="reference internal" href="_modules/pysnc/record.html#GlideElement.changes"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pysnc.GlideElement.changes" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>if we have changed this value</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>bool</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pysnc.GlideElement.date_numeric_value">
+<span class="sig-name descname"><span class="pre">date_numeric_value</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">int</span></span></span><a class="reference internal" href="_modules/pysnc/record.html#GlideElement.date_numeric_value"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pysnc.GlideElement.date_numeric_value" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the number of milliseconds since January 1, 1970, 00:00:00 GMT for a duration field</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pysnc.GlideElement.date_value">
+<span class="sig-name descname"><span class="pre">date_value</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">datetime</span></span></span><a class="reference internal" href="_modules/pysnc/record.html#GlideElement.date_value"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pysnc.GlideElement.date_value" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the current as a UTC datetime or throws if it cannot</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pysnc.GlideElement.get_display_value">
+<span class="sig-name descname"><span class="pre">get_display_value</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Any</span></span></span><a class="reference internal" href="_modules/pysnc/record.html#GlideElement.get_display_value"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pysnc.GlideElement.get_display_value" title="Permalink to this definition">¶</a></dt>
+<dd><p>get the display value of the field</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pysnc.GlideElement.get_name">
+<span class="sig-name descname"><span class="pre">get_name</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">str</span></span></span><a class="reference internal" href="_modules/pysnc/record.html#GlideElement.get_name"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pysnc.GlideElement.get_name" title="Permalink to this definition">¶</a></dt>
+<dd><p>get the name of the field</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pysnc.GlideElement.get_value">
+<span class="sig-name descname"><span class="pre">get_value</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Any</span></span></span><a class="reference internal" href="_modules/pysnc/record.html#GlideElement.get_value"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pysnc.GlideElement.get_value" title="Permalink to this definition">¶</a></dt>
+<dd><p>get the value of the field</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pysnc.GlideElement.nil">
+<span class="sig-name descname"><span class="pre">nil</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">bool</span></span></span><a class="reference internal" href="_modules/pysnc/record.html#GlideElement.nil"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pysnc.GlideElement.nil" title="Permalink to this definition">¶</a></dt>
+<dd><p>returns True if the value is None or zero length</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>if this value is anything</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>bool</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pysnc.GlideElement.serialize">
+<span class="sig-name descname"><span class="pre">serialize</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">dict</span></span></span><a class="reference internal" href="_modules/pysnc/record.html#GlideElement.serialize"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pysnc.GlideElement.serialize" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns a dict with the <cite>value</cite>,`display_value` keys</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pysnc.GlideElement.set_date_numeric_value">
+<span class="sig-name descname"><span class="pre">set_date_numeric_value</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ms</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="_modules/pysnc/record.html#GlideElement.set_date_numeric_value"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pysnc.GlideElement.set_date_numeric_value" title="Permalink to this definition">¶</a></dt>
+<dd><p>Sets the value of a date/time element to the specified number of milliseconds since January 1, 1970 00:00:00 GMT.</p>
+<p>When called, setDateNumericValue() automatically creates the necessary GlideDateTime/GlideDate/GlideDuration object, and then sets the element to the specified value.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pysnc.GlideElement.set_display_value">
+<span class="sig-name descname"><span class="pre">set_display_value</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">value</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Any</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pysnc/record.html#GlideElement.set_display_value"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pysnc.GlideElement.set_display_value" title="Permalink to this definition">¶</a></dt>
+<dd><p>set the display value for the field – generally speaking does not have any affect upstream (to the server)</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pysnc.GlideElement.set_value">
+<span class="sig-name descname"><span class="pre">set_value</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">value</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pysnc/record.html#GlideElement.set_value"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pysnc.GlideElement.set_value" title="Permalink to this definition">¶</a></dt>
+<dd><p>set the value for the field. Will also set the display_value to <cite>None</cite></p>
+</dd></dl>
+
+</dd></dl>
+
 </section>
 <section id="attachment">
 <h2>Attachment<a class="headerlink" href="#attachment" title="Permalink to this heading">¶</a></h2>
 <dl class="py class">
 <dt class="sig sig-object py" id="pysnc.Attachment">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pysnc.</span></span><span class="sig-name descname"><span class="pre">Attachment</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">client</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">table</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sys_id</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pysnc/attachment.html#Attachment"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pysnc.Attachment" title="Permalink to this definition">¶</a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pysnc.</span></span><span class="sig-name descname"><span class="pre">Attachment</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">client</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">table</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pysnc/attachment.html#Attachment"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pysnc.Attachment" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="py method">
 <dt class="sig sig-object py" id="pysnc.Attachment.add_query">
 <span class="sig-name descname"><span class="pre">add_query</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">value</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">second_value</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pysnc/attachment.html#Attachment.add_query"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pysnc.Attachment.add_query" title="Permalink to this definition">¶</a></dt>
@@ -787,8 +878,8 @@ follows their name.</p>
 </dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="pysnc.Attachment.asTempFile">
-<span class="sig-name descname"><span class="pre">asTempFile</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">chunk_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">512</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pysnc/attachment.html#Attachment.asTempFile"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pysnc.Attachment.asTempFile" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="pysnc.Attachment.as_temp_file">
+<span class="sig-name descname"><span class="pre">as_temp_file</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">chunk_size</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">512</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">SpooledTemporaryFile</span></span></span><a class="reference internal" href="_modules/pysnc/attachment.html#Attachment.as_temp_file"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pysnc.Attachment.as_temp_file" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return the attachment as a TempFile</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -801,9 +892,18 @@ follows their name.</p>
 </dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="pysnc.Attachment.getAsFile">
-<span class="sig-name descname"><span class="pre">getAsFile</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">chunk_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pysnc/attachment.html#Attachment.getAsFile"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pysnc.Attachment.getAsFile" title="Permalink to this definition">¶</a></dt>
-<dd><p>Depricated. use asTempFile(…) instead</p>
+<dt class="sig sig-object py" id="pysnc.Attachment.get">
+<span class="sig-name descname"><span class="pre">get</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sys_id</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">bool</span></span></span><a class="reference internal" href="_modules/pysnc/attachment.html#Attachment.get"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pysnc.Attachment.get" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get a single record, accepting two values. If one value is passed, assumed to be sys_id. If two values are
+passed in, the first value is the column name to be used. Can return multiple records.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>sys_id</strong> – the id of the attachment</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><code class="docutils literal notranslate"><span class="pre">True</span></code> or <code class="docutils literal notranslate"><span class="pre">False</span></code> based on success</p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py method">
@@ -867,18 +967,213 @@ follows their name.</p>
 </dd></dl>
 
 </section>
-<section id="auth">
-<h2>Auth<a class="headerlink" href="#auth" title="Permalink to this heading">¶</a></h2>
+<section id="apis">
+<h2>APIs<a class="headerlink" href="#apis" title="Permalink to this heading">¶</a></h2>
+<p>These are ‘internal’ but you may as well know about them</p>
 <dl class="py class">
-<dt class="sig sig-object py" id="pysnc.ServiceNowOAuth2">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pysnc.</span></span><span class="sig-name descname"><span class="pre">ServiceNowOAuth2</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">username</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">password</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">client_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">client_secret</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pysnc/auth.html#ServiceNowOAuth2"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pysnc.ServiceNowOAuth2" title="Permalink to this definition">¶</a></dt>
-<dd><dl class="py method">
-<dt class="sig sig-object py" id="pysnc.ServiceNowOAuth2.authenticate">
-<span class="sig-name descname"><span class="pre">authenticate</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">instance</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pysnc/auth.html#ServiceNowOAuth2.authenticate"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pysnc.ServiceNowOAuth2.authenticate" title="Permalink to this definition">¶</a></dt>
-<dd><p>Designed to be called by ServiceNowClient - internal method.</p>
-</dd></dl>
+<dt class="sig sig-object py" id="pysnc.API">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pysnc.</span></span><span class="sig-name descname"><span class="pre">API</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">client</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pysnc/client.html#API"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pysnc.API" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="py property">
+<dt class="sig sig-object py" id="pysnc.API.session">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">session</span></span><a class="headerlink" href="#pysnc.API.session" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
 
 </dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="pysnc.TableAPI">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pysnc.</span></span><span class="sig-name descname"><span class="pre">TableAPI</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">client</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pysnc/client.html#TableAPI"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pysnc.TableAPI" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="py method">
+<dt class="sig sig-object py" id="pysnc.TableAPI.delete">
+<span class="sig-name descname"><span class="pre">delete</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">record</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#pysnc.GlideRecord" title="pysnc.record.GlideRecord"><span class="pre">GlideRecord</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Response</span></span></span><a class="reference internal" href="_modules/pysnc/client.html#TableAPI.delete"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pysnc.TableAPI.delete" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pysnc.TableAPI.get">
+<span class="sig-name descname"><span class="pre">get</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">record</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#pysnc.GlideRecord" title="pysnc.record.GlideRecord"><span class="pre">GlideRecord</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">sys_id</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Response</span></span></span><a class="reference internal" href="_modules/pysnc/client.html#TableAPI.get"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pysnc.TableAPI.get" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pysnc.TableAPI.list">
+<span class="sig-name descname"><span class="pre">list</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">record</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#pysnc.GlideRecord" title="pysnc.record.GlideRecord"><span class="pre">GlideRecord</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Response</span></span></span><a class="reference internal" href="_modules/pysnc/client.html#TableAPI.list"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pysnc.TableAPI.list" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pysnc.TableAPI.patch">
+<span class="sig-name descname"><span class="pre">patch</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">record</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#pysnc.GlideRecord" title="pysnc.record.GlideRecord"><span class="pre">GlideRecord</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Response</span></span></span><a class="reference internal" href="_modules/pysnc/client.html#TableAPI.patch"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pysnc.TableAPI.patch" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pysnc.TableAPI.post">
+<span class="sig-name descname"><span class="pre">post</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">record</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#pysnc.GlideRecord" title="pysnc.record.GlideRecord"><span class="pre">GlideRecord</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Response</span></span></span><a class="reference internal" href="_modules/pysnc/client.html#TableAPI.post"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pysnc.TableAPI.post" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pysnc.TableAPI.put">
+<span class="sig-name descname"><span class="pre">put</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">record</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#pysnc.GlideRecord" title="pysnc.record.GlideRecord"><span class="pre">GlideRecord</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Response</span></span></span><a class="reference internal" href="_modules/pysnc/client.html#TableAPI.put"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pysnc.TableAPI.put" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="pysnc.TableAPI.session">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">session</span></span><a class="headerlink" href="#pysnc.TableAPI.session" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="pysnc.AttachmentAPI">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pysnc.</span></span><span class="sig-name descname"><span class="pre">AttachmentAPI</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">client</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pysnc/client.html#AttachmentAPI"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pysnc.AttachmentAPI" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="py attribute">
+<dt class="sig sig-object py" id="pysnc.AttachmentAPI.API_VERSION">
+<span class="sig-name descname"><span class="pre">API_VERSION</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'v1'</span></em><a class="headerlink" href="#pysnc.AttachmentAPI.API_VERSION" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pysnc.AttachmentAPI.delete">
+<span class="sig-name descname"><span class="pre">delete</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sys_id</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pysnc/client.html#AttachmentAPI.delete"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pysnc.AttachmentAPI.delete" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pysnc.AttachmentAPI.get">
+<span class="sig-name descname"><span class="pre">get</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sys_id</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pysnc/client.html#AttachmentAPI.get"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pysnc.AttachmentAPI.get" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pysnc.AttachmentAPI.get_file">
+<span class="sig-name descname"><span class="pre">get_file</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sys_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">stream</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pysnc/client.html#AttachmentAPI.get_file"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pysnc.AttachmentAPI.get_file" title="Permalink to this definition">¶</a></dt>
+<dd><p>This may be dangerous, as stream is true and if not fully read could leave open handles
+One should always <code class="docutils literal notranslate"><span class="pre">with</span> <span class="pre">api.get_file(sys_id)</span> <span class="pre">as</span> <span class="pre">f:</span></code></p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pysnc.AttachmentAPI.list">
+<span class="sig-name descname"><span class="pre">list</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">attachment</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#pysnc.Attachment" title="pysnc.attachment.Attachment"><span class="pre">Attachment</span></a></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pysnc/client.html#AttachmentAPI.list"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pysnc.AttachmentAPI.list" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="pysnc.AttachmentAPI.session">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">session</span></span><a class="headerlink" href="#pysnc.AttachmentAPI.session" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pysnc.AttachmentAPI.upload_file">
+<span class="sig-name descname"><span class="pre">upload_file</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">file_name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">table_name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">table_sys_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">file</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">content_type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">encryption_context</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pysnc/client.html#AttachmentAPI.upload_file"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pysnc.AttachmentAPI.upload_file" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="pysnc.BatchAPI">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pysnc.</span></span><span class="sig-name descname"><span class="pre">BatchAPI</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">client</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pysnc/client.html#BatchAPI"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pysnc.BatchAPI" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="py attribute">
+<dt class="sig sig-object py" id="pysnc.BatchAPI.API_VERSION">
+<span class="sig-name descname"><span class="pre">API_VERSION</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'v1'</span></em><a class="headerlink" href="#pysnc.BatchAPI.API_VERSION" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pysnc.BatchAPI.delete">
+<span class="sig-name descname"><span class="pre">delete</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">record</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#pysnc.GlideRecord" title="pysnc.record.GlideRecord"><span class="pre">GlideRecord</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">hook</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Callable</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pysnc/client.html#BatchAPI.delete"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pysnc.BatchAPI.delete" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pysnc.BatchAPI.execute">
+<span class="sig-name descname"><span class="pre">execute</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/pysnc/client.html#BatchAPI.execute"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pysnc.BatchAPI.execute" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pysnc.BatchAPI.get">
+<span class="sig-name descname"><span class="pre">get</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">record</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#pysnc.GlideRecord" title="pysnc.record.GlideRecord"><span class="pre">GlideRecord</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">sys_id</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">hook</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Callable</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="_modules/pysnc/client.html#BatchAPI.get"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pysnc.BatchAPI.get" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pysnc.BatchAPI.list">
+<span class="sig-name descname"><span class="pre">list</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">record</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#pysnc.GlideRecord" title="pysnc.record.GlideRecord"><span class="pre">GlideRecord</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">hook</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Callable</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pysnc/client.html#BatchAPI.list"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pysnc.BatchAPI.list" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pysnc.BatchAPI.patch">
+<span class="sig-name descname"><span class="pre">patch</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">record</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#pysnc.GlideRecord" title="pysnc.record.GlideRecord"><span class="pre">GlideRecord</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">hook</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Callable</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="_modules/pysnc/client.html#BatchAPI.patch"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pysnc.BatchAPI.patch" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pysnc.BatchAPI.post">
+<span class="sig-name descname"><span class="pre">post</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">record</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#pysnc.GlideRecord" title="pysnc.record.GlideRecord"><span class="pre">GlideRecord</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">hook</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Callable</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pysnc/client.html#BatchAPI.post"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pysnc.BatchAPI.post" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pysnc.BatchAPI.put">
+<span class="sig-name descname"><span class="pre">put</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">record</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#pysnc.GlideRecord" title="pysnc.record.GlideRecord"><span class="pre">GlideRecord</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">hook</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Callable</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="_modules/pysnc/client.html#BatchAPI.put"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pysnc.BatchAPI.put" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="pysnc.BatchAPI.session">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">session</span></span><a class="headerlink" href="#pysnc.BatchAPI.session" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="module-pysnc.exceptions">
+<span id="exceptions"></span><h2>Exceptions<a class="headerlink" href="#module-pysnc.exceptions" title="Permalink to this heading">¶</a></h2>
+<dl class="py exception">
+<dt class="sig sig-object py" id="pysnc.exceptions.AclQueryException">
+<em class="property"><span class="pre">exception</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pysnc.exceptions.</span></span><span class="sig-name descname"><span class="pre">AclQueryException</span></span><a class="reference internal" href="_modules/pysnc/exceptions.html#AclQueryException"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pysnc.exceptions.AclQueryException" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py exception">
+<dt class="sig sig-object py" id="pysnc.exceptions.AuthenticationException">
+<em class="property"><span class="pre">exception</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pysnc.exceptions.</span></span><span class="sig-name descname"><span class="pre">AuthenticationException</span></span><a class="reference internal" href="_modules/pysnc/exceptions.html#AuthenticationException"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pysnc.exceptions.AuthenticationException" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py exception">
+<dt class="sig sig-object py" id="pysnc.exceptions.DeleteException">
+<em class="property"><span class="pre">exception</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pysnc.exceptions.</span></span><span class="sig-name descname"><span class="pre">DeleteException</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">message</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">status_code</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pysnc/exceptions.html#DeleteException"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pysnc.exceptions.DeleteException" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py exception">
+<dt class="sig sig-object py" id="pysnc.exceptions.EvaluationException">
+<em class="property"><span class="pre">exception</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pysnc.exceptions.</span></span><span class="sig-name descname"><span class="pre">EvaluationException</span></span><a class="reference internal" href="_modules/pysnc/exceptions.html#EvaluationException"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pysnc.exceptions.EvaluationException" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py exception">
+<dt class="sig sig-object py" id="pysnc.exceptions.InsertException">
+<em class="property"><span class="pre">exception</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pysnc.exceptions.</span></span><span class="sig-name descname"><span class="pre">InsertException</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">message</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">status_code</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pysnc/exceptions.html#InsertException"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pysnc.exceptions.InsertException" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py exception">
+<dt class="sig sig-object py" id="pysnc.exceptions.InstanceException">
+<em class="property"><span class="pre">exception</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pysnc.exceptions.</span></span><span class="sig-name descname"><span class="pre">InstanceException</span></span><a class="reference internal" href="_modules/pysnc/exceptions.html#InstanceException"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pysnc.exceptions.InstanceException" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py exception">
+<dt class="sig sig-object py" id="pysnc.exceptions.NotFoundException">
+<em class="property"><span class="pre">exception</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pysnc.exceptions.</span></span><span class="sig-name descname"><span class="pre">NotFoundException</span></span><a class="reference internal" href="_modules/pysnc/exceptions.html#NotFoundException"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pysnc.exceptions.NotFoundException" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py exception">
+<dt class="sig sig-object py" id="pysnc.exceptions.RequestException">
+<em class="property"><span class="pre">exception</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pysnc.exceptions.</span></span><span class="sig-name descname"><span class="pre">RequestException</span></span><a class="reference internal" href="_modules/pysnc/exceptions.html#RequestException"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pysnc.exceptions.RequestException" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py exception">
+<dt class="sig sig-object py" id="pysnc.exceptions.RestException">
+<em class="property"><span class="pre">exception</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pysnc.exceptions.</span></span><span class="sig-name descname"><span class="pre">RestException</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">message</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">status_code</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pysnc/exceptions.html#RestException"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pysnc.exceptions.RestException" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py exception">
+<dt class="sig sig-object py" id="pysnc.exceptions.RoleException">
+<em class="property"><span class="pre">exception</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pysnc.exceptions.</span></span><span class="sig-name descname"><span class="pre">RoleException</span></span><a class="reference internal" href="_modules/pysnc/exceptions.html#RoleException"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pysnc.exceptions.RoleException" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py exception">
+<dt class="sig sig-object py" id="pysnc.exceptions.UpdateException">
+<em class="property"><span class="pre">exception</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pysnc.exceptions.</span></span><span class="sig-name descname"><span class="pre">UpdateException</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">message</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">status_code</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pysnc/exceptions.html#UpdateException"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pysnc.exceptions.UpdateException" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py exception">
+<dt class="sig sig-object py" id="pysnc.exceptions.UploadException">
+<em class="property"><span class="pre">exception</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pysnc.exceptions.</span></span><span class="sig-name descname"><span class="pre">UploadException</span></span><a class="reference internal" href="_modules/pysnc/exceptions.html#UploadException"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pysnc.exceptions.UploadException" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
 
 </section>
 </section>
@@ -909,10 +1204,11 @@ follows their name.</p>
 </ul>
 <ul class="current">
 <li class="toctree-l1 current"><a class="current reference internal" href="#">The API</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="#the-client">The Client</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#the-servicenowclient">The ServiceNowClient</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#gliderecord">GlideRecord</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#attachment">Attachment</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#auth">Auth</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#apis">APIs</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#module-pysnc.exceptions">Exceptions</a></li>
 </ul>
 </li>
 </ul>
@@ -948,11 +1244,11 @@ follows their name.</p>
       <div class="clearer"></div>
     </div>
     <div class="footer">
-      &copy;2018, Matthew Gill.
+      &copy;2023, Matthew Gill.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 5.2.2</a>
-      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 5.3.0</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.13</a>
       
       |
       <a href="_sources/api.rst.txt"
