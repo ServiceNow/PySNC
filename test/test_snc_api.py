@@ -1,6 +1,6 @@
 from unittest import TestCase
 
-from pysnc import ServiceNowClient
+from pysnc import ServiceNowClient, exceptions
 from constants import Constants
 
 class TestAuditScoped(TestCase):
@@ -80,4 +80,7 @@ class TestAuditScoped(TestCase):
         self.assertGreater(gr.get_row_count(), 0)
         client.session.close()
 
+    def test_http_url(self):
+        self.assertRaises(exceptions.InstanceException,
+                          lambda: ServiceNowClient('http://bunk.service-now.com', self.c.credentials))
 
