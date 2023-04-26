@@ -21,6 +21,30 @@ or
 
 Other useful attachment methods being `read()` and `writeto(...)` and `as_temp_file()`.
 
+Dot Walking
+-----------
+
+Since we are using the TableAPI we miss out on useful dot-walking features that the standard GlideRecord object has, such as the `.getRefRecord()` function. To mimic this behavior we must specify the fields we which to dot walk before we query as such:
+
+    >>> gr.fields = 'sys_id,opened_by,opened_by.email,opened_by.department.dept_head'
+    >>> gr.query()
+    >>> gr.next()
+    True
+    >>> gr.get_value('opened_by.email')
+    'example@servicenow.com'
+    >>> gr.get_value('opened_by.department.dept_head')
+    'a4eac1d55b64900083193b9b3e42148d'
+    >>> gr.get_display_value('opened_by.department.dept_head')
+    'Fred Luddy'
+
+But we can also do it like this:
+
+    >>> print(f"Our department head is {gr.opened_by.department.dept_head}")
+    Our department head is a4eac1d55b64900083193b9b3e42148d
+    >>> gr.opened_by.department.dept_head
+    GlideElement(value='a4eac1d55b64900083193b9b3e42148d', name='dept_head', display_value='Fred Luddy', changed=False)
+
+
 Serialization
 -------------
 
@@ -64,6 +88,11 @@ You can use HTTP proxies, either specify a URL string or dict::
     >>> client = pysnc.ServiceNowClient(..., proxy=proxy_url)
     >>> client = pysnc.ServiceNowClient(..., proxy={'http': proxy_url, 'https': proxy_url}
 
+Password2 Fields
+----------------
+
+According to official documentation, the `value` of a Password2 field will be encrypted and the `display_value` will be unencrypted based on the requesting user's encryption context
+
 Pandas
 ------
 
@@ -72,3 +101,15 @@ Transform a query into a DataFrame::
     >>> import pandas as pd
     >>> df = pd.DataFrame(gr.to_pandas())
 
+
+Performance Concerns
+--------------------
+
+1. Why is my query so slow?
+
+The following can improve performance:
+
+* Set the :ref:`GlideRecord.fields` to the minimum number of required fields
+* Increase (or decrease) the default :ref:`batch_size` for GlideRecord
+* According to `KB0534905 <https://support.servicenow.com/kb_view.do?sysparm_article=KB0534905>`_ try disabling display values if they are not required via `gr.display_value = False`
+* Try setting a query :ref:`limit` if you do not need all results
