@@ -43,7 +43,7 @@ jobs:
           cd docs
           poetry install --no-interaction
           poetry run make clean html
-          cp -r docs/_build/html/* ../gh-pages/
+          cp -r _build/html/* ../gh-pages/
       - name: publish docs
         uses: JamesIves/github-pages-deploy-action@4.1.4
         with:
