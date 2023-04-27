@@ -174,7 +174,9 @@ class API(object):
                     raise e
 
         request = self.session.prepare_request(req)
-        r = self.session.send(request, stream=stream)
+        # Merge environment settings into session
+        settings = self.session.merge_environment_settings(request.url, {}, stream, None, None)
+        r = self.session.send(request, **settings)
         self._validate_response(r)
         return r
 
