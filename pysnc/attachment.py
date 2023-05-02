@@ -2,6 +2,9 @@ import traceback
 import logging
 from tempfile import SpooledTemporaryFile
 from pathlib import Path
+from typing import List
+
+from .record import GlideElement
 from .query import *
 from .exceptions import *
 
@@ -110,7 +113,7 @@ class Attachment:
         tf.seek(0)
         return tf
 
-    def write_to(self, path, chunk_size=512):
+    def write_to(self, path, chunk_size=512) -> Path:
         """
         Write the attachment to the given path - if the path is a directory the file_name will be used
         """
@@ -125,7 +128,7 @@ class Attachment:
                     f.write(chunk)
         return p
 
-    def read(self):
+    def read(self) -> bytes:
         """
         Read the entire attachment
         :return: b''
@@ -133,7 +136,7 @@ class Attachment:
         assert self._current(), "Cannot read nothing, iterate the attachment"
         return self._client.attachment_api.get_file(self.sys_id, stream=False).content
 
-    def readlines(self, encoding='UTF-8', delimiter='\n'):
+    def readlines(self, encoding='UTF-8', delimiter='\n') -> List[str]:
         """
         Read the attachment, as text, decoding by default as UTF-8, splitting by the delimiter.
         :param encoding: encoding to use, defaults to UTF-8
@@ -165,6 +168,11 @@ class Attachment:
                 self._log.debug(response.text)
                 raise e
 
+    def _transform_result(self, result):
+        for key, value in result.items():
+            result[key] = GlideElement(key, value, parent_record=self)
+        return result
+
     def get(self, sys_id: str) -> bool:
         """
         Get a single record, accepting two values. If one value is passed, assumed to be sys_id. If two values are
@@ -174,7 +182,7 @@ class Attachment:
         :return: ``True`` or ``False`` based on success
         """
         try:
-            response = self._client.attachment_api.get(self, sys_id)
+            response = self._client.attachment_api.get(sys_id)
         except NotFoundException:
             return False
         self.__results = [self._transform_result(response.json()['result'])]
@@ -190,7 +198,7 @@ class Attachment:
         if code != 204:
             raise RequestException(response.text)
 
-    def add_query(self, name, value, second_value=None):
+    def add_query(self, name, value, second_value=None) -> QueryCondition:
         """
         Add a query to a record. For example::
 
@@ -231,11 +239,15 @@ class Attachment:
         """
         return self.__query.add_query(name, value, second_value)
 
-    def add_attachment(self, table_sys_id, file_name, file, content_type=None, encryption_context=None):
+    def add_attachment(self, table_sys_id, file_name, file, content_type=None, encryption_context=None) -> str:
         r = self._client.attachment_api.upload_file(file_name, self._table, table_sys_id, file, content_type,
                                              encryption_context)
-        print(r.status_code)
-        print(r.text)
+        # Location header contains the attachment URL
+        return r.headers['Location']
+
+    def get_link(self) -> str:
+        if self._current():
+            return f"{self._client.instance}/api/now/v1/attachment/{self.sys_id}/file"
 
     def _get_value(self, item, key='value'):
         obj = self._current()

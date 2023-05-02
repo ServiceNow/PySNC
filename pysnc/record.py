@@ -9,7 +9,6 @@ from typing import Any, Union, List
 
 from .query import *
 from .exceptions import *
-from .attachment import Attachment
 
 TIMESTAMP_FORMAT = "%Y-%m-%d %H:%M:%S%z"
 
@@ -749,7 +748,7 @@ class GlideRecord(object):
         """
         return self.get_value('sys_id')
 
-    def get_attachments(self) -> Attachment:
+    def get_attachments(self) -> 'Attachment':
         """
         Get the attachments for the current record or the current table
 
@@ -767,7 +766,7 @@ class GlideRecord(object):
             raise NoRecordException('cannot add attachment to nothing, did you forget to call next() or initialize()?')
 
         attachment = self._client.Attachment(self.__table)
-        attachment.add_attachment(self.sys_id, file_name, file, content_type, encryption_context)
+        return attachment.add_attachment(self.sys_id, file_name, file, content_type, encryption_context)
 
     def add_active_query(self) -> QueryCondition:
         """

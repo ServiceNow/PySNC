@@ -127,7 +127,7 @@ class API(object):
         return self._client.session
 
     # noinspection PyMethodMayBeStatic
-    def _set_params(self, record: GlideRecord=None):
+    def _set_params(self, record=None):
         params = {} if record is None else record._parameters()
         if 'sysparm_display_value' not in params:
             params['sysparm_display_value'] = 'all'
