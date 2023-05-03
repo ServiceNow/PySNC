@@ -91,8 +91,8 @@ class JoinQuery(Query):
         self._primary_field = primary_field
         self._join_table_field = join_table_field
 
-    def generate_query(self) -> str:
-        query = super(self.__class__, self).generate_query()
+    def generate_query(self, encoded_query=None, order_by=None) -> str:
+        query = super(self.__class__, self).generate_query(encoded_query, order_by)
         primary = self._primary_field if self._primary_field else "sys_id"
         secondary = self._join_table_field if self._join_table_field else "sys_id"
         res = "JOIN{table}.{primary}={j_table}.{secondary}".format(

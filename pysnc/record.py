@@ -2,16 +2,18 @@ import logging
 import copy
 import traceback
 from requests import Request
-from six import string_types
 from collections import OrderedDict
 from datetime import datetime, timezone
-from typing import Any, Union, List
+from typing import Any, Union, List, Optional, TYPE_CHECKING
 
 from .query import *
 from .exceptions import *
 
 TIMESTAMP_FORMAT = "%Y-%m-%d %H:%M:%S%z"
 
+if TYPE_CHECKING:  # for mypy
+    from .client import ServiceNowClient
+    from .attachment import Attachment
 
 class GlideElement(object):
     """
@@ -216,24 +218,24 @@ class GlideRecord(object):
     :param str table: The table are we going to access
     :param int batch_size: Batch size (items returned per HTTP request). Default is ``500``.
     """
-    def __init__(self, client, table: str, batch_size=500):
+    def __init__(self, client: 'ServiceNowClient', table: str, batch_size=500):
         self._log = logging.getLogger(__name__)
         self._client = client
-        self.__table = table
-        self.__is_iter = False
-        self.__batch_size = batch_size
-        self.__query = Query(table)
-        self.__encoded_query = None
-        self.__results = []
-        self.__current = -1
-        self.__field_limits = None
-        self.__view = None
-        self.__total = None
-        self.__limit = None
-        self.__page = -1
-        self.__order = None
-        self.__is_new_record = False
-        self.__display_value = 'all'
+        self.__table: str = table
+        self.__is_iter: bool = False
+        self.__batch_size: int = batch_size
+        self.__query: Query = Query(table)
+        self.__encoded_query: Optional[str] = None
+        self.__results: list = []
+        self.__current: int = -1
+        self.__field_limits: Optional[List[str]] = None
+        self.__view: Optional[str] = None
+        self.__total: Optional[int] = None
+        self.__limit: Optional[int] = None
+        self.__page: int = -1
+        self.__order: Optional[str] = None
+        self.__is_new_record: bool = False
+        self.__display_value: Union[bool, str] = 'all'
 
     def _clear_query(self):
         self.__query = Query(self.__table)
@@ -298,7 +300,7 @@ class GlideRecord(object):
         return self.__total if self.__total is not None else 0
 
     @property
-    def fields(self) -> List[str]:
+    def fields(self) -> Union[List[str], None]:
         """
         :return: Fields in which this record will query OR has queried
         """
@@ -317,7 +319,7 @@ class GlideRecord(object):
         """
         Set the fields to query, in CSV string format or as a list
         """
-        if isinstance(fields, string_types):
+        if isinstance(fields, str):
             fields = fields.split(',')
         self.__field_limits = fields
 
@@ -333,7 +335,7 @@ class GlideRecord(object):
         self.__view = view
 
     @property
-    def limit(self) -> int:
+    def limit(self) -> Optional[int]:
         """
         :return: Query number limit
         """
@@ -372,6 +374,7 @@ class GlideRecord(object):
 
         :param location: the location to be at
         """
+        assert self.__total is not None, 'no location to be had when we have no query'
         assert -1 <= location < self.__total
         self.__current = location
 
@@ -525,7 +528,7 @@ class GlideRecord(object):
             self.query()
             return self.next()
 
-    def insert(self) -> str:
+    def insert(self) -> Optional[str]:
         """
         Insert a new record.
 
@@ -549,7 +552,7 @@ class GlideRecord(object):
             rjson = response.json()
             raise InsertException(rjson['error'] if 'error' in rjson else f"{code} response on insert -- expected 201", status_code=code)
 
-    def update(self) -> str:
+    def update(self) -> Optional[str]:
         """
         Update the current record.
 
@@ -602,7 +605,7 @@ class GlideRecord(object):
         """
         if self.__total is None:
             if not self.__field_limits:
-                self.fields = 'sys_id'  # all we need...
+                self.fields = 'sys_id'  # type: ignore  ## all we need...
             self.query()
 
         allRecordsWereDeleted = True
@@ -721,12 +724,11 @@ class GlideRecord(object):
         id = self.sys_id if obj else 'null'
         return "{}/{}.do?sys_id={}{}".format(ins, self.__table, id, stack)
 
-    def get_link_list(self) -> str:
+    def get_link_list(self) -> Optional[str]:
         """
         Generate a full URL to for the current query.
 
         :return: The full URL to the record query
-        :rtype: str
         """
         ins = self._client.instance
         sysparm_query = self.get_encoded_query()
@@ -1022,7 +1024,7 @@ class GlideRecord(object):
         if l > 0 and self.__current+1 < l:
             self.__current = self.__current + 1
             if self.__is_iter:
-                return self
+                return self  # type: ignore  # this typing is internal only
             return True
         if self.__total and self.__total > 0 and \
                 (self.__current+1) < self.__total and \
