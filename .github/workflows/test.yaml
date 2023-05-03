@@ -41,7 +41,10 @@ jobs:
     - name: install project
       run: poetry install --no-interaction
     - name: run tests
-      run: poetry run pytest
+      run: |
+        poetry run pytest
+        poetry run mypy
+        poetry run jake ddt --whitelist whitelist.json
     - name: build docs
       working-directory: ./docs
       run: poetry run make clean html

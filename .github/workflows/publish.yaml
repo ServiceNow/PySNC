@@ -36,6 +36,7 @@ jobs:
         run: |
           poetry config pypi-token.pypi $PYPI_TOKEN
           poetry publish --build
+          poetry run jake ddt --output-format json -o bom.json --whitelist whitelist.json
       - name: build docs
         run: |
           mkdir gh-pages
@@ -49,3 +50,10 @@ jobs:
         with:
           branch: gh-pages
           folder: gh-pages
+      - name: sbom
+        uses: svenstaro/upload-release-action@v2
+        with:
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          file: bom.json
+          asset_name: bom.json
+          tag: ${{ github.ref }}
