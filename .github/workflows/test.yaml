@@ -1,6 +1,9 @@
 name: PySNC Test
 
-on: [pull_request]
+on:
+  pull_request:
+  push:
+    branches: ["main"]
 
 jobs:
   install-test:
@@ -41,7 +44,10 @@ jobs:
     - name: install project
       run: poetry install --no-interaction
     - name: run tests
-      run: poetry run pytest
+      run: |
+        poetry run pytest
+        poetry run mypy
+        poetry run jake ddt --whitelist whitelist.json
     - name: build docs
       working-directory: ./docs
       run: poetry run make clean html

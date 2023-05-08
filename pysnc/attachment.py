@@ -2,7 +2,7 @@ import traceback
 import logging
 from tempfile import SpooledTemporaryFile
 from pathlib import Path
-from typing import List
+from typing import List, Optional
 
 from .record import GlideElement
 from .query import *
@@ -245,9 +245,10 @@ class Attachment:
         # Location header contains the attachment URL
         return r.headers['Location']
 
-    def get_link(self) -> str:
+    def get_link(self) -> Optional[str]:
         if self._current():
             return f"{self._client.instance}/api/now/v1/attachment/{self.sys_id}/file"
+        return None
 
     def _get_value(self, item, key='value'):
         obj = self._current()

@@ -1,6 +1,7 @@
 .PHONY: test docs
 test:
 	poetry run pytest
+	poetry run mypy
 
 docs:
 	cd docs; poetry install && poetry run make clean html; cd -

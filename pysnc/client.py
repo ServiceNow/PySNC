@@ -5,7 +5,7 @@ from requests.auth import AuthBase
 import re
 import logging
 import base64
-from typing import Callable, Any
+from typing import Callable, no_type_check
 
 from requests.cookies import MockRequest, MockResponse
 from requests.structures import CaseInsensitiveDict
@@ -305,7 +305,7 @@ class BatchAPI(API):
         prepared = request.prepare()
         request_id = str(id(prepared))
         headers = [{'name': k, 'value': v} for (k,v) in prepared.headers.items()]
-        relative_url = prepared.url[prepared.url.index('/', 8):] ## slice from the first non https:// slash
+        relative_url = prepared.url[prepared.url.index('/', 8):]  # type: ignore ## slice from the first non https:// slash
 
         now_request = {
             'id': request_id,
@@ -315,11 +315,12 @@ class BatchAPI(API):
             #'exclude_response_headers': False
         }
         if prepared.body:
-            now_request['body'] = base64.b64encode(prepared.body).decode()
+            now_request['body'] = base64.b64encode(prepared.body).decode()  # type: ignore ## could theoretically do us dirty
         self.__hooks[request_id] = hook
         self.__stored_requests[request_id] = prepared
         self.__requests.append(now_request)
 
+    @no_type_check
     def _transform_response(self, req: requests.PreparedRequest, serviced_request) -> requests.Response:
         # modeled after requests.adapters.HttpAdapter.build_response
         response = requests.Response()
@@ -334,14 +335,14 @@ class BatchAPI(API):
         if isinstance(req.url, bytes):
             response.url = req.url.decode("utf-8")
         else:
-            response.url = req.url
+            response.url = req.url  # type: ignore
 
         # cookies - kinda hack an adapter in
         req = MockRequest(req)
         res = MockResponse(MockHeaders(headers))
         response.cookies.extract_cookies(res, req)
 
-        response.req = req
+        response.request = req
         # response.connection = None
 
         return response

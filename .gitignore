@@ -16,3 +16,4 @@ Pipefile.lock
 *.crt
 *.pem
 *.pkcs12
+bom.json

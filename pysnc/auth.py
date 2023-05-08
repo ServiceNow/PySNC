@@ -1,9 +1,8 @@
 import requests
 import time
 from requests.auth import AuthBase
-from urllib3.util import parse_url, Url
+from urllib3.util import parse_url
 from .exceptions import *
-from .utils import get_instance
 
 JWT_GRANT_TYPE = 'urn:ietf:params:oauth:grant-type:jwt-bearer'
 
@@ -43,7 +42,7 @@ class ServiceNowPasswordGrantFlow(ServiceNowFlow):
         """
         try:
             from oauthlib.oauth2 import LegacyApplicationClient
-            from requests_oauthlib import OAuth2Session
+            from requests_oauthlib import OAuth2Session  # type: ignore
 
             oauth = OAuth2Session(client=LegacyApplicationClient(client_id=self.client_id),
                                   auto_refresh_url=self.authorization_url(instance),
