@@ -868,7 +868,7 @@ class GlideRecord(object):
         return self.__query.add_not_null_query(field)
 
     def _serialize(self, record, display_value, fields=None, changes_only=False):
-        if isinstance(display_value, string_types):
+        if isinstance(display_value, str):
             v_type = 'both'
         else:
             v_type = 'display_value' if display_value else 'value'
