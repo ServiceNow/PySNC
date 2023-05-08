@@ -1,6 +1,6 @@
 from unittest import TestCase
-from pysnc.record import GlideElement
-import datetime
+from pysnc.record import GlideElement, GlideRecord
+import datetime, json
 
 
 class TestElement(TestCase):
@@ -92,6 +92,46 @@ class TestElement(TestCase):
 
         self.assertGreater(time2.date_value(), time.date_value())
         self.assertGreater(time2.date_numeric_value(), time.date_numeric_value())
+
+    def test_serialization(self):
+        gr = GlideRecord(None, 'incident')
+        gr.initialize()
+        gr.test_field = 'some string'
+        self.assertTrue(isinstance(gr.test_field, GlideElement))
+        r = gr.serialize()
+        self.assertEqual(json.dumps(r), '{"test_field": "some string"}')
+
+        gr.set_value('test_field', 'somevalue')
+        gr.set_display_value('test_field', 'Some Value')
+        print(gr.serialize())
+        self.assertEqual(json.dumps(gr.serialize()), '{"test_field": "somevalue"}')
+        self.assertEqual(json.dumps(gr.serialize(display_value=True)), '{"test_field": "Some Value"}')
+        self.assertEqual(json.dumps(gr.serialize(display_value='both')), '{"test_field": {"value": "somevalue", "display_value": "Some Value"}}')
+
+        # but what if we set a element to an element
+        gr2 = GlideRecord(None, 'incident')
+        gr2.initialize()
+        gr2.two_field = gr.test_field
+        self.assertEqual(json.dumps(gr2.serialize()), '{"two_field": "somevalue"}')
+        self.assertEqual(json.dumps(gr2.serialize(display_value=True)), '{"two_field": "Some Value"}')
+        self.assertEqual(gr2.two_field.get_name(), 'two_field')
+
+    def test_set_element(self):
+        element = GlideElement('state', '3', 'Pending Change')
+
+        gr = GlideRecord(None, 'incident')
+        gr.initialize()
+        gr.state = '3'
+        out1 = gr.serialize()
+        print(out1)
+        gr.initialize()
+        gr.state = element
+        out2 = gr.serialize()
+        print(out2)
+        self.assertEqual(out1, out2)
+
+
+
 
 
 

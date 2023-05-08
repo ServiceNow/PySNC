@@ -2,7 +2,6 @@ import logging
 import copy
 import traceback
 from requests import Request
-from six import string_types
 from collections import OrderedDict
 from datetime import datetime, timezone
 from typing import Any, Union, List
@@ -317,7 +316,7 @@ class GlideRecord(object):
         """
         Set the fields to query, in CSV string format or as a list
         """
-        if isinstance(fields, string_types):
+        if isinstance(fields, str):
             fields = fields.split(',')
         self.__field_limits = fields
 
@@ -664,7 +663,7 @@ class GlideRecord(object):
 
     def get_element(self, field) -> GlideElement:
         """
-        Return the backing GlideElement for the given field. This is the only method to directly access this element.
+        Return the backing GlideElement for the given field. This is the only method to directly access this element.gr2.serialize()
 
         :param str field: The Field
         :return: The GlideElement class or ``None``
@@ -685,7 +684,10 @@ class GlideRecord(object):
         if c is None:
             raise NoRecordException('cannot get a value from nothing, did you forget to call next() or initialize()?')
         if field not in c:
-            c[field] = GlideElement(field, value, parent_record=self)
+            if isinstance(value, GlideElement):
+                c[field] = GlideElement(field, value.get_value(), value.get_display_value(), parent_record=self)
+            else:
+                c[field] = GlideElement(field, value, parent_record=self)
         else:
             c[field].set_value(value)
 
@@ -866,7 +868,7 @@ class GlideRecord(object):
         return self.__query.add_not_null_query(field)
 
     def _serialize(self, record, display_value, fields=None, changes_only=False):
-        if isinstance(display_value, string_types):
+        if isinstance(display_value, str):
             v_type = 'both'
         else:
             v_type = 'display_value' if display_value else 'value'
@@ -895,7 +897,7 @@ class GlideRecord(object):
 
     def serialize(self, display_value=False, fields=None, fmt=None, changes_only=False) -> Any:
         """
-        Turn current record into a dict
+        Turn current record into a dictGlideRecord(None, 'incident')
 
         :param display_value: ``True``, ``False``, or ``'both'``
         :param list fields: Fields to serialize. Defaults to all fields.
