@@ -210,7 +210,7 @@ class TableAPI(API):
         return self.patch(record)
 
     def patch(self, record: GlideRecord) -> requests.Response:
-        body = record.serialize()
+        body = record.serialize(changes_only=True)
         params = self._set_params()
         target_url = self._target(record.table, record.sys_id)
         req = requests.Request('PATCH', target_url, params=params, json=body)
@@ -359,12 +359,13 @@ class BatchAPI(API):
         try:
             assert str(bid) == data['batch_request_id'], f"How did we get a response id different from {bid}"
 
-            for response in data['serviced_requests'] + data['unservied_requests']:
+            for response in data['serviced_requests'] + data['unserviced_requests']:
                 response_id = response['id']
                 assert response_id in self.__hooks, f"Somehow has no hook for {response_id}"
                 assert response_id in self.__stored_requests, f"Somehow we did not store request for {response_id}"
                 self.__hooks[response['id']](self._transform_response(self.__stored_requests[response_id], response))
 
+            return bid
         finally:
             self.__stored_requests = {}
             self.__requests = []
@@ -382,7 +383,7 @@ class BatchAPI(API):
         self.patch(record, hook)
 
     def patch(self, record: GlideRecord, hook: Callable) -> None:
-        body = record.serialize()
+        body = record.serialize(changes_only=True)
         params = self._set_params()
         target_url = self._table_target(record.table, record.sys_id)
         req = requests.Request('PATCH', target_url, params=params, json=body)

@@ -23,7 +23,7 @@ class TestWrite(TestCase):
         first_user_display = gr.get_display_value('opened_by')
 
         # We have validated inserting works, now can we update.
-        # find us a user to changed the opened_by field that isn't us
+        # find us a user to change the opened_by field that isn't us
         user = client.GlideRecord('sys_user')
         user.add_query('sys_id', '!=', 'javascript:gs.getUserID()')
         user.query()
@@ -33,10 +33,11 @@ class TestWrite(TestCase):
 
         # actually update
         gr2 = client.GlideRecord('problem')
-        self.assertIsNotNone(gr2.get(res))
+        self.assertTrue(gr2.get(res))
         #print(f"pre-update {gr2.serialize(display_value='both')}")
         self.assertTrue(bool(gr2.active))
         gr2.active = 'false'
+        self.assertTrue(gr2.changes())
         self.assertFalse(bool(gr2.active))
         gr2.short_description = "ABCDEFG0123"
         gr2.opened_by = user.sys_id
@@ -190,10 +191,15 @@ class TestWrite(TestCase):
 
         gr = client.GlideRecord('problem')
         gr.add_query('short_description', 'LIKE', 'BUNKZZ')
+        gr.query()
         gr.delete_multiple() # try to make sure weh ave none first
+        gr.query()
+        self.assertEqual(len(gr), 0)
 
+
+        total_count = 10
         # insert five bunk records
-        for i in range(5):
+        for i in range(total_count):
             gr = client.GlideRecord('problem')
             gr.initialize()
             gr.short_description = f"Unit Test - BUNKZZ Multi Delete {i}"
@@ -203,7 +209,7 @@ class TestWrite(TestCase):
         gr = client.GlideRecord('problem')
         gr.add_query('short_description', 'LIKE', 'BUNKZZ')
         gr.query()
-        self.assertEqual(len(gr), 5)
+        self.assertEqual(len(gr), total_count)
 
         # make sure our 'new' ones arent here to throw it off
         tgr = client.GlideRecord('problem')
@@ -219,7 +225,28 @@ class TestWrite(TestCase):
         tgr = client.GlideRecord('problem')
         tgr.add_query('short_description', 'LIKE', 'APPENDEDZZ')
         tgr.query()
-        self.assertEqual(len(tgr), 5)
+        self.assertEqual(len(tgr), total_count)
+
+        # make sure we only send changed ones...
+        expected_to_change = []
+        for i, r in enumerate(tgr):
+            if i % 2 == 0:
+                r.short_description = r.short_description + ' even'
+                expected_to_change.append(r.get_value('sys_id'))
+                self.assertTrue(r.changes())
+            else:
+                self.assertFalse(r.changes())
+
+        saw_change = []
+        def custom_handle(response):
+            nonlocal saw_change
+            self.assertEqual(response.status_code, 200)
+            saw_change.append(response.json()['result']['sys_id']['value'])
+
+        tgr.update_multiple(custom_handle)
+        print(saw_change)
+        self.assertCountEqual(saw_change, expected_to_change)
+        self.assertListEqual(saw_change, expected_to_change)
 
         tgr.delete_multiple()
         client.session.close()

@@ -253,3 +253,13 @@ class TestRecordQuery(TestCase):
         super_long_non_existant_name = "A" * 23000
         gr = client.GlideRecord(super_long_non_existant_name)
         self.assertRaisesRegex(exceptions.RequestException, r'^<!DOCTYPE html>.*', lambda: gr.get('doesntmatter'))
+
+    def test_changes(self):
+        client = ServiceNowClient(self.c.server, self.c.credentials)
+        gr = client.GlideRecord('sys_user')
+        gr.limit = 1
+        gr.query()
+        self.assertTrue(gr.next())
+        self.assertFalse(gr.changes())
+        gr.user_name = 'new name'
+        self.assertTrue(gr.changes())

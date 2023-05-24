@@ -194,3 +194,9 @@ class TestElement(TestCase):
         self.assertEqual(ele, 'test@test.test')
         self.assertEqual(ele.get_name(), 'email')
         self.assertTrue(isinstance(ele._parent_record, MockRecord))
+
+    def test_changes(self):
+        element = GlideElement('state', '3', 'Pending Change')
+        self.assertFalse(element.changes())
+        element.set_value('4')
+        self.assertTrue(element.changes())

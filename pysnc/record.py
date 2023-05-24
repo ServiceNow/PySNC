@@ -15,6 +15,7 @@ if TYPE_CHECKING:  # for mypy
     from .client import ServiceNowClient
     from .attachment import Attachment
 
+
 class GlideElement(str):
     """
     Object backing the value/display values of a given record entry.
@@ -232,8 +233,6 @@ class GlideElement(str):
         if self._display_value:
             ne.set_display_value(self._display_value)
         return ne
-
-
 
 
 class GlideRecord(object):
@@ -486,6 +485,19 @@ class GlideRecord(object):
         """
         self.__current = -1
 
+    def changes(self) -> bool:
+        """
+        Determines weather any of the fields in the record have changed
+        """
+        obj = self._current()
+        if obj:
+            has_changed = False
+            for key, value in obj.items():
+                has_changed ^= value.changes()
+            return has_changed
+        return False
+
+
     def query(self, query=None):
         """
         Query the table - executes a GET
@@ -646,7 +658,7 @@ class GlideRecord(object):
         self._client.batch_api.execute()
         return allRecordsWereDeleted
 
-    def update_multiple(self) -> bool:
+    def update_multiple(self, custom_handler=None) -> bool:
         """
         Updates multiple records at once
         """
@@ -657,7 +669,8 @@ class GlideRecord(object):
                 updated = False
 
         for e in self:
-            self._client.batch_api.put(e, handle)
+            if e.changes():
+                self._client.batch_api.put(e, custom_handler if custom_handler else handle)
 
         self._client.batch_api.execute()
         return updated
