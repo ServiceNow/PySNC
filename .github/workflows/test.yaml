@@ -46,8 +46,24 @@ jobs:
     - name: run tests
       run: |
         poetry run pytest
-        poetry run mypy
-        poetry run jake ddt --whitelist whitelist.json
     - name: build docs
       working-directory: ./docs
       run: poetry run make clean html
+    - name: run extra sanity checks
+      run: |
+        poetry run mypy
+        poetry run jake ddt --whitelist whitelist.json
+    - name: prerelease
+      if: github.ref == 'refs/heads/main'
+      env:
+        PYPI_TOKEN: ${{ secrets.PYPI_API_TOKEN }}
+      run: |
+        poetry config pypi-token.pypi $PYPI_TOKEN
+        poetry version prerelease
+        poetry publish
+    - name: update version
+      if: github.ref == 'refs/heads/main'
+      uses: stefanzweifel/git-auto-commit-action@v4
+      with:
+        commit_message: Automatic version bump
+        file_pattern: pyproject.toml

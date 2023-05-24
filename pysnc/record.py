@@ -15,10 +15,15 @@ if TYPE_CHECKING:  # for mypy
     from .client import ServiceNowClient
     from .attachment import Attachment
 
-class GlideElement(object):
+
+class GlideElement(str):
     """
     Object backing the value/display values of a given record entry.
     """
+
+    def __new__(cls, name, value, *args, **kwargs):
+        return super(GlideElement, cls).__new__(cls, value)
+
     def __init__(self, name: str, value=None, display_value=None, parent_record=None):
         self._name = name
         self._value = None
@@ -135,7 +140,7 @@ class GlideElement(object):
         return str(self.get_value())
 
     def __repr__(self):
-        return f"record.GlideElement(value={self._value!r}, name={self._name!r}, display_value={self._display_value!r}, changed={self._changed!r})"
+        return f"GlideElement({self._value!r})"
 
     def __bool__(self):
         # help with the truthiness of true/false fields
@@ -158,6 +163,9 @@ class GlideElement(object):
 
     def __len__(self):
         return self.__magic('__len__')
+
+    def __length_hint__(self):
+        return self.__magic('__length_hint__')
 
     def __iter__(self):
         # unfortunately i don't think we'll ever be smart enough to auto-support List columns
@@ -185,6 +193,24 @@ class GlideElement(object):
 
     def __ge__(self, other):
         return self.__magic('__ge__', other)
+
+    def __contains__(self, other):
+        return self.__magic('__contains__', other)
+
+    def __getitem__(self, index):
+        return self.__magic('__getitem__', index)
+
+    def __hash__(self):
+        return self.__magic('__hash__')
+
+    def __int__(self):
+        return int(self.get_value())
+
+    def __float__(self):
+        return float(self.get_value())
+
+    def __complex__(self):
+        return complex(self.get_value())
 
     def __getattr__(self, item):
         if item in GlideElement.__class__.__dict__:
@@ -459,6 +485,19 @@ class GlideRecord(object):
         """
         self.__current = -1
 
+    def changes(self) -> bool:
+        """
+        Determines weather any of the fields in the record have changed
+        """
+        obj = self._current()
+        if obj:
+            has_changed = False
+            for key, value in obj.items():
+                has_changed ^= value.changes()
+            return has_changed
+        return False
+
+
     def query(self, query=None):
         """
         Query the table - executes a GET
@@ -473,7 +512,7 @@ class GlideRecord(object):
             self.__query = query
         try:
             short_len = len('&'.join([ f"{x}={y}" for (x,y) in self._parameters().items() ]))
-            if short_len > 20000:  # just the approx limit, but a few thousand below (i hope/think)
+            if short_len > 10000:  # just the approx limit, but a few thousand below (i hope/think)
 
                 def on_resp(r):
                     nonlocal response
@@ -619,7 +658,7 @@ class GlideRecord(object):
         self._client.batch_api.execute()
         return allRecordsWereDeleted
 
-    def update_multiple(self) -> bool:
+    def update_multiple(self, custom_handler=None) -> bool:
         """
         Updates multiple records at once
         """
@@ -630,7 +669,8 @@ class GlideRecord(object):
                 updated = False
 
         for e in self:
-            self._client.batch_api.put(e, handle)
+            if e.changes():
+                self._client.batch_api.put(e, custom_handler if custom_handler else handle)
 
         self._client.batch_api.execute()
         return updated
