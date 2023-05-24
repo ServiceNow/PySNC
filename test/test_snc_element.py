@@ -1,6 +1,6 @@
 from unittest import TestCase
 from pysnc.record import GlideElement, GlideRecord
-import datetime, json
+import datetime, json, re
 
 
 class TestElement(TestCase):
@@ -49,7 +49,7 @@ class TestElement(TestCase):
         self.assertTrue(element.changes())
         self.assertIsNone(element._display_value)
         self.assertEqual(element.get_display_value(), '4')
-        self.assertEqual(repr(element), "record.GlideElement(value='4', name='state', display_value=None, changed=True)")
+        self.assertEqual(repr(element), "GlideElement('4')")
         self.assertEqual(str(element), "4")
 
     def test_int(self):
@@ -129,6 +129,58 @@ class TestElement(TestCase):
         out2 = gr.serialize()
         print(out2)
         self.assertEqual(out1, out2)
+
+    def test_hashing(self):
+        element = GlideElement('state', '3', 'Pending Change')
+        my_dict = {}
+        my_dict[element] = 1
+        self.assertEqual(my_dict[element], 1)
+
+    def test_int(self):
+        element = GlideElement('state', '3', 'Pending Change')
+        result = int(element)
+        self.assertEqual(result, 3)
+
+    def test_float(self):
+        element = GlideElement('state', '3.1', 'Pending Change')
+        result = float(element)
+        self.assertEqual(result, 3.1)
+
+    def test_complex(self):
+        element = GlideElement('state', '5-9j', 'Pending Change')
+        result = complex(element)
+        self.assertEqual(result, 5-9j)
+
+    def test_indexing(self):
+        element = GlideElement('state', 'approved')
+        self.assertEqual(element[0], 'a')
+        self.assertEqual(element[-1], 'd')
+        self.assertEqual(element[::-1], 'devorppa')
+
+    def test_string_methods(self):
+        element = GlideElement('state', 'approved Value')
+        self.assertEqual(element.capitalize(), 'Approved value')
+        self.assertEqual(element.casefold(), 'approved value')
+        self.assertEqual(element.encode(), b'approved Value')
+        self.assertEqual(element.isdigit(), False)
+        self.assertEqual(element.islower(), False)
+        self.assertEqual(element.isprintable(), True)
+
+    def test_regex(self):
+        from collections import UserString
+        element = GlideElement('state', '3', 'Pending Change')
+        result = re.match(r"\d", element)
+        self.assertIsNotNone(result)
+        self.assertEqual(result.start(), 0)
+        self.assertEqual(result.end(), 1)
+        self.assertEqual(result.group(), '3')
+
+        element = GlideElement('state', 'ohh 3 okay', 'Pending Change')
+        result = re.search(r"(\d)", element)
+        self.assertIsNotNone(result)
+        self.assertEqual(result.start(), 4)
+        self.assertEqual(result.end(), 5)
+        self.assertEqual(result.group(), '3')
 
 
 
