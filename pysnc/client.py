@@ -5,7 +5,7 @@ from requests.auth import AuthBase
 import re
 import logging
 import base64
-from typing import Callable, no_type_check
+from typing import Callable, Optional, no_type_check
 
 from requests.cookies import MockRequest, MockResponse
 from requests.structures import CaseInsensitiveDict
@@ -27,8 +27,10 @@ class ServiceNowClient(object):
     :param proxy: HTTP(s) proxy to use as a str ``'http://proxy:8080`` or dict ``{'http':'http://proxy:8080'}``
     :param bool verify: Verify the SSL/TLS certificate OR the certificate to use. Useful if you're using a self-signed HTTPS proxy.
     :param cert: if String, path to ssl client cert file (.pem). If Tuple, (‘cert’, ‘key’) pair.
+    :param debug_message_handle: a callable with signature ``myMethod(message:str)`` to handle any debug messages from the remote instance
+    :param session_message_handle: a callable with signature ``myMethod(message:str)`` to handle any session messages from the remote instance
     """
-    def __init__(self, instance, auth, proxy=None, verify=None, cert=None):
+    def __init__(self, instance, auth, proxy=None, verify=None, cert=None, debug_message_handle: Optional[Callable]=None, session_message_handle: Optional[Callable]=None):
         self._log = logging.getLogger(__name__)
         self.__instance = get_instance(instance)
 
@@ -65,6 +67,18 @@ class ServiceNowClient(object):
             self.__session.verify = verify
 
         self.__session.headers.update(dict(Accept="application/json"))
+
+        def default_handler(*args, **kwargs):
+            self._log.debug(*args, **kwargs)
+
+        self.debug_handle = debug_message_handle or default_handler
+        self.session_handle = session_message_handle or default_handler
+
+        # Session messages
+        self.__session.headers.update({
+            'X-WantSessionDebugMessages': 'true',
+            'X-WantSessionNotificationMessages': 'true'
+        })
 
         self.table_api = TableAPI(self)
         self.attachment_api = AttachmentAPI(self)
@@ -139,6 +153,15 @@ class API(object):
     def _validate_response(self, response: requests.Response) -> None:
         assert response is not None, f"response argument required"
         code = response.status_code
+        try:
+            rjson = response.json()
+            if 'session' in rjson:
+                for entry in rjson['session']['debug_logs']:
+                    self._client.debug_handle(entry)
+                for entry in rjson['session']['notifications']:
+                    self._client.session_handle(entry)
+        except requests.exceptions.JSONDecodeError:
+            pass
         if code >= 400:
             try:
                 rjson = response.json()
@@ -320,17 +343,22 @@ class BatchAPI(API):
         self.__stored_requests[request_id] = prepared
         self.__requests.append(now_request)
 
+    def pending_requests(self) -> int:
+        return len(self.__requests)
+
     @no_type_check
-    def _transform_response(self, req: requests.PreparedRequest, serviced_request) -> requests.Response:
+    def _transform_response(self, req: requests.PreparedRequest, serviced_request=None) -> requests.Response:
         # modeled after requests.adapters.HttpAdapter.build_response
         response = requests.Response()
-        response.status_code = serviced_request['status_code']
-        headers = {k: v for (k, v) in [(e['name'], e['value']) for e in serviced_request.get("headers", [])]}
-        response.headers = CaseInsensitiveDict(headers)
-        response.encoding = get_encoding_from_headers(response.headers)
+        response.status_code = serviced_request['status_code'] if serviced_request else 500
 
-        body = base64.b64decode(serviced_request.get('body', ''))
-        response.raw = BytesIO(body)
+        headers = {}
+        if serviced_request:
+            headers = {k: v for (k, v) in [(e['name'], e['value']) for e in serviced_request.get("headers", [])]}
+            response.headers = CaseInsensitiveDict(headers)
+            response.encoding = get_encoding_from_headers(response.headers)
+            body = base64.b64decode(serviced_request.get('body', ''))
+            response.raw = BytesIO(body)
 
         if isinstance(req.url, bytes):
             response.url = req.url.decode("utf-8")
@@ -359,11 +387,16 @@ class BatchAPI(API):
         try:
             assert str(bid) == data['batch_request_id'], f"How did we get a response id different from {bid}"
 
-            for response in data['serviced_requests'] + data['unserviced_requests']:
+            for response in data['serviced_requests']:
                 response_id = response['id']
                 assert response_id in self.__hooks, f"Somehow has no hook for {response_id}"
                 assert response_id in self.__stored_requests, f"Somehow we did not store request for {response_id}"
                 self.__hooks[response['id']](self._transform_response(self.__stored_requests[response_id], response))
+
+            for response_id in data['unserviced_requests']: # merely an Array of the IDs
+                assert response_id in self.__hooks, f"Somehow has no hook for {response_id}"
+                assert response_id in self.__stored_requests, f"Somehow we did not store request for {response_id}"
+                self.__hooks[response['id']](self._transform_response(self.__stored_requests[response_id], None))
 
             return bid
         finally:

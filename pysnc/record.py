@@ -658,7 +658,7 @@ class GlideRecord(object):
         self._client.batch_api.execute()
         return allRecordsWereDeleted
 
-    def update_multiple(self, custom_handler=None) -> bool:
+    def update_multiple(self, custom_handler=None, chunk_size: int = 100) -> bool:
         """
         Updates multiple records at once
         """
@@ -668,11 +668,15 @@ class GlideRecord(object):
             if response.status_code != 200:
                 updated = False
 
+        # we can do this *faster* but too many is too many, so chunk into groups...
         for e in self:
             if e.changes():
                 self._client.batch_api.put(e, custom_handler if custom_handler else handle)
-
-        self._client.batch_api.execute()
+            if self._client.batch_api.pending_requests() >= chunk_size:
+                self._client.batch_api.execute()
+        # get them danglers
+        if self._client.batch_api.pending_requests() > 0:
+            self._client.batch_api.execute()
         return updated
 
     def _get_value(self, item, key='value'):

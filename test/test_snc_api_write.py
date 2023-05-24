@@ -1,6 +1,6 @@
 from unittest import TestCase
 
-from pysnc import ServiceNowClient
+from pysnc import ServiceNowClient, exceptions
 from constants import Constants
 
 
@@ -251,5 +251,15 @@ class TestWrite(TestCase):
         tgr.delete_multiple()
         client.session.close()
 
+    def test_br_reject(self):
+        client = ServiceNowClient(self.c.server, self.c.credentials)
+        # sys_script.do?sys_id=f9b2343fb7b600103f5c21c8ee11a9a4 should stop us
+        topic = client.GlideRecord('topic')
+        topic.limit = 1
+        topic.add_active_query()
+        topic.query()
+        self.assertTrue(topic.next())
+        print(f"updating {topic.get_link(no_stack=True)}")
 
-
+        topic.active = 'false' # should be swapping it
+        self.assertRaises(exceptions.RoleException, topic.update)
