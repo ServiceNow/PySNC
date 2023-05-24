@@ -182,9 +182,15 @@ class TestElement(TestCase):
         self.assertEqual(result.end(), 5)
         self.assertEqual(result.group(), '3')
 
+    def test_parent(self):
+        class MockRecord:
+            def get_element(self, name):
+                rn = name.split('.')[-1]
+                return GlideElement(rn, 'test@test.test', None, self)
+        opened_by = GlideElement('opened_by', 'somesysid', 'User Name', MockRecord())
 
-
-
-
-
-
+        self.assertEqual(opened_by, 'somesysid')
+        ele = opened_by.email
+        self.assertEqual(ele, 'test@test.test')
+        self.assertEqual(ele.get_name(), 'email')
+        self.assertTrue(isinstance(ele._parent_record, MockRecord))
