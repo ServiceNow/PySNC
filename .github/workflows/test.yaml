@@ -53,17 +53,43 @@ jobs:
       run: |
         poetry run mypy
         poetry run jake ddt --whitelist whitelist.json
-    - name: prerelease
-      if: github.ref == 'refs/heads/main'
-      env:
-        PYPI_TOKEN: ${{ secrets.PYPI_API_TOKEN }}
-      run: |
-        poetry config pypi-token.pypi $PYPI_TOKEN
-        poetry version prerelease
-        poetry publish --build
-    - name: update version
-      if: github.ref == 'refs/heads/main'
-      uses: stefanzweifel/git-auto-commit-action@v4
-      with:
-        commit_message: Automatic version bump
-        file_pattern: pyproject.toml
+  prerelease:
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+    needs: install-test
+    steps:
+      - uses: actions/checkout@v3
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.11"
+      - name: cache poetry install
+        uses: actions/cache@v2
+        with:
+          path: ~/.local
+          key: poetry-1.4.2-0
+      - name: setup poetry
+        uses: snok/install-poetry@v1
+        with:
+          poetry-version: 1.4.2
+          virtualenvs-create: true
+          virtualenvs-in-project: true
+      - name: cache deps
+        id: cache-deps
+        uses: actions/cache@v2
+        with:
+          path: .venv
+          key: pydeps-${{ hashFiles('**/poetry.lock') }}
+      - name: prerelease
+        env:
+          PYPI_TOKEN: ${{ secrets.PYPI_API_TOKEN }}
+        run: |
+          poetry config pypi-token.pypi $PYPI_TOKEN
+          poetry version prerelease
+          poetry publish --build
+      - name: update version
+        uses: stefanzweifel/git-auto-commit-action@v4
+        with:
+          commit_message: Automatic version bump
+          file_pattern: pyproject.toml
+
