@@ -35,9 +35,15 @@ jobs:
           PYPI_TOKEN: ${{ secrets.PYPI_API_TOKEN }}
         run: |
           poetry config pypi-token.pypi $PYPI_TOKEN
+          poetry version ${{ github.ref_name }}
           poetry publish --build
           poetry install --no-interaction --no-root
           poetry run jake ddt --output-format json -o bom.json --whitelist whitelist.json
+      - name: update version
+        uses: stefanzweifel/git-auto-commit-action@v4
+        with:
+          commit_message: Automatic version bump
+          file_pattern: pyproject.toml
       - name: build docs
         run: |
           mkdir gh-pages

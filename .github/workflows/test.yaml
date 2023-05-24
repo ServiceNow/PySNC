@@ -51,3 +51,20 @@ jobs:
     - name: build docs
       working-directory: ./docs
       run: poetry run make clean html
+  prerelease:
+    if: github.ref == 'refs/heads/main'
+    needs: install-test
+    runs-on: ubuntu-latest
+    steps:
+      - name: prerelease
+        env:
+          PYPI_TOKEN: ${{ secrets.PYPI_API_TOKEN }}
+        run: |
+          poetry config pypi-token.pypi $PYPI_TOKEN
+          poetry version prerelease
+          poetry publish
+      - name: update version
+        uses: stefanzweifel/git-auto-commit-action@v4
+        with:
+          commit_message: Automatic version bump
+          file_pattern: pyproject.toml
