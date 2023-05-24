@@ -49,28 +49,21 @@ jobs:
     - name: build docs
       working-directory: ./docs
       run: poetry run make clean html
-  validate:
-    needs: install-test
-    runs-on: ubuntu-latest
-    steps:
-      - name: run extra sanity
-        run: |
-          poetry run mypy
-          poetry run jake ddt --whitelist whitelist.json
-  prerelease:
-    if: github.ref == 'refs/heads/main'
-    needs: validate
-    runs-on: ubuntu-latest
-    steps:
-      - name: prerelease
-        env:
-          PYPI_TOKEN: ${{ secrets.PYPI_API_TOKEN }}
-        run: |
-          poetry config pypi-token.pypi $PYPI_TOKEN
-          poetry version prerelease
-          poetry publish
-      - name: update version
-        uses: stefanzweifel/git-auto-commit-action@v4
-        with:
-          commit_message: Automatic version bump
-          file_pattern: pyproject.toml
+    - name: run extra sanity checks
+      run: |
+        poetry run mypy
+        poetry run jake ddt --whitelist whitelist.json
+    - name: prerelease
+      if: github.ref == 'refs/heads/main'
+      env:
+        PYPI_TOKEN: ${{ secrets.PYPI_API_TOKEN }}
+      run: |
+        poetry config pypi-token.pypi $PYPI_TOKEN
+        poetry version prerelease
+        poetry publish
+    - name: update version
+      if: github.ref == 'refs/heads/main'
+      uses: stefanzweifel/git-auto-commit-action@v4
+      with:
+        commit_message: Automatic version bump
+        file_pattern: pyproject.toml
