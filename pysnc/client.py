@@ -359,15 +359,12 @@ class BatchAPI(API):
         try:
             assert str(bid) == data['batch_request_id'], f"How did we get a response id different from {bid}"
 
-            for response in data['serviced_requests']:
+            for response in data['serviced_requests'] + data['unservied_requests']:
                 response_id = response['id']
                 assert response_id in self.__hooks, f"Somehow has no hook for {response_id}"
                 assert response_id in self.__stored_requests, f"Somehow we did not store request for {response_id}"
                 self.__hooks[response['id']](self._transform_response(self.__stored_requests[response_id], response))
 
-            for response_id in data['unserviced_requests']:
-                assert response_id in self.__hooks, f"Somehow has no hook for {response_id}"
-                self.__hooks[response_id]()  # just call it with no args...
         finally:
             self.__stored_requests = {}
             self.__requests = []
