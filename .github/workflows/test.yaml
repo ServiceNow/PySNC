@@ -46,14 +46,20 @@ jobs:
     - name: run tests
       run: |
         poetry run pytest
-        poetry run mypy
-        poetry run jake ddt --whitelist whitelist.json
     - name: build docs
       working-directory: ./docs
       run: poetry run make clean html
+  validate:
+    needs: install-test
+    runs-on: ubuntu-latest
+    steps:
+      - name: run extra sanity
+        run: |
+          poetry run mypy
+          poetry run jake ddt --whitelist whitelist.json
   prerelease:
     if: github.ref == 'refs/heads/main'
-    needs: install-test
+    needs: validate
     runs-on: ubuntu-latest
     steps:
       - name: prerelease
