@@ -1,3 +1,4 @@
+import json
 from io import BytesIO
 
 import requests
@@ -80,6 +81,7 @@ class ServiceNowClient(object):
             'X-WantSessionNotificationMessages': 'true'
         })
 
+        self.maximum_batch_api_request_size = 4e+6  # 4MB
         self.table_api = TableAPI(self)
         self.attachment_api = AttachmentAPI(self)
         self.batch_api = BatchAPI(self)
@@ -134,6 +136,7 @@ class ServiceNowClient(object):
 class API(object):
 
     def __init__(self, client):
+        self._log = logging.getLogger(__name__)
         self._client = client
 
     @property
@@ -153,6 +156,7 @@ class API(object):
     def _validate_response(self, response: requests.Response) -> None:
         assert response is not None, f"response argument required"
         code = response.status_code
+        self._log.debug(f"status_code: {code}\nheaders: {response.headers}, \n text: {response.text}")
         try:
             rjson = response.json()
             if 'session' in rjson:
@@ -181,12 +185,14 @@ class API(object):
 
         if hasattr(self.session, 'token'):
             try:
+                self._log.debug("using token based auth")
                 req.url, req.headers, req.data = self.session._client.add_token(
                     req.url, http_method=req.method, body=req.data, headers=req.headers
                 )
             except Exception as e:
                 if e.__class__.__name__ == 'TokenExpiredError':
                     # use refresh token to get new token
+                    self._log.debug("refreshing access token")
                     if self.session.auto_refresh_url:
                         if hasattr(req, 'auth'):
                             req.auth = None
@@ -345,6 +351,16 @@ class BatchAPI(API):
 
     def pending_requests(self) -> int:
         return len(self.__requests)
+
+    def pending_requests_size(self) -> int:
+        """
+        :returns: the pending requests size, in bytes
+        """
+        body = {
+            'batch_request_id': '0000000000',
+            'rest_requests': self.__requests
+        }
+        return len(json.dumps(body))
 
     @no_type_check
     def _transform_response(self, req: requests.PreparedRequest, serviced_request=None) -> requests.Response:

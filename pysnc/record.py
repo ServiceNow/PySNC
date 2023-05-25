@@ -653,14 +653,16 @@ class GlideRecord(object):
             if response.status_code != 204:
                 allRecordsWereDeleted = False
 
+        # TODO: consider honoring the maximum_batch_api_request_size here, though if you have more than 4MB of deletes...
         for e in self:
             self._client.batch_api.delete(e, handle)
         self._client.batch_api.execute()
         return allRecordsWereDeleted
 
-    def update_multiple(self, custom_handler=None, chunk_size: int = 100) -> bool:
+    def update_multiple(self, custom_handler=None) -> bool:
         """
         Updates multiple records at once
+        :param batch_byte_size: how big we can make our batch request
         """
         updated = True
         def handle(response):
@@ -672,8 +674,9 @@ class GlideRecord(object):
         for e in self:
             if e.changes():
                 self._client.batch_api.put(e, custom_handler if custom_handler else handle)
-            if self._client.batch_api.pending_requests() >= chunk_size:
-                self._client.batch_api.execute()
+                if self._client.batch_api.pending_requests_size() >= self._client.maximum_batch_api_request_size:
+                    self._client.batch_api.execute()
+
         # get them danglers
         if self._client.batch_api.pending_requests() > 0:
             self._client.batch_api.execute()

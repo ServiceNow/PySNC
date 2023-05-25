@@ -113,3 +113,15 @@ The following can improve performance:
 * Increase (or decrease) the default :ref:`batch_size` for GlideRecord
 * According to `KB0534905 <https://support.servicenow.com/kb_view.do?sysparm_article=KB0534905>`_ try disabling display values if they are not required via `gr.display_value = False`
 * Try setting a query :ref:`limit` if you do not need all results
+
+
+Debugging
+---------
+
+Enable debugging logging:
+
+```
+import logging
+logging.basicConfig()
+logging.getLogger().setLevel(logging.DEBUG)
+```
