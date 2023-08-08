@@ -10,6 +10,7 @@ from typing import Callable, no_type_check
 from requests.cookies import MockRequest, MockResponse
 from requests.structures import CaseInsensitiveDict
 from requests.utils import get_encoding_from_headers
+from requests.adapters import HTTPAdapter, Retry
 
 from .exceptions import *
 from .record import GlideRecord
@@ -28,7 +29,7 @@ class ServiceNowClient(object):
     :param bool verify: Verify the SSL/TLS certificate OR the certificate to use. Useful if you're using a self-signed HTTPS proxy.
     :param cert: if String, path to ssl client cert file (.pem). If Tuple, (‘cert’, ‘key’) pair.
     """
-    def __init__(self, instance, auth, proxy=None, verify=None, cert=None):
+    def __init__(self, instance, auth, proxy=None, verify=None, cert=None, auto_retry=True):
         self._log = logging.getLogger(__name__)
         self.__instance = get_instance(instance)
 
@@ -65,6 +66,11 @@ class ServiceNowClient(object):
             self.__session.verify = verify
 
         self.__session.headers.update(dict(Accept="application/json"))
+
+        if auto_retry is True:
+            # https://urllib3.readthedocs.io/en/latest/reference/urllib3.util.html#module-urllib3.util.retry
+            retry = Retry(total=4, backoff_factor=0.2, status_forcelist=[429, 500, 503])
+            self.__session.mount(self.__instance, HTTPAdapter(max_retries=retry))
 
         self.table_api = TableAPI(self)
         self.attachment_api = AttachmentAPI(self)
