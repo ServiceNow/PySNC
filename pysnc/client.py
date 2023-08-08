@@ -69,7 +69,7 @@ class ServiceNowClient(object):
 
         if auto_retry is True:
             # https://urllib3.readthedocs.io/en/latest/reference/urllib3.util.html#module-urllib3.util.retry
-            retry = Retry(total=4, backoff_factor=0.2, status_forcelist=[429, 500, 503])
+            retry = Retry(total=4, backoff_factor=0.2, status_forcelist=[429, 500, 502, 503])
             self.__session.mount(self.__instance, HTTPAdapter(max_retries=retry))
 
         self.table_api = TableAPI(self)
