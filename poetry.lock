@@ -1067,4 +1067,4 @@ oauth = ["requests-oauthlib"]
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.8"
-content-hash = "3f6a167171a0ed604c63948b4463e8a9b0b2b8bafef21a425c024922d74b535d"
+content-hash = "9e389dc60f639f1a57dee65e32eec7c0f3ceccec690d2143f095f9faccedacc5"
