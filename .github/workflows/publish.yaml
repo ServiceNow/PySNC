@@ -43,6 +43,7 @@ jobs:
         uses: stefanzweifel/git-auto-commit-action@v4
         with:
           commit_message: Automatic version bump
+          branch: main
           file_pattern: pyproject.toml
       - name: build docs
         run: |
