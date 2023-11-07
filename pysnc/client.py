@@ -62,7 +62,7 @@ class ServiceNowClient(object):
             self.__session.cert = cert
         else:
             raise AuthenticationException('No valid authentication method provided')
-        
+
         if proxy:
             self.__session.proxies = self.__proxies
 
