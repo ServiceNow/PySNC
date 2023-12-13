@@ -93,9 +93,12 @@ class TestWrite(TestCase):
         res = gr.insert()
         self.assertIsNotNone(res)
         self.assertIsNotNone(gr.sys_id)
+        self.assertEqual(res, gr.sys_id)
+        self.assertIsNotNone(gr.number)
         # make sure it exists
         gr2 = client.GlideRecord('problem')
         self.assertTrue(gr2.get(res))
+        self.assertEqual(gr2.number, gr.number)
 
         gr.delete()
 

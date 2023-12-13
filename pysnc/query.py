@@ -60,6 +60,11 @@ class Query(object):
         self.__sub_query.append(join_query)
         return join_query
 
+    def add_rl_query(self, related_table, related_field, operator_condition, stop_at_relationship):
+        rl_query = RLQuery(self._table, related_table, related_field, operator_condition, stop_at_relationship)
+        self.__sub_query.append(rl_query)
+        return rl_query
+
     def _add_query_condition(self, qc):
         assert isinstance(qc, QueryCondition)
         self.__conditions.append(qc)
@@ -106,3 +111,18 @@ class JoinQuery(Query):
         return res
 
 
+class RLQuery(Query):
+
+    def __init__(self, table, related_table, related_field, operator_condition, stop_at_relationship):
+        super(self.__class__, self).__init__(table)
+        self._related_table = related_table
+        self._related_field = related_field
+        self.operator_condition = operator_condition
+        self.stop_at_relationship = stop_at_relationship
+
+    def generate_query(self, encoded_query=None, order_by=None) -> str:
+        query = super(self.__class__, self).generate_query(encoded_query, order_by)
+        identifier = "{}.{}".format(self._related_table, self._related_field)
+        stop_condition = ",m2m" if self.stop_at_relationship else ""
+        query = "^{}".format(query) if query else ""
+        return "RLQUERY{},{}{}{}^ENDRLQUERY".format(identifier, self.operator_condition, stop_condition, query)
