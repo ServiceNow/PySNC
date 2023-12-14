@@ -879,6 +879,31 @@ class GlideRecord(object):
         """
         return self.__query.add_join_query(join_table, primary_field, join_table_field)
 
+    def add_rl_query(self, related_table, related_field, operator_condition, stop_at_relationship=False):
+        """
+        Generates a 'Related List Query' which is defined as:
+
+        RLQUERY<other_table_name>.<field>,<operator><value>[,m2m][^subquery]^ENDRLQUERY
+
+        For example, when querying sys_user to simulate a LEFT OUTER JOIN to find active users with no manager:
+
+        RLQUERYsys_user.manager,=0^active=true^ENDRLQUERY
+
+        If we find users with a specific role:
+
+        RLQUERYsys_user_has_role.user,>0^role=ROLESYSID^ENDRLQUERY
+
+        But if we want to dotwalk the role (aka set stop_at_relationship=True):
+
+        RLQUERYsys_user_has_role.user,>0,m2m^role.name=admin^ENDRLQUERY
+
+        :param str related_table: The table with the relationship -- the other table
+        :param str related_field: The field to use to relate from the other table to the table we are querying on
+        :param str operator_condition: The operator to use to relate the two tables, as in `=0` or `>=1` -- this is not validated by pysnc
+        :param bool stop_at_relationship: if we have a subquery (a query condition ON the RLQUERY) AND it dot walks, this must be True. Default is False.
+        """
+        return self.__query.add_rl_query(related_table, related_field, operator_condition, stop_at_relationship)
+
     def add_encoded_query(self, encoded_query):
         """
         Adds a raw query. Appends (comes after) all other defined queries e.g. :func:`add_query`

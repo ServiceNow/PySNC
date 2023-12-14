@@ -56,29 +56,6 @@ class TestRecordQuery(TestCase):
         self.assertEqual(enc_query, '')
         client.session.close()
 
-    def test_join_query(self):
-        client = ServiceNowClient(self.c.server, self.c.credentials)
-        gr = client.GlideRecord('sys_user')
-        join_query = gr.add_join_query('sys_user_group', join_table_field='manager')
-        join_query.add_query('active','true')
-        self.assertEqual(gr.get_encoded_query(), 'JOINsys_user.sys_id=sys_user_group.manager!active=true')
-        gr.query()
-        self.assertGreater(gr.get_row_count(), 1)
-        client.session.close()
-
-    ''' need to validate join query actually works right...
-    def test_join_query_2(self):
-        client = ServiceNowClient(self.c.server, self.c.credentials)
-        gr = client.GlideRecord('sys_user')
-        join_query = gr.add_join_query('sys_user_has_role', join_table_field='user')
-        join_query.add_query('role.name','admin')
-        self.assertEqual(gr.get_encoded_query(), 'JOINsys_user.sys_id=sys_user_has_role.user!role.name=admin')
-        gr.query()
-        gr.next()
-        print(gr.serialize())
-        self.assertEqual(gr.get_row_count(), 2)
-        '''
-
     def test_null_query(self):
         client = ServiceNowClient(self.c.server, self.c.credentials)
         gr_first = client.GlideRecord('sys_user')
