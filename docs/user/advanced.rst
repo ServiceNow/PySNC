@@ -79,6 +79,25 @@ See the API documentation for additional details::
     >>> join_query.add_query('active','true')
     >>> gr.query()
 
+Related List Queries
+--------------------
+
+Allows a user to perform a query comparing a related list, which allows the simulation of LEFT OUTER JOIN and etc.
+See the API documentation and tests for additional details.
+
+All users with the role which has a `name` of `admin`::
+
+    >>> gr = client.GlideRecord('sys_user')
+    >>> qc = gr.add_rl_query('sys_user_has_role', 'user', '>0', True)
+    >>> qc.add_query('role.name', 'admin')
+    >>> gr.query()
+
+All users without any role::
+
+    >>> gr = client.GlideRecord('sys_user')
+    >>> qc = gr.add_rl_query('sys_user_has_role', 'user', '=0')
+    >>> gr.query()
+
 Proxies
 -------
 
