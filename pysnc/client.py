@@ -33,6 +33,18 @@ class ServiceNowClient(object):
         self._log = logging.getLogger(__name__)
         self.__instance = get_instance(instance)
 
+        if proxy:
+            if type(proxy) != dict:
+                proxies = dict(http=proxy, https=proxy)
+            else:
+                proxies = proxy
+            self.__proxies = proxies
+            if verify is None:
+                verify = True  # default to verify with proxy
+        else:
+            self.__proxies = None
+
+
         if auth is not None and cert is not None:
             raise AuthenticationException('Cannot specify both auth and cert')
         elif isinstance(auth, (list, tuple)) and len(auth) == 2:
@@ -48,20 +60,15 @@ class ServiceNowClient(object):
             # maybe we've got an oauth token? Let this be permissive
             self.__session = auth
         elif isinstance(auth, ServiceNowFlow):
-            self.__session = auth.authenticate(self.__instance)
+            self.__session = auth.authenticate(self.__instance, proxies=self.__proxies, verify=verify)
         elif cert is not None:
             self.__session.cert = cert
         else:
             raise AuthenticationException('No valid authentication method provided')
 
         if proxy:
-            if type(proxy) != dict:
-                proxies = dict(http=proxy, https=proxy)
-            else:
-                proxies = proxy
-            self.__session.proxies = proxies
-            if verify is None:
-                verify = True  # default to verify with proxy
+            self.__session.proxies = self.__proxies
+
         if verify is not None:
             self.__session.verify = verify
 
