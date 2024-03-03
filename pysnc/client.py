@@ -41,6 +41,9 @@ class ServiceNowClient(object):
             self.__proxies = proxies
             if verify is None:
                 verify = True  # default to verify with proxy
+        else:
+            self.__proxies = None
+
 
         if auth is not None and cert is not None:
             raise AuthenticationException('Cannot specify both auth and cert')
@@ -57,7 +60,7 @@ class ServiceNowClient(object):
             # maybe we've got an oauth token? Let this be permissive
             self.__session = auth
         elif isinstance(auth, ServiceNowFlow):
-            self.__session = auth.authenticate(self.__instance, self.__proxies)
+            self.__session = auth.authenticate(self.__instance, proxies=self.__proxies, verify=verify)
         elif cert is not None:
             self.__session.cert = cert
         else:

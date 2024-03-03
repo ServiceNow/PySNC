@@ -8,7 +8,7 @@ JWT_GRANT_TYPE = 'urn:ietf:params:oauth:grant-type:jwt-bearer'
 
 
 class ServiceNowFlow:
-    def authenticate(self, instance: str) -> requests.Session:
+    def authenticate(self, instance: str, **kwargs) -> requests.Session:
         raise AuthenticationException('authenticate not implemented')
 
 
@@ -36,7 +36,7 @@ class ServiceNowPasswordGrantFlow(ServiceNowFlow):
     def authorization_url(self, authorization_base_url):
         return f"{authorization_base_url}/oauth_token.do"
 
-    def authenticate(self, instance: str, proxies: dict) -> requests.Session:
+    def authenticate(self, instance: str, **kwargs) -> requests.Session:
         """
         Designed to be called by ServiceNowClient - internal method.
         """
@@ -49,7 +49,7 @@ class ServiceNowPasswordGrantFlow(ServiceNowFlow):
                                   auto_refresh_kwargs=dict(client_id=self.client_id, client_secret=self.__secret))
             oauth.fetch_token(token_url=self.authorization_url(instance),
                               username=self.__username, password=self.__password, client_id=self.client_id,
-                              client_secret=self.__secret, proxies=proxies)
+                              client_secret=self.__secret, **kwargs)
             self.__password = None  # no longer need this.
             return oauth
         except ImportError:
