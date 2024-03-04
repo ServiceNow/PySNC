@@ -1,5 +1,6 @@
 import requests
 import time
+import base64
 from requests.auth import AuthBase
 from urllib3.util import parse_url
 from .exceptions import *
@@ -91,4 +92,42 @@ class ServiceNowJWTAuth(AuthBase):
         if not self.__token or time.time() > self.__expires_at:
             self.__token, self.__expires_at = self._get_access_token(request)
         request.headers['Authorization'] = f"Bearer {self.__token}"
+        return request
+
+
+class ServiceNowHMACAuth(AuthBase):
+    """
+    Standard HMAC auth for Now which uses the out of box default Script Include
+    """
+    def __init__(self, shared_secret: bytes, key_id: str = None):
+        self.__secret = shared_secret
+        self._key_id = key_id
+        try:
+            import hmac, hashlib
+            self.hmac = hmac
+            self.algo = hashlib.sha256
+        except:
+            raise AuthenticationException('Install dependency hmac')
+
+    def __call__(self, request):
+        # only need to sign the body, which i disagree with
+        signature = self.hmac.new(self.__secret, request.body, self.ago)
+        encoded_sig = base64.standard_b64encode(signature.digest()).decode()
+
+        header_value = f"signature={encoded_sig}"
+        if self._key_id:
+            header_value = f"keyId={self._key_id},{header_value}"
+        request.headers['x-sn-hmac-signature-256'] = header_value
+        return request
+
+
+class ServiceAPIKey(AuthBase):
+    """
+    Standard API Key Authentication
+    """
+    def __init__(self, api_key: str):
+        self.__api_key = api_key
+
+    def __call__(self, request):
+        request.headers['x-snc-api-key'] = self.__api_key
         return request

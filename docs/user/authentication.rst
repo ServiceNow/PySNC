@@ -11,7 +11,30 @@ insecure, but simplest, way to authenticate. Remember to scope the user's ACLs t
 
     >>> client = pysnc.ServiceNowClient('dev00000', ('admin','password'))
 
-This is not recommended for any production or machine to machine activity
+This is not recommended for any production or machine to machine activity as there are much better options.
+
+HMAC and API Key Authentication
+----------------------
+
+New to Washington DC -- See the [HMAC and API Key Authentication](https://docs.servicenow.com/bundle/washingtondc-platform-security/page/integrate/authentication/concept/api-key-and-hmac-rest-apis.html) documentation for more information on how to configure/set this up. API Access policies are as follows:
+
+* Table API - required (use `latest` as we do not use the versioned URLs)
+* Batch API - optional (use `v1` :ref:``) if you use batch operations such as `update_multiple`
+* Attachment API - optional (use `v1`) if you use any attachment functionality
+
+For API key (it is recommended you use HMAC over this, as it is more secure):
+
+    >>> from pysnc import ServiceNowClient
+    >>> from pysnc.auth import ServiceNowAPIKey
+    >>> api_key = '...' # never store this in plaintext, anywhere
+    >>> client = ServiceNowClient(server_url, ServiceNowHMACAuth(api_key))
+
+For HMAC:
+
+    >>> from pysnc import ServiceNowClient
+    >>> from pysnc.auth import ServiceNowHMACAuth
+    >>> shared_secret = '...' # never store this in plaintext, anywhere
+    >>> client = ServiceNowClient(server_url, ServiceNowHMACAuth(shared_secret))
 
 OAuth2 - Password Grant Flow
 ----------------------------
@@ -46,7 +69,7 @@ No instructions, currently. Typically what you would want to use if you're a cli
 OAuth2 - Client Credential Grant Flow
 -------------------------------------
 
-ServiceNow does not support this OAuth flow
+ServiceNow does not support this OAuth flow as it is not a provider.
 
 OAuth2 - JWT Bearer Grant Flow
 ------------------------------
