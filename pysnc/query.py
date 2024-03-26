@@ -86,6 +86,9 @@ class Query(object):
             query = '^'.join(filter(None, (query, encoded_query)))
         if order_by:
             query = '^'.join((query, order_by))
+        # dont start with ^
+        if query.startswith('^'):
+            query = query[1:]
         return query
 
 

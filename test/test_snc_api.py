@@ -44,7 +44,7 @@ class TestAuditScoped(TestCase):
         gr.add_query("name","CONTAINS","a")
         link = gr.get_link_list()
         print(link)
-        self.assertTrue(link.endswith('sys_user_list.do?sysparm_query=active%3Dtrue%5EnameCONTAINSa'))
+        self.assertTrue(link.endswith('sys_user_list.do?sysparm_query=active%3Dtrue%5EnameCONTAINSa%5EORDERBYsys_id'))
         client.session.close()
 
 
