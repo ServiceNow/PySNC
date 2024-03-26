@@ -259,7 +259,7 @@ class GlideRecord(object):
         self.__total: Optional[int] = None
         self.__limit: Optional[int] = None
         self.__page: int = -1
-        self.__order: Optional[str] = None
+        self.__order: str = "ORDERBYsys_id" # we *need* a default order in the event we page, see issue#96
         self.__is_new_record: bool = False
         self.__display_value: Union[bool, str] = 'all'
 
@@ -427,7 +427,7 @@ class GlideRecord(object):
         if column:
             self.__order = "ORDERBY%s" % column
         else:
-            self.__order = None
+            self.__order = "ORDERBYsys_id"
 
     def order_by_desc(self, column: str):
         """
@@ -438,7 +438,7 @@ class GlideRecord(object):
         if column:
             self.__order = "ORDERBYDESC%s" % column
         else:
-            self.__order = None
+            self.__order = 'ORDERBYDESCsys_id'
 
     def pop_record(self) -> 'GlideRecord':
         """

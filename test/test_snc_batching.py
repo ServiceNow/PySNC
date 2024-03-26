@@ -58,4 +58,14 @@ class TestBatching(TestCase):
         self.assertEqual(params['sysparm_limit'], 100, "batch size still 100 if we have a limit over batch size")
         client.session.close()
 
+    def test_default_order(self):
+        client = ServiceNowClient(self.c.server, self.c.credentials)
+        gr = client.GlideRecord('problem')
 
+        self.assertEqual(gr._parameters()['sysparm_query'], 'ORDERBYsys_id')
+        gr.order_by('number')
+        self.assertEqual(gr._parameters()['sysparm_query'], 'ORDERBYnumber')
+
+        gr.order_by(None)
+        self.assertEqual(gr._parameters()['sysparm_query'], 'ORDERBYsys_id')
+        client.session.close()

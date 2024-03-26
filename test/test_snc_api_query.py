@@ -45,7 +45,7 @@ class TestRecordQuery(TestCase):
         o = gr.add_query('name', 'alm_asset')
         o.add_or_condition('name', 'bsm_chart')
         enc_query = gr.get_encoded_query()
-        self.assertEqual(enc_query, 'name=alm_asset^ORname=bsm_chart')
+        self.assertEqual(enc_query, 'name=alm_asset^ORname=bsm_chart^ORDERBYsys_id')
         client.session.close()
 
     def test_get_query_two(self):
@@ -53,7 +53,7 @@ class TestRecordQuery(TestCase):
         gr = client.GlideRecord('sys_user')
         gr.get('6816f79cc0a8016401c5a33be04be441')
         enc_query = gr.get_encoded_query()
-        self.assertEqual(enc_query, '')
+        self.assertEqual(enc_query, 'ORDERBYsys_id') # always have default orderby
         client.session.close()
 
     def test_null_query(self):
@@ -102,14 +102,14 @@ class TestRecordQuery(TestCase):
         gr.add_encoded_query('test=what')
 
         query = gr.get_encoded_query()
-        self.assertEqual(query, "active=true^test=what")
+        self.assertEqual(query, "active=true^test=what^ORDERBYsys_id")
 
         gr = client.GlideRecord('sys_user')
         gr.add_encoded_query('test=what')
         gr.add_query('active','true')
 
         query = gr.get_encoded_query()
-        self.assertEqual(query, "active=true^test=what")
+        self.assertEqual(query, "active=true^test=what^ORDERBYsys_id")
         client.session.close()
 
     def test_get_true(self):
@@ -176,12 +176,12 @@ class TestRecordQuery(TestCase):
         q.add_query('sys_id', '6816f79cc0a8016401c5a33be04be441')
         q.add_query('second', 'asdf')
         self.assertEqual(q.generate_query(), 'sys_id=6816f79cc0a8016401c5a33be04be441^second=asdf')
-        self.assertEqual(gr.get_encoded_query(), '')
+        self.assertEqual(gr.get_encoded_query(), 'ORDERBYsys_id')
         gr.query(q)
         self.assertEqual(len(gr), 1)
-        self.assertEqual(gr.get_encoded_query(), '')
+        self.assertEqual(gr.get_encoded_query(), 'ORDERBYsys_id')
         gr.add_encoded_query(q.generate_query())
-        self.assertEqual(gr.get_encoded_query(), 'sys_id=6816f79cc0a8016401c5a33be04be441^second=asdf')
+        self.assertEqual(gr.get_encoded_query(), 'sys_id=6816f79cc0a8016401c5a33be04be441^second=asdf^ORDERBYsys_id')
         gr.query()
         self.assertEqual(len(gr), 1)
 
