@@ -1,19 +1,15 @@
-
 <!DOCTYPE html>
 
 <html lang="en">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>pysnc.record &#8212; PySNC 1.1.1 documentation</title>
-    <link rel="stylesheet" type="text/css" href="../../_static/pygments.css" />
-    <link rel="stylesheet" type="text/css" href="../../_static/alabaster.css" />
-    <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
-    <script src="../../_static/jquery.js"></script>
-    <script src="../../_static/underscore.js"></script>
-    <script src="../../_static/_sphinx_javascript_frameworks_compat.js"></script>
-    <script src="../../_static/doctools.js"></script>
-    <script src="../../_static/sphinx_highlight.js"></script>
+    <title>pysnc.record &#8212; PySNC 1.1.6 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=fa44fd50" />
+    <link rel="stylesheet" type="text/css" href="../../_static/alabaster.css?v=039e1c02" />
+    <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js?v=b108bffd"></script>
+    <script src="../../_static/doctools.js?v=888ff710"></script>
+    <script src="../../_static/sphinx_highlight.js?v=4825356b"></script>
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
    
@@ -37,22 +33,28 @@
 <span class="kn">import</span> <span class="nn">copy</span>
 <span class="kn">import</span> <span class="nn">traceback</span>
 <span class="kn">from</span> <span class="nn">requests</span> <span class="kn">import</span> <span class="n">Request</span>
-<span class="kn">from</span> <span class="nn">six</span> <span class="kn">import</span> <span class="n">string_types</span>
 <span class="kn">from</span> <span class="nn">collections</span> <span class="kn">import</span> <span class="n">OrderedDict</span>
 <span class="kn">from</span> <span class="nn">datetime</span> <span class="kn">import</span> <span class="n">datetime</span><span class="p">,</span> <span class="n">timezone</span>
-<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Union</span><span class="p">,</span> <span class="n">List</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Union</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">TYPE_CHECKING</span>
 
 <span class="kn">from</span> <span class="nn">.query</span> <span class="kn">import</span> <span class="o">*</span>
 <span class="kn">from</span> <span class="nn">.exceptions</span> <span class="kn">import</span> <span class="o">*</span>
-<span class="kn">from</span> <span class="nn">.attachment</span> <span class="kn">import</span> <span class="n">Attachment</span>
 
 <span class="n">TIMESTAMP_FORMAT</span> <span class="o">=</span> <span class="s2">&quot;%Y-%m-</span><span class="si">%d</span><span class="s2"> %H:%M:%S%z&quot;</span>
 
+<span class="k">if</span> <span class="n">TYPE_CHECKING</span><span class="p">:</span>  <span class="c1"># for mypy</span>
+    <span class="kn">from</span> <span class="nn">.client</span> <span class="kn">import</span> <span class="n">ServiceNowClient</span>
+    <span class="kn">from</span> <span class="nn">.attachment</span> <span class="kn">import</span> <span class="n">Attachment</span>
 
-<div class="viewcode-block" id="GlideElement"><a class="viewcode-back" href="../../api.html#pysnc.GlideElement">[docs]</a><span class="k">class</span> <span class="nc">GlideElement</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+
+<div class="viewcode-block" id="GlideElement"><a class="viewcode-back" href="../../api.html#pysnc.GlideElement">[docs]</a><span class="k">class</span> <span class="nc">GlideElement</span><span class="p">(</span><span class="nb">str</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Object backing the value/display values of a given record entry.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__new__</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">value</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="k">return</span> <span class="nb">super</span><span class="p">(</span><span class="n">GlideElement</span><span class="p">,</span> <span class="bp">cls</span><span class="p">)</span><span class="o">.</span><span class="fm">__new__</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span>
+
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">value</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">display_value</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">parent_record</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_name</span> <span class="o">=</span> <span class="n">name</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_value</span> <span class="o">=</span> <span class="kc">None</span>
@@ -169,7 +171,7 @@
         <span class="k">return</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">get_value</span><span class="p">())</span>
 
     <span class="k">def</span> <span class="fm">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;record.GlideElement(value=</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">_value</span><span class="si">!r}</span><span class="s2">, name=</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">_name</span><span class="si">!r}</span><span class="s2">, display_value=</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">_display_value</span><span class="si">!r}</span><span class="s2">, changed=</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">_changed</span><span class="si">!r}</span><span class="s2">)&quot;</span>
+        <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;GlideElement(</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">_value</span><span class="si">!r}</span><span class="s2">)&quot;</span>
 
     <span class="k">def</span> <span class="fm">__bool__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="c1"># help with the truthiness of true/false fields</span>
@@ -192,6 +194,9 @@
 
     <span class="k">def</span> <span class="fm">__len__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__magic</span><span class="p">(</span><span class="s1">&#39;__len__&#39;</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="fm">__length_hint__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__magic</span><span class="p">(</span><span class="s1">&#39;__length_hint__&#39;</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="fm">__iter__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="c1"># unfortunately i don&#39;t think we&#39;ll ever be smart enough to auto-support List columns</span>
@@ -219,6 +224,24 @@
 
     <span class="k">def</span> <span class="fm">__ge__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__magic</span><span class="p">(</span><span class="s1">&#39;__ge__&#39;</span><span class="p">,</span> <span class="n">other</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="fm">__contains__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__magic</span><span class="p">(</span><span class="s1">&#39;__contains__&#39;</span><span class="p">,</span> <span class="n">other</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="fm">__getitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">index</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__magic</span><span class="p">(</span><span class="s1">&#39;__getitem__&#39;</span><span class="p">,</span> <span class="n">index</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="fm">__hash__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__magic</span><span class="p">(</span><span class="s1">&#39;__hash__&#39;</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="fm">__int__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="nb">int</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">get_value</span><span class="p">())</span>
+
+    <span class="k">def</span> <span class="fm">__float__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="nb">float</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">get_value</span><span class="p">())</span>
+
+    <span class="k">def</span> <span class="fm">__complex__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="nb">complex</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">get_value</span><span class="p">())</span>
 
     <span class="k">def</span> <span class="fm">__getattr__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">item</span><span class="p">):</span>
         <span class="k">if</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">GlideElement</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="vm">__dict__</span><span class="p">:</span>
@@ -252,24 +275,24 @@
 <span class="sd">    :param str table: The table are we going to access</span>
 <span class="sd">    :param int batch_size: Batch size (items returned per HTTP request). Default is ``500``.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">client</span><span class="p">,</span> <span class="n">table</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">batch_size</span><span class="o">=</span><span class="mi">500</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">client</span><span class="p">:</span> <span class="s1">&#39;ServiceNowClient&#39;</span><span class="p">,</span> <span class="n">table</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">batch_size</span><span class="o">=</span><span class="mi">500</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_log</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_client</span> <span class="o">=</span> <span class="n">client</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">__table</span> <span class="o">=</span> <span class="n">table</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">__is_iter</span> <span class="o">=</span> <span class="kc">False</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">__batch_size</span> <span class="o">=</span> <span class="n">batch_size</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">__query</span> <span class="o">=</span> <span class="n">Query</span><span class="p">(</span><span class="n">table</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">__encoded_query</span> <span class="o">=</span> <span class="kc">None</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">__results</span> <span class="o">=</span> <span class="p">[]</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">__current</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">__field_limits</span> <span class="o">=</span> <span class="kc">None</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">__view</span> <span class="o">=</span> <span class="kc">None</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">__total</span> <span class="o">=</span> <span class="kc">None</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">__limit</span> <span class="o">=</span> <span class="kc">None</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">__page</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">__order</span> <span class="o">=</span> <span class="kc">None</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">__is_new_record</span> <span class="o">=</span> <span class="kc">False</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">__display_value</span> <span class="o">=</span> <span class="s1">&#39;all&#39;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__table</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">table</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__is_iter</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__batch_size</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">batch_size</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__query</span><span class="p">:</span> <span class="n">Query</span> <span class="o">=</span> <span class="n">Query</span><span class="p">(</span><span class="n">table</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__encoded_query</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__results</span><span class="p">:</span> <span class="nb">list</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__current</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__field_limits</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__view</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__total</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__limit</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__page</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__order</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;ORDERBYsys_id&quot;</span> <span class="c1"># we *need* a default order in the event we page, see issue#96</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__is_new_record</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__display_value</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">bool</span><span class="p">,</span> <span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;all&#39;</span>
 
     <span class="k">def</span> <span class="nf">_clear_query</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">__query</span> <span class="o">=</span> <span class="n">Query</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__table</span><span class="p">)</span>
@@ -334,7 +357,7 @@
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__total</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">__total</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="mi">0</span></div>
 
     <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">fields</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
+    <span class="k">def</span> <span class="nf">fields</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Union</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span> <span class="kc">None</span><span class="p">]:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        :return: Fields in which this record will query OR has queried</span>
 <span class="sd">        &quot;&quot;&quot;</span>
@@ -353,7 +376,7 @@
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Set the fields to query, in CSV string format or as a list</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">fields</span><span class="p">,</span> <span class="n">string_types</span><span class="p">):</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">fields</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
             <span class="n">fields</span> <span class="o">=</span> <span class="n">fields</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;,&#39;</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">__field_limits</span> <span class="o">=</span> <span class="n">fields</span>
 
@@ -369,7 +392,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">__view</span> <span class="o">=</span> <span class="n">view</span>
 
     <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">limit</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+    <span class="k">def</span> <span class="nf">limit</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        :return: Query number limit</span>
 <span class="sd">        &quot;&quot;&quot;</span>
@@ -408,6 +431,7 @@
 
 <span class="sd">        :param location: the location to be at</span>
 <span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">assert</span> <span class="bp">self</span><span class="o">.</span><span class="n">__total</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">,</span> <span class="s1">&#39;no location to be had when we have no query&#39;</span>
         <span class="k">assert</span> <span class="o">-</span><span class="mi">1</span> <span class="o">&lt;=</span> <span class="n">location</span> <span class="o">&lt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">__total</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">__current</span> <span class="o">=</span> <span class="n">location</span>
 
@@ -434,7 +458,7 @@
         <span class="k">if</span> <span class="n">column</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">__order</span> <span class="o">=</span> <span class="s2">&quot;ORDERBY</span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">column</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">__order</span> <span class="o">=</span> <span class="kc">None</span></div>
+            <span class="bp">self</span><span class="o">.</span><span class="n">__order</span> <span class="o">=</span> <span class="s2">&quot;ORDERBYsys_id&quot;</span></div>
 
 <div class="viewcode-block" id="GlideRecord.order_by_desc"><a class="viewcode-back" href="../../api.html#pysnc.GlideRecord.order_by_desc">[docs]</a>    <span class="k">def</span> <span class="nf">order_by_desc</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">column</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
@@ -445,7 +469,7 @@
         <span class="k">if</span> <span class="n">column</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">__order</span> <span class="o">=</span> <span class="s2">&quot;ORDERBYDESC</span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">column</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">__order</span> <span class="o">=</span> <span class="kc">None</span></div>
+            <span class="bp">self</span><span class="o">.</span><span class="n">__order</span> <span class="o">=</span> <span class="s1">&#39;ORDERBYDESCsys_id&#39;</span></div>
 
 <div class="viewcode-block" id="GlideRecord.pop_record"><a class="viewcode-back" href="../../api.html#pysnc.GlideRecord.pop_record">[docs]</a>    <span class="k">def</span> <span class="nf">pop_record</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s1">&#39;GlideRecord&#39;</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
@@ -492,6 +516,19 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">__current</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span></div>
 
+<div class="viewcode-block" id="GlideRecord.changes"><a class="viewcode-back" href="../../api.html#pysnc.GlideRecord.changes">[docs]</a>    <span class="k">def</span> <span class="nf">changes</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Determines weather any of the fields in the record have changed</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">obj</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_current</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">obj</span><span class="p">:</span>
+            <span class="n">has_changed</span> <span class="o">=</span> <span class="kc">False</span>
+            <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">obj</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+                <span class="n">has_changed</span> <span class="o">^=</span> <span class="n">value</span><span class="o">.</span><span class="n">changes</span><span class="p">()</span>
+            <span class="k">return</span> <span class="n">has_changed</span>
+        <span class="k">return</span> <span class="kc">False</span></div>
+
+
 <div class="viewcode-block" id="GlideRecord.query"><a class="viewcode-back" href="../../api.html#pysnc.GlideRecord.query">[docs]</a>    <span class="k">def</span> <span class="nf">query</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">query</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Query the table - executes a GET</span>
@@ -506,7 +543,7 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">__query</span> <span class="o">=</span> <span class="n">query</span>
         <span class="k">try</span><span class="p">:</span>
             <span class="n">short_len</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="s1">&#39;&amp;&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">x</span><span class="si">}</span><span class="s2">=</span><span class="si">{</span><span class="n">y</span><span class="si">}</span><span class="s2">&quot;</span> <span class="k">for</span> <span class="p">(</span><span class="n">x</span><span class="p">,</span><span class="n">y</span><span class="p">)</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_parameters</span><span class="p">()</span><span class="o">.</span><span class="n">items</span><span class="p">()</span> <span class="p">]))</span>
-            <span class="k">if</span> <span class="n">short_len</span> <span class="o">&gt;</span> <span class="mi">20000</span><span class="p">:</span>  <span class="c1"># just the approx limit, but a few thousand below (i hope/think)</span>
+            <span class="k">if</span> <span class="n">short_len</span> <span class="o">&gt;</span> <span class="mi">10000</span><span class="p">:</span>  <span class="c1"># just the approx limit, but a few thousand below (i hope/think)</span>
 
                 <span class="k">def</span> <span class="nf">on_resp</span><span class="p">(</span><span class="n">r</span><span class="p">):</span>
                     <span class="k">nonlocal</span> <span class="n">response</span>
@@ -561,7 +598,7 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">query</span><span class="p">()</span>
             <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">next</span><span class="p">()</span></div>
 
-<div class="viewcode-block" id="GlideRecord.insert"><a class="viewcode-back" href="../../api.html#pysnc.GlideRecord.insert">[docs]</a>    <span class="k">def</span> <span class="nf">insert</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<div class="viewcode-block" id="GlideRecord.insert"><a class="viewcode-back" href="../../api.html#pysnc.GlideRecord.insert">[docs]</a>    <span class="k">def</span> <span class="nf">insert</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Insert a new record.</span>
 
@@ -585,7 +622,7 @@
             <span class="n">rjson</span> <span class="o">=</span> <span class="n">response</span><span class="o">.</span><span class="n">json</span><span class="p">()</span>
             <span class="k">raise</span> <span class="n">InsertException</span><span class="p">(</span><span class="n">rjson</span><span class="p">[</span><span class="s1">&#39;error&#39;</span><span class="p">]</span> <span class="k">if</span> <span class="s1">&#39;error&#39;</span> <span class="ow">in</span> <span class="n">rjson</span> <span class="k">else</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">code</span><span class="si">}</span><span class="s2"> response on insert -- expected 201&quot;</span><span class="p">,</span> <span class="n">status_code</span><span class="o">=</span><span class="n">code</span><span class="p">)</span></div>
 
-<div class="viewcode-block" id="GlideRecord.update"><a class="viewcode-back" href="../../api.html#pysnc.GlideRecord.update">[docs]</a>    <span class="k">def</span> <span class="nf">update</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<div class="viewcode-block" id="GlideRecord.update"><a class="viewcode-back" href="../../api.html#pysnc.GlideRecord.update">[docs]</a>    <span class="k">def</span> <span class="nf">update</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Update the current record.</span>
 
@@ -638,7 +675,7 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">__total</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">__field_limits</span><span class="p">:</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">fields</span> <span class="o">=</span> <span class="s1">&#39;sys_id&#39;</span>  <span class="c1"># all we need...</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">fields</span> <span class="o">=</span> <span class="s1">&#39;sys_id&#39;</span>  <span class="c1"># type: ignore  ## all we need...</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">query</span><span class="p">()</span>
 
         <span class="n">allRecordsWereDeleted</span> <span class="o">=</span> <span class="kc">True</span>
@@ -652,7 +689,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_client</span><span class="o">.</span><span class="n">batch_api</span><span class="o">.</span><span class="n">execute</span><span class="p">()</span>
         <span class="k">return</span> <span class="n">allRecordsWereDeleted</span></div>
 
-<div class="viewcode-block" id="GlideRecord.update_multiple"><a class="viewcode-back" href="../../api.html#pysnc.GlideRecord.update_multiple">[docs]</a>    <span class="k">def</span> <span class="nf">update_multiple</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+<div class="viewcode-block" id="GlideRecord.update_multiple"><a class="viewcode-back" href="../../api.html#pysnc.GlideRecord.update_multiple">[docs]</a>    <span class="k">def</span> <span class="nf">update_multiple</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">custom_handler</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Updates multiple records at once</span>
 <span class="sd">        &quot;&quot;&quot;</span>
@@ -663,7 +700,8 @@
                 <span class="n">updated</span> <span class="o">=</span> <span class="kc">False</span>
 
         <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="bp">self</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_client</span><span class="o">.</span><span class="n">batch_api</span><span class="o">.</span><span class="n">put</span><span class="p">(</span><span class="n">e</span><span class="p">,</span> <span class="n">handle</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">e</span><span class="o">.</span><span class="n">changes</span><span class="p">():</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_client</span><span class="o">.</span><span class="n">batch_api</span><span class="o">.</span><span class="n">put</span><span class="p">(</span><span class="n">e</span><span class="p">,</span> <span class="n">custom_handler</span> <span class="k">if</span> <span class="n">custom_handler</span> <span class="k">else</span> <span class="n">handle</span><span class="p">)</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">_client</span><span class="o">.</span><span class="n">batch_api</span><span class="o">.</span><span class="n">execute</span><span class="p">()</span>
         <span class="k">return</span> <span class="n">updated</span></div>
@@ -700,7 +738,7 @@
 
 <div class="viewcode-block" id="GlideRecord.get_element"><a class="viewcode-back" href="../../api.html#pysnc.GlideRecord.get_element">[docs]</a>    <span class="k">def</span> <span class="nf">get_element</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">field</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">GlideElement</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Return the backing GlideElement for the given field. This is the only method to directly access this element.</span>
+<span class="sd">        Return the backing GlideElement for the given field. This is the only method to directly access this element.gr2.serialize()</span>
 
 <span class="sd">        :param str field: The Field</span>
 <span class="sd">        :return: The GlideElement class or ``None``</span>
@@ -721,7 +759,10 @@
         <span class="k">if</span> <span class="n">c</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="k">raise</span> <span class="n">NoRecordException</span><span class="p">(</span><span class="s1">&#39;cannot get a value from nothing, did you forget to call next() or initialize()?&#39;</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">field</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">c</span><span class="p">:</span>
-            <span class="n">c</span><span class="p">[</span><span class="n">field</span><span class="p">]</span> <span class="o">=</span> <span class="n">GlideElement</span><span class="p">(</span><span class="n">field</span><span class="p">,</span> <span class="n">value</span><span class="p">,</span> <span class="n">parent_record</span><span class="o">=</span><span class="bp">self</span><span class="p">)</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">GlideElement</span><span class="p">):</span>
+                <span class="n">c</span><span class="p">[</span><span class="n">field</span><span class="p">]</span> <span class="o">=</span> <span class="n">GlideElement</span><span class="p">(</span><span class="n">field</span><span class="p">,</span> <span class="n">value</span><span class="o">.</span><span class="n">get_value</span><span class="p">(),</span> <span class="n">value</span><span class="o">.</span><span class="n">get_display_value</span><span class="p">(),</span> <span class="n">parent_record</span><span class="o">=</span><span class="bp">self</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">c</span><span class="p">[</span><span class="n">field</span><span class="p">]</span> <span class="o">=</span> <span class="n">GlideElement</span><span class="p">(</span><span class="n">field</span><span class="p">,</span> <span class="n">value</span><span class="p">,</span> <span class="n">parent_record</span><span class="o">=</span><span class="bp">self</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">c</span><span class="p">[</span><span class="n">field</span><span class="p">]</span><span class="o">.</span><span class="n">set_value</span><span class="p">(</span><span class="n">value</span><span class="p">)</span></div>
 
@@ -757,12 +798,11 @@
         <span class="nb">id</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">sys_id</span> <span class="k">if</span> <span class="n">obj</span> <span class="k">else</span> <span class="s1">&#39;null&#39;</span>
         <span class="k">return</span> <span class="s2">&quot;</span><span class="si">{}</span><span class="s2">/</span><span class="si">{}</span><span class="s2">.do?sys_id=</span><span class="si">{}{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">ins</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">__table</span><span class="p">,</span> <span class="nb">id</span><span class="p">,</span> <span class="n">stack</span><span class="p">)</span></div>
 
-<div class="viewcode-block" id="GlideRecord.get_link_list"><a class="viewcode-back" href="../../api.html#pysnc.GlideRecord.get_link_list">[docs]</a>    <span class="k">def</span> <span class="nf">get_link_list</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<div class="viewcode-block" id="GlideRecord.get_link_list"><a class="viewcode-back" href="../../api.html#pysnc.GlideRecord.get_link_list">[docs]</a>    <span class="k">def</span> <span class="nf">get_link_list</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Generate a full URL to for the current query.</span>
 
 <span class="sd">        :return: The full URL to the record query</span>
-<span class="sd">        :rtype: str</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">ins</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_client</span><span class="o">.</span><span class="n">instance</span>
         <span class="n">sysparm_query</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_encoded_query</span><span class="p">()</span>
@@ -784,7 +824,7 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_value</span><span class="p">(</span><span class="s1">&#39;sys_id&#39;</span><span class="p">)</span></div>
 
-<div class="viewcode-block" id="GlideRecord.get_attachments"><a class="viewcode-back" href="../../api.html#pysnc.GlideRecord.get_attachments">[docs]</a>    <span class="k">def</span> <span class="nf">get_attachments</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Attachment</span><span class="p">:</span>
+<div class="viewcode-block" id="GlideRecord.get_attachments"><a class="viewcode-back" href="../../api.html#pysnc.GlideRecord.get_attachments">[docs]</a>    <span class="k">def</span> <span class="nf">get_attachments</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s1">&#39;Attachment&#39;</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Get the attachments for the current record or the current table</span>
 
@@ -802,7 +842,7 @@
             <span class="k">raise</span> <span class="n">NoRecordException</span><span class="p">(</span><span class="s1">&#39;cannot add attachment to nothing, did you forget to call next() or initialize()?&#39;</span><span class="p">)</span>
 
         <span class="n">attachment</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_client</span><span class="o">.</span><span class="n">Attachment</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__table</span><span class="p">)</span>
-        <span class="n">attachment</span><span class="o">.</span><span class="n">add_attachment</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">sys_id</span><span class="p">,</span> <span class="n">file_name</span><span class="p">,</span> <span class="n">file</span><span class="p">,</span> <span class="n">content_type</span><span class="p">,</span> <span class="n">encryption_context</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">attachment</span><span class="o">.</span><span class="n">add_attachment</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">sys_id</span><span class="p">,</span> <span class="n">file_name</span><span class="p">,</span> <span class="n">file</span><span class="p">,</span> <span class="n">content_type</span><span class="p">,</span> <span class="n">encryption_context</span><span class="p">)</span>
 
 <div class="viewcode-block" id="GlideRecord.add_active_query"><a class="viewcode-back" href="../../api.html#pysnc.GlideRecord.add_active_query">[docs]</a>    <span class="k">def</span> <span class="nf">add_active_query</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">QueryCondition</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
@@ -870,6 +910,31 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__query</span><span class="o">.</span><span class="n">add_join_query</span><span class="p">(</span><span class="n">join_table</span><span class="p">,</span> <span class="n">primary_field</span><span class="p">,</span> <span class="n">join_table_field</span><span class="p">)</span></div>
 
+<div class="viewcode-block" id="GlideRecord.add_rl_query"><a class="viewcode-back" href="../../api.html#pysnc.GlideRecord.add_rl_query">[docs]</a>    <span class="k">def</span> <span class="nf">add_rl_query</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">related_table</span><span class="p">,</span> <span class="n">related_field</span><span class="p">,</span> <span class="n">operator_condition</span><span class="p">,</span> <span class="n">stop_at_relationship</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Generates a &#39;Related List Query&#39; which is defined as:</span>
+
+<span class="sd">        RLQUERY&lt;other_table_name&gt;.&lt;field&gt;,&lt;operator&gt;&lt;value&gt;[,m2m][^subquery]^ENDRLQUERY</span>
+
+<span class="sd">        For example, when querying sys_user to simulate a LEFT OUTER JOIN to find active users with no manager:</span>
+
+<span class="sd">        RLQUERYsys_user.manager,=0^active=true^ENDRLQUERY</span>
+
+<span class="sd">        If we find users with a specific role:</span>
+
+<span class="sd">        RLQUERYsys_user_has_role.user,&gt;0^role=ROLESYSID^ENDRLQUERY</span>
+
+<span class="sd">        But if we want to dotwalk the role (aka set stop_at_relationship=True):</span>
+
+<span class="sd">        RLQUERYsys_user_has_role.user,&gt;0,m2m^role.name=admin^ENDRLQUERY</span>
+
+<span class="sd">        :param str related_table: The table with the relationship -- the other table</span>
+<span class="sd">        :param str related_field: The field to use to relate from the other table to the table we are querying on</span>
+<span class="sd">        :param str operator_condition: The operator to use to relate the two tables, as in `=0` or `&gt;=1` -- this is not validated by pysnc</span>
+<span class="sd">        :param bool stop_at_relationship: if we have a subquery (a query condition ON the RLQUERY) AND it dot walks, this must be True. Default is False.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__query</span><span class="o">.</span><span class="n">add_rl_query</span><span class="p">(</span><span class="n">related_table</span><span class="p">,</span> <span class="n">related_field</span><span class="p">,</span> <span class="n">operator_condition</span><span class="p">,</span> <span class="n">stop_at_relationship</span><span class="p">)</span></div>
+
 <div class="viewcode-block" id="GlideRecord.add_encoded_query"><a class="viewcode-back" href="../../api.html#pysnc.GlideRecord.add_encoded_query">[docs]</a>    <span class="k">def</span> <span class="nf">add_encoded_query</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">encoded_query</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Adds a raw query. Appends (comes after) all other defined queries e.g. :func:`add_query`</span>
@@ -902,7 +967,7 @@
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__query</span><span class="o">.</span><span class="n">add_not_null_query</span><span class="p">(</span><span class="n">field</span><span class="p">)</span></div>
 
     <span class="k">def</span> <span class="nf">_serialize</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">record</span><span class="p">,</span> <span class="n">display_value</span><span class="p">,</span> <span class="n">fields</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">changes_only</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
-        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">display_value</span><span class="p">,</span> <span class="n">string_types</span><span class="p">):</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">display_value</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
             <span class="n">v_type</span> <span class="o">=</span> <span class="s1">&#39;both&#39;</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">v_type</span> <span class="o">=</span> <span class="s1">&#39;display_value&#39;</span> <span class="k">if</span> <span class="n">display_value</span> <span class="k">else</span> <span class="s1">&#39;value&#39;</span>
@@ -931,7 +996,7 @@
 
 <div class="viewcode-block" id="GlideRecord.serialize"><a class="viewcode-back" href="../../api.html#pysnc.GlideRecord.serialize">[docs]</a>    <span class="k">def</span> <span class="nf">serialize</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">display_value</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">fields</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">fmt</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">changes_only</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Turn current record into a dict</span>
+<span class="sd">        Turn current record into a dictGlideRecord(None, &#39;incident&#39;)</span>
 
 <span class="sd">        :param display_value: ``True``, ``False``, or ``&#39;both&#39;``</span>
 <span class="sd">        :param list fields: Fields to serialize. Defaults to all fields.</span>
@@ -1058,7 +1123,7 @@
         <span class="k">if</span> <span class="n">l</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">__current</span><span class="o">+</span><span class="mi">1</span> <span class="o">&lt;</span> <span class="n">l</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">__current</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__current</span> <span class="o">+</span> <span class="mi">1</span>
             <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">__is_iter</span><span class="p">:</span>
-                <span class="k">return</span> <span class="bp">self</span>
+                <span class="k">return</span> <span class="bp">self</span>  <span class="c1"># type: ignore  # this typing is internal only</span>
             <span class="k">return</span> <span class="kc">True</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">__total</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">__total</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="ow">and</span> \
                 <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__current</span><span class="o">+</span><span class="mi">1</span><span class="p">)</span> <span class="o">&lt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">__total</span> <span class="ow">and</span> \
@@ -1191,7 +1256,7 @@
       &copy;2023, Matthew Gill.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 5.3.0</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 7.1.2</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.13</a>
       
     </div>
