@@ -4,10 +4,10 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>pysnc.record &#8212; PySNC 1.1.6 documentation</title>
+    <title>pysnc.record &#8212; PySNC 1.1.7 documentation</title>
     <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=fa44fd50" />
     <link rel="stylesheet" type="text/css" href="../../_static/alabaster.css?v=039e1c02" />
-    <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js?v=b108bffd"></script>
+    <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js?v=15703be4"></script>
     <script src="../../_static/doctools.js?v=888ff710"></script>
     <script src="../../_static/sphinx_highlight.js?v=4825356b"></script>
     <link rel="index" title="Index" href="../../genindex.html" />
@@ -598,7 +598,7 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">query</span><span class="p">()</span>
             <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">next</span><span class="p">()</span></div>
 
-<div class="viewcode-block" id="GlideRecord.insert"><a class="viewcode-back" href="../../api.html#pysnc.GlideRecord.insert">[docs]</a>    <span class="k">def</span> <span class="nf">insert</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
+<div class="viewcode-block" id="GlideRecord.insert"><a class="viewcode-back" href="../../api.html#pysnc.GlideRecord.insert">[docs]</a>    <span class="k">def</span> <span class="nf">insert</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="n">GlideElement</span><span class="p">]:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Insert a new record.</span>
 
@@ -622,7 +622,7 @@
             <span class="n">rjson</span> <span class="o">=</span> <span class="n">response</span><span class="o">.</span><span class="n">json</span><span class="p">()</span>
             <span class="k">raise</span> <span class="n">InsertException</span><span class="p">(</span><span class="n">rjson</span><span class="p">[</span><span class="s1">&#39;error&#39;</span><span class="p">]</span> <span class="k">if</span> <span class="s1">&#39;error&#39;</span> <span class="ow">in</span> <span class="n">rjson</span> <span class="k">else</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">code</span><span class="si">}</span><span class="s2"> response on insert -- expected 201&quot;</span><span class="p">,</span> <span class="n">status_code</span><span class="o">=</span><span class="n">code</span><span class="p">)</span></div>
 
-<div class="viewcode-block" id="GlideRecord.update"><a class="viewcode-back" href="../../api.html#pysnc.GlideRecord.update">[docs]</a>    <span class="k">def</span> <span class="nf">update</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
+<div class="viewcode-block" id="GlideRecord.update"><a class="viewcode-back" href="../../api.html#pysnc.GlideRecord.update">[docs]</a>    <span class="k">def</span> <span class="nf">update</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="n">GlideElement</span><span class="p">]:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Update the current record.</span>
 
