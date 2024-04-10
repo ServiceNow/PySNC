@@ -567,7 +567,7 @@ class GlideRecord(object):
             self.query()
             return self.next()
 
-    def insert(self) -> Optional[str]:
+    def insert(self) -> Optional[GlideElement]:
         """
         Insert a new record.
 
@@ -591,7 +591,7 @@ class GlideRecord(object):
             rjson = response.json()
             raise InsertException(rjson['error'] if 'error' in rjson else f"{code} response on insert -- expected 201", status_code=code)
 
-    def update(self) -> Optional[str]:
+    def update(self) -> Optional[GlideElement]:
         """
         Update the current record.
 
