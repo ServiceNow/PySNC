@@ -83,15 +83,19 @@ class ServiceNowClient(object):
         self.attachment_api = AttachmentAPI(self)
         self.batch_api = BatchAPI(self)
 
-    def GlideRecord(self, table, batch_size=100) -> GlideRecord:
+    def GlideRecord(self, table, batch_size=100, rewindable=True) -> GlideRecord:
         """
         Create a :class:`pysnc.GlideRecord` for a given table against the current client
 
         :param str table: The table name e.g. ``problem``
         :param int batch_size: Batch size (items returned per HTTP request). Default is ``100``.
+        :param bool rewindable: If we can rewind the record. Default is ``True``. If ``False`` then we cannot rewind 
+                                the record, which means as an Iterable this object will be 'spent' after iteration.
+                                This is normally the default behavior expected for a python Iterable, but not a GlideRecord.
+                                When ``False`` less memory will be consumed, as each previous record will be collected.
         :return: :class:`pysnc.GlideRecord`
         """
-        return GlideRecord(self, table, batch_size)
+        return GlideRecord(self, table, batch_size, rewindable)
 
     def Attachment(self, table) -> Attachment:
         """
