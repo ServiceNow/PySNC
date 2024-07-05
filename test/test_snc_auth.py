@@ -1,4 +1,4 @@
-from unittest import TestCase
+from unittest import TestCase, skip
 
 from pysnc import ServiceNowClient
 from pysnc.auth import *
@@ -29,6 +29,7 @@ class TestAuth(TestCase):
         except Exception:
             assert 'Should have got an Auth exception'
 
+    @skip("Requires valid oauth client_id and secret, and I don't want to need anything not out of box")
     def test_oauth(self):
         # Manual setup using legacy oauth
         server = self.c.server
