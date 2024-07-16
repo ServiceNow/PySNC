@@ -243,8 +243,12 @@ class GlideRecord(object):
     :param ServiceNowClient client: We need to know which instance we're connecting to
     :param str table: The table are we going to access
     :param int batch_size: Batch size (items returned per HTTP request). Default is ``500``.
+    :param bool rewindable: If we can rewind the record. Default is ``True``. If ``False`` then we cannot rewind 
+                            the record, which means as an Iterable this object will be 'spent' after iteration.
+                            This is normally the default behavior expected for a python Iterable, but not a GlideRecord.
+                            When ``False`` less memory will be consumed, as each previous record will be collected.
     """
-    def __init__(self, client: 'ServiceNowClient', table: str, batch_size=500):
+    def __init__(self, client: 'ServiceNowClient', table: str, batch_size: int=500, rewindable: bool=True):
         self._log = logging.getLogger(__name__)
         self._client = client
         self.__table: str = table
@@ -262,6 +266,7 @@ class GlideRecord(object):
         self.__order: str = "ORDERBYsys_id" # we *need* a default order in the event we page, see issue#96
         self.__is_new_record: bool = False
         self.__display_value: Union[bool, str] = 'all'
+        self.__rewindable = rewindable
 
     def _clear_query(self):
         self.__query = Query(self.__table)
@@ -443,6 +448,7 @@ class GlideRecord(object):
     def pop_record(self) -> 'GlideRecord':
         """
         Pop the current record into a new :class:`GlideRecord` object - equivalent to a clone of a singular record
+        FIXME: this, by the name, should be a destructive operation, but it is not.
 
         :return: Give us a new :class:`GlideRecord` containing only the current record
         """
@@ -481,8 +487,10 @@ class GlideRecord(object):
 
     def rewind(self):
         """
-        Rewinds the record so it may be iterated upon again. Not required to be called if iterating in the pythonic method.
+        Rewinds the record (iterable) so it may be iterated upon again. Only possible when the record is rewindable.
         """
+        if not self._is_rewindable():
+            raise Exception('Cannot rewind a non-rewindable record')
         self.__current = -1
 
     def changes(self) -> bool:
@@ -506,6 +514,12 @@ class GlideRecord(object):
             :AuthenticationException: If we do not have rights
             :RequestException: If the transaction is canceled due to execution time
         """
+        if not self._is_rewindable() and self.__current > 0:
+            raise RuntimeError(f"huh {self._is_rewindable} and {self.__current}")
+        #    raise RuntimeError('Cannot re-query a non-rewindable record that has been iterated upon')
+        self._do_query(query)
+
+    def _do_query(self, query=None):
         stored = self.__query
         if query:
             assert isinstance(query, Query), 'cannot query with a non query object'
@@ -564,7 +578,7 @@ class GlideRecord(object):
             return False
         else:
             self.add_query(name, value)
-            self.query()
+            self._do_query()
             return self.next()
 
     def insert(self) -> Optional[GlideElement]:
@@ -645,7 +659,7 @@ class GlideRecord(object):
         if self.__total is None:
             if not self.__field_limits:
                 self.fields = 'sys_id'  # type: ignore  ## all we need...
-            self.query()
+            self._do_query()
 
         allRecordsWereDeleted = True
         def handle(response):
@@ -1074,9 +1088,13 @@ class GlideRecord(object):
 
         return data
 
+    def _is_rewindable(self) -> bool:
+        return self.__rewindable
+
     def __iter__(self):
         self.__is_iter = True
-        self.rewind()
+        if self._is_rewindable():
+            self.rewind()
         return self
 
     def __next__(self):
@@ -1092,6 +1110,8 @@ class GlideRecord(object):
         if l > 0 and self.__current+1 < l:
             self.__current = self.__current + 1
             if self.__is_iter:
+                if not self._is_rewindable(): # if we're not rewindable, remove the previous record
+                    self.__results[self.__current - 1] = None
                 return self  # type: ignore  # this typing is internal only
             return True
         if self.__total and self.__total > 0 and \
@@ -1100,10 +1120,10 @@ class GlideRecord(object):
                 _recursive is False:
             if self.__limit:
                 if self.__current+1 < self.__limit:
-                    self.query()
+                    self._do_query()
                     return self.next(_recursive=True)
             else:
-                self.query()
+                self._do_query()
                 return self.next(_recursive=True)
         if self.__is_iter:
             self.__is_iter = False
