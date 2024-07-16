@@ -4,10 +4,10 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>pysnc.client &#8212; PySNC 1.1.7 documentation</title>
+    <title>pysnc.client &#8212; PySNC 1.1.8 documentation</title>
     <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=fa44fd50" />
     <link rel="stylesheet" type="text/css" href="../../_static/alabaster.css?v=039e1c02" />
-    <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js?v=15703be4"></script>
+    <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js?v=fd6a9826"></script>
     <script src="../../_static/doctools.js?v=888ff710"></script>
     <script src="../../_static/sphinx_highlight.js?v=4825356b"></script>
     <link rel="index" title="Index" href="../../genindex.html" />
@@ -114,15 +114,19 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">attachment_api</span> <span class="o">=</span> <span class="n">AttachmentAPI</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">batch_api</span> <span class="o">=</span> <span class="n">BatchAPI</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
 
-<div class="viewcode-block" id="ServiceNowClient.GlideRecord"><a class="viewcode-back" href="../../api.html#pysnc.ServiceNowClient.GlideRecord">[docs]</a>    <span class="k">def</span> <span class="nf">GlideRecord</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">table</span><span class="p">,</span> <span class="n">batch_size</span><span class="o">=</span><span class="mi">100</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">GlideRecord</span><span class="p">:</span>
+<div class="viewcode-block" id="ServiceNowClient.GlideRecord"><a class="viewcode-back" href="../../api.html#pysnc.ServiceNowClient.GlideRecord">[docs]</a>    <span class="k">def</span> <span class="nf">GlideRecord</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">table</span><span class="p">,</span> <span class="n">batch_size</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span> <span class="n">rewindable</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">GlideRecord</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Create a :class:`pysnc.GlideRecord` for a given table against the current client</span>
 
 <span class="sd">        :param str table: The table name e.g. ``problem``</span>
 <span class="sd">        :param int batch_size: Batch size (items returned per HTTP request). Default is ``100``.</span>
+<span class="sd">        :param bool rewindable: If we can rewind the record. Default is ``True``. If ``False`` then we cannot rewind </span>
+<span class="sd">                                the record, which means as an Iterable this object will be &#39;spent&#39; after iteration.</span>
+<span class="sd">                                This is normally the default behavior expected for a python Iterable, but not a GlideRecord.</span>
+<span class="sd">                                When ``False`` less memory will be consumed, as each previous record will be collected.</span>
 <span class="sd">        :return: :class:`pysnc.GlideRecord`</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="n">GlideRecord</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">table</span><span class="p">,</span> <span class="n">batch_size</span><span class="p">)</span></div>
+        <span class="k">return</span> <span class="n">GlideRecord</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">table</span><span class="p">,</span> <span class="n">batch_size</span><span class="p">,</span> <span class="n">rewindable</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="ServiceNowClient.Attachment"><a class="viewcode-back" href="../../api.html#pysnc.ServiceNowClient.Attachment">[docs]</a>    <span class="k">def</span> <span class="nf">Attachment</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">table</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Attachment</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>

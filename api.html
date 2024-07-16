@@ -5,10 +5,10 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>The API &#8212; PySNC 1.1.7 documentation</title>
+    <title>The API &#8212; PySNC 1.1.8 documentation</title>
     <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=fa44fd50" />
     <link rel="stylesheet" type="text/css" href="_static/alabaster.css?v=039e1c02" />
-    <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js?v=15703be4"></script>
+    <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js?v=fd6a9826"></script>
     <script src="_static/doctools.js?v=888ff710"></script>
     <script src="_static/sphinx_highlight.js?v=4825356b"></script>
     <link rel="index" title="Index" href="genindex.html" />
@@ -62,13 +62,17 @@
 
 <dl class="py method">
 <dt class="sig sig-object py" id="pysnc.ServiceNowClient.GlideRecord">
-<span class="sig-name descname"><span class="pre">GlideRecord</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">table</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">batch_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">100</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#pysnc.GlideRecord" title="pysnc.record.GlideRecord"><span class="pre">GlideRecord</span></a></span></span><a class="reference internal" href="_modules/pysnc/client.html#ServiceNowClient.GlideRecord"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pysnc.ServiceNowClient.GlideRecord" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">GlideRecord</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">table</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">batch_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">100</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rewindable</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#pysnc.GlideRecord" title="pysnc.record.GlideRecord"><span class="pre">GlideRecord</span></a></span></span><a class="reference internal" href="_modules/pysnc/client.html#ServiceNowClient.GlideRecord"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pysnc.ServiceNowClient.GlideRecord" title="Permalink to this definition">¶</a></dt>
 <dd><p>Create a <a class="reference internal" href="#pysnc.GlideRecord" title="pysnc.GlideRecord"><code class="xref py py-class docutils literal notranslate"><span class="pre">pysnc.GlideRecord</span></code></a> for a given table against the current client</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>table</strong> (<em>str</em>) – The table name e.g. <code class="docutils literal notranslate"><span class="pre">problem</span></code></p></li>
 <li><p><strong>batch_size</strong> (<em>int</em>) – Batch size (items returned per HTTP request). Default is <code class="docutils literal notranslate"><span class="pre">100</span></code>.</p></li>
+<li><p><strong>rewindable</strong> (<em>bool</em>) – If we can rewind the record. Default is <code class="docutils literal notranslate"><span class="pre">True</span></code>. If <code class="docutils literal notranslate"><span class="pre">False</span></code> then we cannot rewind 
+the record, which means as an Iterable this object will be ‘spent’ after iteration.
+This is normally the default behavior expected for a python Iterable, but not a GlideRecord.
+When <code class="docutils literal notranslate"><span class="pre">False</span></code> less memory will be consumed, as each previous record will be collected.</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
@@ -125,7 +129,7 @@
 <h2>GlideRecord<a class="headerlink" href="#gliderecord" title="Permalink to this heading">¶</a></h2>
 <dl class="py class">
 <dt class="sig sig-object py" id="pysnc.GlideRecord">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pysnc.</span></span><span class="sig-name descname"><span class="pre">GlideRecord</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">client</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#pysnc.ServiceNowClient" title="pysnc.ServiceNowClient"><span class="pre">ServiceNowClient</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">table</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">batch_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">500</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pysnc/record.html#GlideRecord"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pysnc.GlideRecord" title="Permalink to this definition">¶</a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pysnc.</span></span><span class="sig-name descname"><span class="pre">GlideRecord</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">client</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#pysnc.ServiceNowClient" title="pysnc.ServiceNowClient"><span class="pre">ServiceNowClient</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">table</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">batch_size</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">500</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rewindable</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pysnc/record.html#GlideRecord"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pysnc.GlideRecord" title="Permalink to this definition">¶</a></dt>
 <dd><p>The GlideRecord object. Normally instantiated via convenience method <a class="reference internal" href="#pysnc.ServiceNowClient.GlideRecord" title="pysnc.ServiceNowClient.GlideRecord"><code class="xref py py-func docutils literal notranslate"><span class="pre">pysnc.ServiceNowClient.GlideRecord()</span></code></a>.
 This object allows us to interact with a specific table via the table rest api.</p>
 <dl class="field-list simple">
@@ -134,6 +138,10 @@ This object allows us to interact with a specific table via the table rest api.<
 <li><p><strong>client</strong> (<a class="reference internal" href="#pysnc.ServiceNowClient" title="pysnc.ServiceNowClient"><em>ServiceNowClient</em></a>) – We need to know which instance we’re connecting to</p></li>
 <li><p><strong>table</strong> (<em>str</em>) – The table are we going to access</p></li>
 <li><p><strong>batch_size</strong> (<em>int</em>) – Batch size (items returned per HTTP request). Default is <code class="docutils literal notranslate"><span class="pre">500</span></code>.</p></li>
+<li><p><strong>rewindable</strong> (<em>bool</em>) – If we can rewind the record. Default is <code class="docutils literal notranslate"><span class="pre">True</span></code>. If <code class="docutils literal notranslate"><span class="pre">False</span></code> then we cannot rewind 
+the record, which means as an Iterable this object will be ‘spent’ after iteration.
+This is normally the default behavior expected for a python Iterable, but not a GlideRecord.
+When <code class="docutils literal notranslate"><span class="pre">False</span></code> less memory will be consumed, as each previous record will be collected.</p></li>
 </ul>
 </dd>
 </dl>
@@ -580,7 +588,8 @@ passed in, the first value is the column name to be used. Can return multiple re
 <dl class="py method">
 <dt class="sig sig-object py" id="pysnc.GlideRecord.pop_record">
 <span class="sig-name descname"><span class="pre">pop_record</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#pysnc.GlideRecord" title="pysnc.record.GlideRecord"><span class="pre">GlideRecord</span></a></span></span><a class="reference internal" href="_modules/pysnc/record.html#GlideRecord.pop_record"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pysnc.GlideRecord.pop_record" title="Permalink to this definition">¶</a></dt>
-<dd><p>Pop the current record into a new <a class="reference internal" href="#pysnc.GlideRecord" title="pysnc.GlideRecord"><code class="xref py py-class docutils literal notranslate"><span class="pre">GlideRecord</span></code></a> object - equivalent to a clone of a singular record</p>
+<dd><p>Pop the current record into a new <a class="reference internal" href="#pysnc.GlideRecord" title="pysnc.GlideRecord"><code class="xref py py-class docutils literal notranslate"><span class="pre">GlideRecord</span></code></a> object - equivalent to a clone of a singular record
+FIXME: this, by the name, should be a destructive operation, but it is not.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Returns<span class="colon">:</span></dt>
 <dd class="field-odd"><p>Give us a new <a class="reference internal" href="#pysnc.GlideRecord" title="pysnc.GlideRecord"><code class="xref py py-class docutils literal notranslate"><span class="pre">GlideRecord</span></code></a> containing only the current record</p>
@@ -609,7 +618,7 @@ passed in, the first value is the column name to be used. Can return multiple re
 <dl class="py method">
 <dt class="sig sig-object py" id="pysnc.GlideRecord.rewind">
 <span class="sig-name descname"><span class="pre">rewind</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/pysnc/record.html#GlideRecord.rewind"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pysnc.GlideRecord.rewind" title="Permalink to this definition">¶</a></dt>
-<dd><p>Rewinds the record so it may be iterated upon again. Not required to be called if iterating in the pythonic method.</p>
+<dd><p>Rewinds the record (iterable) so it may be iterated upon again. Only possible when the record is rewindable.</p>
 </dd></dl>
 
 <dl class="py method">
