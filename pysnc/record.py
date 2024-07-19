@@ -501,7 +501,7 @@ class GlideRecord(object):
         if obj:
             has_changed = False
             for key, value in obj.items():
-                has_changed ^= value.changes()
+                has_changed |= value.changes()
             return has_changed
         return False
 
