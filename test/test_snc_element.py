@@ -116,6 +116,23 @@ class TestElement(TestCase):
         self.assertEqual(json.dumps(gr2.serialize(display_value=True)), '{"two_field": "Some Value"}')
         self.assertEqual(gr2.two_field.get_name(), 'two_field')
 
+    def test_serialization_with_link(self):
+        gr = GlideRecord(None, 'incident')
+        gr.initialize()
+        gr.test_field = 'some string'
+        self.assertTrue(isinstance(gr.test_field, GlideElement))
+        r = gr.serialize()
+        self.assertEqual(json.dumps(r), '{"test_field": "some string"}')
+
+        gr.set_value('test_field', 'somevalue')
+        gr.set_display_value('test_field', 'Some Value')
+        gr.set_link('test_field', 'https://dev00000.service-now.com/api/now/table/sys___/abcde12345')
+        print(gr.serialize())
+        self.assertEqual(json.dumps(gr.serialize()), '{"test_field": "somevalue"}')
+        self.assertEqual(json.dumps(gr.serialize(display_value=True, exclude_reference_link=False)), '{"test_field": {"display_value": "Some Value", "link": "https://dev00000.service-now.com/api/now/table/sys___/abcde12345"}}')
+        self.assertEqual(json.dumps(gr.serialize(display_value=False, exclude_reference_link=False)), '{"test_field": {"value": "somevalue", "link": "https://dev00000.service-now.com/api/now/table/sys___/abcde12345"}}')
+        self.assertEqual(json.dumps(gr.serialize(display_value='both', exclude_reference_link=False)), '{"test_field": {"value": "somevalue", "display_value": "Some Value", "link": "https://dev00000.service-now.com/api/now/table/sys___/abcde12345"}}')
+
     def test_set_element(self):
         element = GlideElement('state', '3', 'Pending Change')
 

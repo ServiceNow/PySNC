@@ -24,16 +24,19 @@ class GlideElement(str):
     def __new__(cls, name, value, *args, **kwargs):
         return super(GlideElement, cls).__new__(cls, value)
 
-    def __init__(self, name: str, value=None, display_value=None, parent_record=None):
+    def __init__(self, name: str, value=None, display_value=None, parent_record=None, link=None):
         self._name = name
         self._value = None
         self._display_value = None
         self._changed = False
+        self._link = None
         if isinstance(value, dict):
             self._value = value['value']
             # only bother to set display value if it's different
             if self._value != value['display_value']:
                 self._display_value = value['display_value']
+            if 'link' in value:
+                self._link = value['link']
         else:
             self._value = value
         if display_value:
@@ -63,6 +66,12 @@ class GlideElement(str):
             return self._display_value
         return self._value
 
+    def get_link(self) -> Any:
+        """
+        get the link of a field, if it has one, else None
+        """
+        return self._link
+
     def set_value(self, value):
         """
         set the value for the field. Will also set the display_value to `None`
@@ -85,6 +94,16 @@ class GlideElement(str):
             self._changed = True
             self._display_value = value
 
+    def set_link(self, link: Any):
+        """
+        set the reference link for the field -- generally speaking does not have any affect upstream (to the server)
+        """
+        if isinstance(link, GlideElement):
+            link = link.get_link()
+        if self._link != link:
+            self._changed = True
+            self._link = link
+
     def changes(self) -> bool:
         """
         :return: if we have changed this value
@@ -103,12 +122,20 @@ class GlideElement(str):
 
     def serialize(self) -> dict:
         """
-        Returns a dict with the `value`,`display_value` keys
+        Returns a dict with the `value`,`display_value`, `link` keys
         """
-        return {
-            'value': self.get_value(),
-            'display_value': self.get_display_value()
-        }
+        return (
+            {
+                'value': self.get_value(),
+                'display_value': self.get_display_value()
+            }
+            if self.get_link() is None
+            else {
+                'value': self.get_value(),
+                'display_value': self.get_display_value(),
+                'link': self.get_link()
+            }
+        )
 
     def date_numeric_value(self) -> int:
         """
@@ -266,6 +293,7 @@ class GlideRecord(object):
         self.__order: str = "ORDERBYsys_id" # we *need* a default order in the event we page, see issue#96
         self.__is_new_record: bool = False
         self.__display_value: Union[bool, str] = 'all'
+        self.__exclude_reference_link: bool = True
         self.__rewindable = rewindable
 
     def _clear_query(self):
@@ -285,6 +313,7 @@ class GlideRecord(object):
             ret['sysparm_view'] = self.__view
 
         ret['sysparm_display_value'] = str(self.display_value).lower()
+        ret['sysparm_exclude_reference_link'] = str(self.exclude_reference_link).lower()
         # Batch size matters! Transaction limits will exceed.
         # This also means we have to be pretty specific with limits
         limit = None
@@ -422,6 +451,19 @@ class GlideRecord(object):
         """
         assert display_value in [True, False, 'all']
         self.__display_value = display_value
+
+    @property
+    def exclude_reference_link(self):
+        return self.__exclude_reference_link
+
+    @exclude_reference_link.setter
+    def exclude_reference_link(self, exclude_reference_link):
+        """
+        True: Exclude Table API links for reference fields.
+        False: Include Table API links for reference fields.
+        """
+        assert exclude_reference_link in [True, False]
+        self.__exclude_reference_link = exclude_reference_link
 
     def order_by(self, column: str):
         """
@@ -697,6 +739,8 @@ class GlideRecord(object):
             o = obj[item]
             if key == 'display_value':
                 return o.get_display_value()
+            if key == 'link':
+                return o.get_link()
             return o.get_value()
         return None
 
@@ -764,7 +808,22 @@ class GlideRecord(object):
         else:
             c[field].set_display_value(value)
 
-    def get_link(self, no_stack=False) -> str:
+    def set_link(self, field, value):
+        """
+        Set the link for a field.
+
+        :param str field: The field
+        :param value: The Value
+        """
+        c = self._current()
+        if c is None:
+            raise NoRecordException('cannot get a value from nothing, did you forget to call next() or initialize()?')
+        if field not in c:
+            c[field] = GlideElement(field, link=value, parent_record=self)
+        else:
+            c[field].set_link(value)
+
+    def get_link(self, no_stack=False, field=None) -> str:
         """
         Generate a full URL to the current record. sys_id will be null if there is no current record.
 
@@ -773,13 +832,16 @@ class GlideRecord(object):
         :return: The full URL to the current record
         :rtype: str
         """
-        ins = self._client.instance
-        obj = self._current()
-        stack = '&sysparm_stack=%s_list.do?sysparm_query=active=true' % self.__table
-        if no_stack:
-            stack = ''
-        id = self.sys_id if obj else 'null'
-        return "{}/{}.do?sys_id={}{}".format(ins, self.__table, id, stack)
+        if field is not None:
+            return self._get_value(field, 'link')
+        else:
+            ins = self._client.instance
+            obj = self._current()
+            stack = '&sysparm_stack=%s_list.do?sysparm_query=active=true' % self.__table
+            if no_stack:
+                stack = ''
+            id = self.sys_id if obj else 'null'
+            return "{}/{}.do?sys_id={}{}".format(ins, self.__table, id, stack)
 
     def get_link_list(self) -> Optional[str]:
         """
@@ -949,7 +1011,7 @@ class GlideRecord(object):
         """
         return self.__query.add_not_null_query(field)
 
-    def _serialize(self, record, display_value, fields=None, changes_only=False):
+    def _serialize(self, record, display_value, fields=None, changes_only=False, exclude_reference_link=True):
         if isinstance(display_value, str):
             v_type = 'both'
         else:
@@ -965,19 +1027,27 @@ class GlideRecord(object):
                 if isinstance(value, GlideElement):
                     if changes_only and not value.changes():
                         continue
-                    if v_type == 'display_value':
-                        ret[key] = value.get_display_value()
-                    elif v_type == 'both':
-                        ret[key] = value.serialize()
+                    if exclude_reference_link or value.get_link() is None:
+                        if v_type == 'display_value':
+                            ret[key] = value.get_display_value()
+                        elif v_type == 'both':
+                            ret[key] = value.serialize()
+                        else:
+                            ret[key] = value.get_value()
                     else:
-                        ret[key] = value.get_value()
+                        serialized = value.serialize()
+                        if v_type == 'display_value':
+                            serialized.pop('value', None)
+                        elif v_type == 'value':
+                            serialized.pop('display_value', None)
+                        ret[key] = serialized
                 else:
                     ret[key] = value.get_value()
             return ret
 
         return compress(record)
 
-    def serialize(self, display_value=False, fields=None, fmt=None, changes_only=False) -> Any:
+    def serialize(self, display_value=False, fields=None, fmt=None, changes_only=False, exclude_reference_link=True) -> Any:
         """
         Turn current record into a dictGlideRecord(None, 'incident')
 
@@ -1005,9 +1075,9 @@ class GlideRecord(object):
             return transform(self) # i know this is inconsistent, self vs current
         else:
             c = self._current()
-            return self._serialize(c, display_value, fields, changes_only)
+            return self._serialize(c, display_value, fields, changes_only, exclude_reference_link)
 
-    def serialize_all(self, display_value=False, fields=None, fmt=None) -> list:
+    def serialize_all(self, display_value=False, fields=None, fmt=None, exclude_reference_link=True) -> list:
         """
         Serialize the entire query. See serialize() docs for details on parameters
 
@@ -1016,7 +1086,7 @@ class GlideRecord(object):
         :param fmt:
         :return: list
         """
-        return [record.serialize(display_value, fields, fmt) for record in self]
+        return [record.serialize(display_value, fields, fmt, exclude_reference_link) for record in self]
 
     def to_pandas(self, columns=None, mode='smart'):
         """
