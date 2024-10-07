@@ -158,6 +158,37 @@ class TestSerialization(TestCase):
         self.assertEqual(data, {'intfield': 5, 'strfield': 'my string display value'})
         client.session.close()
 
+    def test_serialize_reference_link(self):
+        client = ServiceNowClient(self.c.server, self.c.credentials)
+        gr = client.GlideRecord('some_table')
+        gr.initialize()
+        gr.reffield = 'my reference'
+        gr.set_link('reffield', 'https://dev00000.service-now.com/api/now/table/sys___/abcde12345')
+        
+        data = gr.serialize(exclude_reference_link=False)
+        self.assertIsNotNone(data)
+        self.assertEqual(gr.get_value('reffield'), 'my reference')
+        self.assertEqual(gr.get_link('reffield'), 'https://dev00000.service-now.com/api/now/table/sys___/abcde12345')
+        self.assertEqual(gr.serialize(exclude_reference_link=False), {'reffield':{'value': 'my reference','link':'https://dev00000.service-now.com/api/now/table/sys___/abcde12345'}})
+        self.assertEqual(data, {'reffield':{'value': 'my reference','link':'https://dev00000.service-now.com/api/now/table/sys___/abcde12345'}})
+        client.session.close()
+
+    def test_serialize_reference_link_all(self):
+        client = ServiceNowClient(self.c.server, self.c.credentials)
+        gr = client.GlideRecord('some_table')
+        gr.initialize()
+        gr.reffield = 'my reference'
+        gr.set_link('reffield', 'https://dev00000.service-now.com/api/now/table/sys___/abcde12345')
+        gr.set_display_value('reffield', 'my reference display')
+
+        data = gr.serialize(exclude_reference_link=False)
+        self.assertIsNotNone(data)
+        self.assertEqual(gr.get_value('reffield'), 'my reference')
+        self.assertEqual(gr.get_link('reffield'), 'https://dev00000.service-now.com/api/now/table/sys___/abcde12345')
+        self.assertEqual(gr.serialize(exclude_reference_link=False), {'reffield':{'value': 'my reference','display_value': 'my reference display', 'link':'https://dev00000.service-now.com/api/now/table/sys___/abcde12345'}})
+        self.assertEqual(data, {'reffield':{'value': 'my reference','display_value': 'my reference display', 'link':'https://dev00000.service-now.com/api/now/table/sys___/abcde12345'}})
+        client.session.close()
+
     def test_str(self):
         client = ServiceNowClient(self.c.server, self.c.credentials)
         gr = client.GlideRecord('some_table')
