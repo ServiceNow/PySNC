@@ -823,7 +823,7 @@ class GlideRecord(object):
         else:
             c[field].set_link(value)
 
-    def get_link(self, no_stack=False, field=None) -> str:
+    def get_link(self, no_stack=False) -> str:
         """
         Generate a full URL to the current record. sys_id will be null if there is no current record.
 
@@ -832,16 +832,13 @@ class GlideRecord(object):
         :return: The full URL to the current record
         :rtype: str
         """
-        if field is not None:
-            return self._get_value(field, 'link')
-        else:
-            ins = self._client.instance
-            obj = self._current()
-            stack = '&sysparm_stack=%s_list.do?sysparm_query=active=true' % self.__table
-            if no_stack:
-                stack = ''
-            id = self.sys_id if obj else 'null'
-            return "{}/{}.do?sys_id={}{}".format(ins, self.__table, id, stack)
+        ins = self._client.instance
+        obj = self._current()
+        stack = '&sysparm_stack=%s_list.do?sysparm_query=active=true' % self.__table
+        if no_stack:
+            stack = ''
+        id = self.sys_id if obj else 'null'
+        return "{}/{}.do?sys_id={}{}".format(ins, self.__table, id, stack)
 
     def get_link_list(self) -> Optional[str]:
         """
