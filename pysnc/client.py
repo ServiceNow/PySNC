@@ -148,7 +148,8 @@ class API(object):
         params = {} if record is None else record._parameters()
         if 'sysparm_display_value' not in params:
             params['sysparm_display_value'] = 'all'
-        params['sysparm_exclude_reference_link'] = 'true'  # Scratch it!
+        if 'sysparm_exclude_reference_link' not in params:
+            params['sysparm_exclude_reference_link'] = 'true'  # Scratch it!, by default
         params['sysparm_suppress_pagination_header'] = 'true'  # Required for large queries
         return params
 
