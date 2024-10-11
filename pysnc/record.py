@@ -810,7 +810,7 @@ class GlideRecord(object):
 
     def set_link(self, field, value):
         """
-        Set the link for a field.
+        Set the link for a field, it is however preferable to to `gr.field.set_link(value)`.
 
         :param str field: The field
         :param value: The Value
@@ -823,9 +823,9 @@ class GlideRecord(object):
         else:
             c[field].set_link(value)
 
-    def get_link(self, no_stack=False) -> str:
+    def get_link(self, no_stack: bool=False) -> str:
         """
-        Generate a full URL to the current record. sys_id will be null if there is no current record.
+        Generate a full URL to the current record. sys_id will be -1 if there is no current record.
 
         :param bool no_stack: Default ``False``, adds ``&sysparm_stack=<table>_list.do?sysparm_query=active=true`` to the URL
         :param bool list: Default ``False``, if ``True`` then provide a link to the record set, not the current record
@@ -837,7 +837,8 @@ class GlideRecord(object):
         stack = '&sysparm_stack=%s_list.do?sysparm_query=active=true' % self.__table
         if no_stack:
             stack = ''
-        id = self.sys_id if obj else 'null'
+        id = self.sys_id if obj else None
+        id = id or '-1'
         return "{}/{}.do?sys_id={}{}".format(ins, self.__table, id, stack)
 
     def get_link_list(self) -> Optional[str]:
@@ -1052,6 +1053,7 @@ class GlideRecord(object):
         :param list fields: Fields to serialize. Defaults to all fields.
         :param str fmt: None or ``pandas``. Defaults to None
         :param changes_only: Do we want to serialize only the fields we've modified?
+        :param exclude_reference_link: Do we want to exclude the reference link? default is True
         :return: dict representation
         """
         if fmt == 'pandas':

@@ -30,11 +30,11 @@ class TestAuditScoped(TestCase):
         gr.query()
         link = gr.get_link(no_stack=True)
         print(link)
-        self.assertTrue(link.endswith('sys_user.do?sys_id=null'))
+        self.assertTrue(link.endswith('sys_user.do?sys_id=-1'))
         self.assertTrue(gr.next())
         link = gr.get_link(no_stack=True)
         print(link)
-        self.assertFalse(link.endswith('sys_user.do?sys_id=null'))
+        self.assertFalse(link.endswith('sys_user.do?sys_id=-1'))
         client.session.close()
 
     def test_link_list(self):

@@ -168,9 +168,13 @@ class TestSerialization(TestCase):
         data = gr.serialize(exclude_reference_link=False)
         self.assertIsNotNone(data)
         self.assertEqual(gr.get_value('reffield'), 'my reference')
-        self.assertEqual(gr.get_link('reffield'), 'https://dev00000.service-now.com/api/now/table/sys___/abcde12345')
+        self.assertTrue(gr.get_link(True).endswith('/some_table.do?sys_id=-1'), f"was {gr.get_link()}")
+        self.assertEqual(gr.reffield.get_link(), 'https://dev00000.service-now.com/api/now/table/sys___/abcde12345')
         self.assertEqual(gr.serialize(exclude_reference_link=False), {'reffield':{'value': 'my reference','link':'https://dev00000.service-now.com/api/now/table/sys___/abcde12345'}})
         self.assertEqual(data, {'reffield':{'value': 'my reference','link':'https://dev00000.service-now.com/api/now/table/sys___/abcde12345'}})
+
+        gr.reffield.set_link('https://dev00000.service-now.com/api/now/table/sys___/xyz789')
+        self.assertEqual(gr.reffield.get_link(), 'https://dev00000.service-now.com/api/now/table/sys___/xyz789')
         client.session.close()
 
     def test_serialize_reference_link_all(self):
@@ -181,12 +185,23 @@ class TestSerialization(TestCase):
         gr.set_link('reffield', 'https://dev00000.service-now.com/api/now/table/sys___/abcde12345')
         gr.set_display_value('reffield', 'my reference display')
 
-        data = gr.serialize(exclude_reference_link=False)
-        self.assertIsNotNone(data)
         self.assertEqual(gr.get_value('reffield'), 'my reference')
-        self.assertEqual(gr.get_link('reffield'), 'https://dev00000.service-now.com/api/now/table/sys___/abcde12345')
-        self.assertEqual(gr.serialize(exclude_reference_link=False), {'reffield':{'value': 'my reference','display_value': 'my reference display', 'link':'https://dev00000.service-now.com/api/now/table/sys___/abcde12345'}})
-        self.assertEqual(data, {'reffield':{'value': 'my reference','display_value': 'my reference display', 'link':'https://dev00000.service-now.com/api/now/table/sys___/abcde12345'}})
+        self.assertEqual(gr.get_display_value('reffield'), 'my reference display')
+        self.assertEqual(gr.reffield.get_link(), 'https://dev00000.service-now.com/api/now/table/sys___/abcde12345')
+
+        self.assertEqual(gr.serialize(), {'reffield':'my reference'})
+        self.assertEqual(
+            gr.serialize(exclude_reference_link=False),
+            {'reffield':{'value': 'my reference','link':'https://dev00000.service-now.com/api/now/table/sys___/abcde12345'}}
+        )
+        self.assertEqual(
+                gr.serialize(display_value=True, exclude_reference_link=False),
+            {'reffield':{'display_value': 'my reference display', 'link':'https://dev00000.service-now.com/api/now/table/sys___/abcde12345'}}
+        )
+        self.assertEqual(
+                gr.serialize(display_value='both', exclude_reference_link=False),
+                {'reffield':{'value': 'my reference','display_value': 'my reference display', 'link':'https://dev00000.service-now.com/api/now/table/sys___/abcde12345'}}
+        )
         client.session.close()
 
     def test_str(self):
