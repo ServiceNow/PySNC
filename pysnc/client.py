@@ -365,7 +365,14 @@ class BatchAPI(API):
 
         return response
 
-    def execute(self):
+    def execute(self, attempt=0):
+        if attempt > 2:
+            # just give up and tell em we tried
+            for h in self.__hooks:
+                self.__hooks[h](None)
+            self.__hooks = {}
+            self.__requests = []
+            self.__stored_requests = {}
         bid = self._next_id()
         body = {
             'batch_request_id': bid,
@@ -374,20 +381,18 @@ class BatchAPI(API):
         r = self.session.post(self._batch_target(), json=body)
         self._validate_response(r)
         data = r.json()
-        try:
-            assert str(bid) == data['batch_request_id'], f"How did we get a response id different from {bid}"
+        assert str(bid) == data['batch_request_id'], f"How did we get a response id different from {bid}"
 
-            for response in data['serviced_requests'] + data['unserviced_requests']:
-                response_id = response['id']
-                assert response_id in self.__hooks, f"Somehow has no hook for {response_id}"
-                assert response_id in self.__stored_requests, f"Somehow we did not store request for {response_id}"
-                self.__hooks[response['id']](self._transform_response(self.__stored_requests[response_id], response))
+        for response in data['serviced_requests']:
+            response_id = response['id']
+            assert response_id in self.__hooks, f"Somehow has no hook for {response_id}"
+            assert response_id in self.__stored_requests, f"Somehow we did not store request for {response_id}"
+            self.__hooks[response['id']](self._transform_response(self.__stored_requests.pop(response_id), response))
+            del self.__hooks[response_id]
+            self.__requests = list(filter(lambda x: x['id'] != response_id, self.__requests))
 
-            return bid
-        finally:
-            self.__stored_requests = {}
-            self.__requests = []
-            self.__hooks = {}
+        if len(data['unserviced_requests']) > 0:
+            self.execute(attempt=attempt+1)
 
     def get(self, record: GlideRecord, sys_id: str, hook: Callable) -> None:
         params = self._set_params(record)

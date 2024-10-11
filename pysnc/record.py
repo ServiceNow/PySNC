@@ -706,7 +706,7 @@ class GlideRecord(object):
         allRecordsWereDeleted = True
         def handle(response):
             nonlocal  allRecordsWereDeleted
-            if response.status_code != 204:
+            if response is None or response.status_code != 204:
                 allRecordsWereDeleted = False
 
         for e in self:
@@ -716,12 +716,17 @@ class GlideRecord(object):
 
     def update_multiple(self, custom_handler=None) -> bool:
         """
-        Updates multiple records at once
+        Updates multiple records at once. A ``custom_handler`` of the form ``def handle(response: requests.Response | None)`` can be passed in,
+        which may be useful if you wish to handle errors in a specific way. Note that if a custom_handler is used this
+        method will always return ``True``
+
+
+        :return: ``True`` on success, ``False`` if any records failed. If custom_handler is specified, always returns ``True``
         """
         updated = True
         def handle(response):
             nonlocal updated
-            if response.status_code != 200:
+            if response is None or response.status_code != 200:
                 updated = False
 
         for e in self:
