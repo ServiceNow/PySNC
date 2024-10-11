@@ -234,9 +234,26 @@ class TestRecordQuery(TestCase):
     def test_changes(self):
         client = ServiceNowClient(self.c.server, self.c.credentials)
         gr = client.GlideRecord('sys_user')
-        gr.limit = 1
+        gr.limit = 2
         gr.query()
         self.assertTrue(gr.next())
         self.assertFalse(gr.changes())
-        gr.user_name = 'new name'
+        gr.set_value('user_name', gr.user_name)
+        self.assertFalse(gr.changes())
+        gr.user_name = gr.user_name
+        self.assertFalse(gr.changes())
+        gr.user_name = 'some new name'
         self.assertTrue(gr.changes())
+        # issue #114, multiple changes
+        gr.set_value('state', gr.state) # same state
+        self.assertTrue(gr.changes())
+        gr.set_value('state', 300)
+        gr.set_value('work_notes', 'unittesting')
+        self.assertTrue(gr.changes())
+
+        gr.next()
+        self.assertFalse(gr.changes())
+        gr.state = 311
+        gr.work_notes = 'unittest'
+        self.assertTrue(gr.changes())
+
