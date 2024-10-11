@@ -254,5 +254,74 @@ class TestWrite(TestCase):
         tgr.delete_multiple()
         client.session.close()
 
+    def test_multi_update_with_failures(self):
+        client = ServiceNowClient(self.c.server, self.c.credentials)
+        br = client.GlideRecord('sys_script')
 
+        # in order to test the failure case, let's insert a BR that will reject specific values
+        br.add_query('name', 'test_multi_update_with_failures')
+        br.query()
+        if not br.next():
+            br.initialize()
+            br.name = 'test_multi_update_with_failures'
+            br.collection = 'problem'
+            br.active = True
+            br.when = 'before'
+            br.order = 100
+            br.action_insert = True
+            br.action_update = True
+            br.abort_action = True
+            br.add_message = True
+            br.message = 'rejected by test_multi_update_with_failures br'
+            br.filter_condition = 'short_descriptionLIKEEICAR^ORdescriptionLIKEEICAR^EQ'
+            br.insert()
+
+
+        gr = client.GlideRecord('problem')
+        gr.add_query('short_description', 'LIKE', 'BUNKZZ')
+        gr.query()
+        self.assertTrue(gr.delete_multiple()) # try to make sure weh ave none first
+        gr.query()
+        self.assertEqual(len(gr), 0, 'should have had none left')
+
+
+        total_count = 10
+        # insert five bunk records
+        # TODO: insert multiple
+        for i in range(total_count):
+            gr = client.GlideRecord('problem')
+            gr.initialize()
+            gr.short_description = f"Unit Test - BUNKZZ Multi update {i}"
+            assert gr.insert(), "Failed to insert a record"
+
+        gr = client.GlideRecord('problem')
+        gr.add_query('short_description', 'LIKE', 'BUNKZZ')
+        gr.query()
+        self.assertEqual(len(gr), total_count)
+
+        i = 0
+        # half append
+        print(f"for i < {total_count//2}")
+        while i < (total_count//2) and gr.next():
+            gr.short_description = gr.short_description + ' -- APPENDEDZZ'
+            i += 1
+        # half error
+        while gr.next():
+            gr.short_description = gr.short_description + ' -- EICAR'
+
+        self.assertFalse(gr.update_multiple())
+        # make sure we cleaned up as expected
+        self.assertEqual(gr._client.batch_api._BatchAPI__hooks, {})
+        self.assertEqual(gr._client.batch_api._BatchAPI__stored_requests, {})
+        self.assertEqual(gr._client.batch_api._BatchAPI__requests, [])
+
+        tgr = client.GlideRecord('problem')
+        tgr.add_query('short_description', 'LIKE', 'APPENDEDZZ')
+        tgr.query()
+        self.assertEqual(len(tgr), total_count//2)
+
+        tgr = client.GlideRecord('problem')
+        tgr.add_query('short_description', 'LIKE', 'EICAR')
+        tgr.query()
+        self.assertEqual(len(tgr), 0)
 
