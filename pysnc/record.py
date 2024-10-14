@@ -31,9 +31,10 @@ class GlideElement(str):
         self._changed = False
         self._link = None
         if isinstance(value, dict):
-            self._value = value['value']
+            if 'value' in value:
+                self._value = value['value']
             # only bother to set display value if it's different
-            if self._value != value['display_value']:
+            if 'display_value' in value and self._value != value['display_value']:
                 self._display_value = value['display_value']
             if 'link' in value:
                 self._link = value['link']
@@ -1090,7 +1091,7 @@ class GlideRecord(object):
         :param fmt:
         :return: list
         """
-        return [record.serialize(display_value, fields, fmt, exclude_reference_link) for record in self]
+        return [record.serialize(display_value=display_value, fields=fields, fmd=fmt, exclude_reference_link=exclude_reference_link) for record in self]
 
     def to_pandas(self, columns=None, mode='smart'):
         """
