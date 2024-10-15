@@ -219,5 +219,26 @@ class TestSerialization(TestCase):
         self.assertTrue('intfield' in data)
         client.session.close()
 
+    def test_serialize_all(self):
+        client = ServiceNowClient(self.c.server, self.c.credentials)
+        gr = client.GlideRecord('problem')
+        gr.fields = 'sys_id,short_description,state'
+        gr.limit = 4
+        gr.query()
+        data = gr.serialize_all()
+        self.assertEqual(len(data), 4)
+        for prb in data:
+            self.assertEqual(list(prb.keys()), ['sys_id', 'short_description', 'state'])
+
+        # we do *not* expect the link if we are value-only
+        data = gr.serialize_all(exclude_reference_link=False)
+        self.assertEqual(type(data[0]['short_description']), str)
+
+        # TODO: test this
+        #data = gr.serialize_all(display_value='both', exclude_reference_link=False)
+        #self.assertEqual(type(data[0]['short_description']), dict)
+        #print(data[0]['short_description'])
+        #self.assertTrue('value' in data[0]['short_description']['link'])
+        client.session.close()
 
 
