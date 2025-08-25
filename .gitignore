@@ -17,3 +17,4 @@ Pipefile.lock
 *.pem
 *.pkcs12
 bom.json
+.coverage
