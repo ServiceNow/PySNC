@@ -18,3 +18,4 @@ Pipefile.lock
 *.pkcs12
 bom.json
 .coverage
+__pycache__
