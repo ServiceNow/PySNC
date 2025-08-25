@@ -1,7 +1,7 @@
 from unittest import TestCase
 
 from pysnc import ServiceNowClient, exceptions
-from constants import Constants
+from .constants import Constants
 
 class TestRecordQuery(TestCase):
     """

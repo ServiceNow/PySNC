@@ -1,8 +1,8 @@
 from unittest import TestCase
 
 from pysnc import ServiceNowClient
-from constants import Constants
-from utils import TempTestRecord
+from .constants import Constants
+from .utils import TempTestRecord
 
 
 class TestAttachment(TestCase):

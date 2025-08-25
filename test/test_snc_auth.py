@@ -2,7 +2,7 @@ from unittest import TestCase, skip
 
 from pysnc import ServiceNowClient
 from pysnc.auth import *
-from constants import Constants
+from .constants import Constants
 from pysnc import exceptions
 
 import requests
