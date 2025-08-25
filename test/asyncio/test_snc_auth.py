@@ -1,172 +1,165 @@
 import asyncio
-import os
-import json
-from unittest import TestCase, mock
+import time
+import unittest
+from unittest import mock
 
-import pytest
-import httpx
-import jwt
+# Adjust these imports to your repo structure
+from pysnc.asyncio.auth import (
+    AsyncServiceNowFlow,
+    AsyncServiceNowPasswordGrantFlow,
+    AsyncServiceNowJWTAuth,
+)
+from pysnc.exceptions import AuthenticationException
 
-from pysnc.asyncio import AsyncServiceNowJWTAuth, AsyncServiceNowPasswordGrantFlow
-from ..constants import Constants
+
+# ----------------------
+# Test helpers / fakes
+# ----------------------
+
+class FakeHTTPXResponse:
+    """Minimal stand-in for httpx.Response used by the code under test."""
+    def __init__(self, status_code: int = 200, json_data=None, text: str = ""):
+        self.status_code = status_code
+        self._json_data = json_data or {}
+        self.text = text
+
+    def json(self):
+        return self._json_data
 
 
-class TestAsyncServiceNowAuth(TestCase):
-    c = Constants()
+class TestAsyncAuth(unittest.TestCase):
+    """unittest.TestCase with a helper to run async coroutines."""
 
-    @pytest.mark.asyncio
-    async def test_password_grant_flow(self):
-        """Test the password grant flow authentication"""
-        # Mock the token response
-        mock_token_response = httpx.Response(
-            status_code=200,
-            json={
-                "access_token": "mock_access_token",
-                "refresh_token": "mock_refresh_token",
-                "token_type": "Bearer",
-                "expires_in": 3600
-            }
+    def run_async(self, coro):
+        return asyncio.get_event_loop().run_until_complete(coro)
+
+    # ---------- Base flow ----------
+
+    def test_base_flow_authenticate_raises(self):
+        flow = AsyncServiceNowFlow()
+        with self.assertRaises(AuthenticationException):
+            self.run_async(flow.authenticate("https://instance"))
+
+    # ---------- Password grant flow ----------
+
+    def test_password_grant_flow_authorization_url(self):
+        flow = AsyncServiceNowPasswordGrantFlow("u", "p", "cid", "secret")
+        self.assertEqual(
+            flow.authorization_url("https://example.service-now.com"),
+            "https://example.service-now.com/oauth_token.do",
         )
-        
-        # Create a mock for the AsyncClient
-        with mock.patch('httpx.AsyncClient.post', return_value=mock_token_response):
-            auth_flow = AsyncServiceNowPasswordGrantFlow(
-                username=self.c.credentials[0],
-                password=self.c.credentials[1],
-                client_id="test_client_id",
-                client_secret="test_client_secret"
-            )
-            
-            client = await auth_flow.authenticate(self.c.server)
-            
-            # Verify the client has the correct auth headers
-            self.assertIsNotNone(client)
-            self.assertEqual(client.headers.get('Authorization'), 'Bearer mock_access_token')
-            
-            # Close the client
-            await client.aclose()
 
-    @pytest.mark.asyncio
-    async def test_jwt_auth(self):
-        """Test the JWT authentication"""
-        # Create a mock JWT token
-        private_key = """
-        -----BEGIN PRIVATE KEY-----
-        MIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQC7VJTUt9Us8cKj
-        MzEfYyjiWA4R4/M2bS1GB4t7NXp98C3SC6dVMvDuictGeurT8jNbvJZHtCSuYEvu
-        NMoSfm76oqFvAp8Gy0iz5sxjZmSnXyCdPEovGhLa0VzMaQ8s+CLOyS56YyCFGeJZ
-        agLQnJYi+zrwLXZUWPt8yvbPzJY/X/5LkWQtQjr1/y+aIQ4jeFTUU8oITGQ4Hc9h
-        kxjMbJOTw4Xr9i3pJjBYNAOh0jWNxAKMVXiYoUJfgBJrr6lTcAUlIEW5rt3UTcR/
-        TYRaOADMi5ZtOjLq9Vu6XBjBwEJRl/WrRFseEWS2HGtNAUgj9WQ2X5+DPuSXvzTc
-        9wuLAgMBAAECggEADEEwgkjZfFDR84lWoztFXKDcZgrGDmDkI0ozpr4/t6mhIKSn
-        0lxNYY2FiDS0cjU3ck52sZ6xCCwTTxLQP+ZZsXpBcbLjQJgJZ7Bw7vOhJqdUy2Ri
-        vBpt7HfFzA8MuSEMvvj5bzjZ9JO1P7q2xzpxSqz66UsjKZ9SqyWPCqKZQAXBTVwk
-        nqc6dAnGWzCkzGQCiPAZLwZGzGmwIyN8ENBEsKGAzHCKDQzSCy1NPWyFoh/UT8At
-        u+F5MZQcmHj+JcY0hEWGLdY7Jz7HB8HLzWRASPLTxQDgr6QQ2VfDXFSrhOLfFPbG
-        xHGpJDHZYvs0Vl7Xtx0T0xpKXVGW2MrGBzlKgQKBgQDyR6qUE+7rXJ7fJVqc8rqh
-        7y9Dz1M6XeZyU5wPzWfQlkuMiC0WuNKBlFHIWpG4J6WvmXQkYXPmPBUUfJ2/5Epa
-        cVMqQdAI+bLjG7q4Fkmuw5e5hJxCgJJ2uNE+DmTGmNHQ5JoIiUK2Ah9QvCjNLjVj
-        WKwK4+5XQWqRE2NvAJDFIQKBgQDGQs7FRTisHV0xooiRmlvYF0UFgL/nUPNBEgOE
-        GDjHxNXNUEw/VzSOBgFxUpGTnSvhBbQTvGQJHBeRfS/WaA9k1RAqUOkbC0NSU+JB
-        +hjXwNy4+6RCxM0YIXgJSWyC/YYAOqZu5Rz1FPLYzBV2bEH6YW2a3ERnIHNJ+Qct
-        GXOXawKBgCKVxuIoZRQY4/9WCnmDx6mzZ9c+zKkJqoLZ1r/KdD0FvbhcHqMDvKDU
-        KbTQYlBzODUVBxRIGkqgNIQxNJVZGNyXnDEZTHJMCJwBpMa/ev/PMdQxQ0sBb+Oq
-        OvYvz+9QGOyDEZu0ZRFNnuJiIAK5iMYi9eSj7COO1FPIt+QlN0/BAoGAcQN2aKTF
-        WBjBjQ2LYn1gNjojBoMNkMGjh+3jQQqN5wIciTXhIPQa+xu34t1pqS0tJSI7V+ew
-        JbFJOLjQrX7Jrva7QG2mRLzLwWJu+Fy5Wjeo6zbXmJVcWQ9gshesKe/DzYVpuwoE
-        Jjy/78q3rL/WYI4bSz60speJ0eJCE7TH1ikCgYEArXgGT5IoYav8RoYCUGwYDgxj
-        VSXbKp0C5KJGGk0aPZP/VqP8ZZxPkxLgwFHrCXv4KY+tLKRKFVUmGLKKGl7CuYPj
-        K0OQTWWlJoXsrtEWQVGGAw5z7NuXzF0M4LEYk5uFhOPkiXKvQZe3lNfSPn3YSETA
-        TCZ+k0hpxqQlUXpOWGE=
-        -----END PRIVATE KEY-----
-        """
-        
-        # Mock the token response
-        mock_token_response = httpx.Response(
-            status_code=200,
-            json={
-                "access_token": "mock_access_token",
-                "refresh_token": "mock_refresh_token",
-                "token_type": "Bearer",
-                "expires_in": 3600
-            }
-        )
-        
-        # Create a JWT auth instance
-        jwt_auth = AsyncServiceNowJWTAuth(
-            client_id="test_client_id",
-            private_key=private_key,
-            user=self.c.credentials[0]
-        )
-        
-        # Mock the token request
-        with mock.patch('httpx.AsyncClient.post', return_value=mock_token_response):
-            # Create a mock request
-            request = httpx.Request("GET", f"{self.c.server}/api/now/table/incident")
-            
-            # Apply auth to the request
-            await jwt_auth(request)
-            
-            # Verify the request has the correct auth header
-            self.assertEqual(request.headers.get('Authorization'), 'Bearer mock_access_token')
-            
-            # Test token refresh
-            jwt_auth._token_expiry = 0  # Force token refresh
-            
-            # Apply auth again to trigger refresh
-            await jwt_auth(request)
-            
-            # Verify the request has the correct auth header after refresh
-            self.assertEqual(request.headers.get('Authorization'), 'Bearer mock_access_token')
+    def test_password_grant_flow_accepts_tuple_username(self):
+        # username as a tuple/list should set internal username/password from it
+        flow = AsyncServiceNowPasswordGrantFlow(("user_tuple", "pass_tuple"), None, "cid", "secret")
+        # Access the mangled attribute names to verify they were set correctly
+        self.assertEqual(flow._AsyncServiceNowPasswordGrantFlow__password, "pass_tuple")
 
-    @pytest.mark.asyncio
-    async def test_jwt_auth_token_generation(self):
-        """Test JWT token generation"""
-        private_key = """
-        -----BEGIN PRIVATE KEY-----
-        MIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQC7VJTUt9Us8cKj
-        MzEfYyjiWA4R4/M2bS1GB4t7NXp98C3SC6dVMvDuictGeurT8jNbvJZHtCSuYEvu
-        NMoSfm76oqFvAp8Gy0iz5sxjZmSnXyCdPEovGhLa0VzMaQ8s+CLOyS56YyCFGeJZ
-        agLQnJYi+zrwLXZUWPt8yvbPzJY/X/5LkWQtQjr1/y+aIQ4jeFTUU8oITGQ4Hc9h
-        kxjMbJOTw4Xr9i3pJjBYNAOh0jWNxAKMVXiYoUJfgBJrr6lTcAUlIEW5rt3UTcR/
-        TYRaOADMi5ZtOjLq9Vu6XBjBwEJRl/WrRFseEWS2HGtNAUgj9WQ2X5+DPuSXvzTc
-        9wuLAgMBAAECggEADEEwgkjZfFDR84lWoztFXKDcZgrGDmDkI0ozpr4/t6mhIKSn
-        0lxNYY2FiDS0cjU3ck52sZ6xCCwTTxLQP+ZZsXpBcbLjQJgJZ7Bw7vOhJqdUy2Ri
-        vBpt7HfFzA8MuSEMvvj5bzjZ9JO1P7q2xzpxSqz66UsjKZ9SqyWPCqKZQAXBTVwk
-        nqc6dAnGWzCkzGQCiPAZLwZGzGmwIyN8ENBEsKGAzHCKDQzSCy1NPWyFoh/UT8At
-        u+F5MZQcmHj+JcY0hEWGLdY7Jz7HB8HLzWRASPLTxQDgr6QQ2VfDXFSrhOLfFPbG
-        xHGpJDHZYvs0Vl7Xtx0T0xpKXVGW2MrGBzlKgQKBgQDyR6qUE+7rXJ7fJVqc8rqh
-        7y9Dz1M6XeZyU5wPzWfQlkuMiC0WuNKBlFHIWpG4J6WvmXQkYXPmPBUUfJ2/5Epa
-        cVMqQdAI+bLjG7q4Fkmuw5e5hJxCgJJ2uNE+DmTGmNHQ5JoIiUK2Ah9QvCjNLjVj
-        WKwK4+5XQWqRE2NvAJDFIQKBgQDGQs7FRTisHV0xooiRmlvYF0UFgL/nUPNBEgOE
-        GDjHxNXNUEw/VzSOBgFxUpGTnSvhBbQTvGQJHBeRfS/WaA9k1RAqUOkbC0NSU+JB
-        +hjXwNy4+6RCxM0YIXgJSWyC/YYAOqZu5Rz1FPLYzBV2bEH6YW2a3ERnIHNJ+Qct
-        GXOXawKBgCKVxuIoZRQY4/9WCnmDx6mzZ9c+zKkJqoLZ1r/KdD0FvbhcHqMDvKDU
-        KbTQYlBzODUVBxRIGkqgNIQxNJVZGNyXnDEZTHJMCJwBpMa/ev/PMdQxQ0sBb+Oq
-        OvYvz+9QGOyDEZu0ZRFNnuJiIAK5iMYi9eSj7COO1FPIt+QlN0/BAoGAcQN2aKTF
-        WBjBjQ2LYn1gNjojBoMNkMGjh+3jQQqN5wIciTXhIPQa+xu34t1pqS0tJSI7V+ew
-        JbFJOLjQrX7Jrva7QG2mRLzLwWJu+Fy5Wjeo6zbXmJVcWQ9gshesKe/DzYVpuwoE
-        Jjy/78q3rL/WYI4bSz60speJ0eJCE7TH1ikCgYEArXgGT5IoYav8RoYCUGwYDgxj
-        VSXbKp0C5KJGGk0aPZP/VqP8ZZxPkxLgwFHrCXv4KY+tLKRKFVUmGLKKGl7CuYPj
-        K0OQTWWlJoXsrtEWQVGGAw5z7NuXzF0M4LEYk5uFhOPkiXKvQZe3lNfSPn3YSETA
-        TCZ+k0hpxqQlUXpOWGE=
-        -----END PRIVATE KEY-----
-        """
-        
-        jwt_auth = AsyncServiceNowJWTAuth(
-            client_id="test_client_id",
-            private_key=private_key,
-            user=self.c.credentials[0]
-        )
-        
-        # Generate a JWT token
-        token = jwt_auth._generate_jwt()
-        
-        # Decode the token to verify its contents
-        decoded = jwt.decode(token, options={"verify_signature": False})
-        
-        # Verify token claims
-        self.assertEqual(decoded['iss'], "test_client_id")
-        self.assertEqual(decoded['sub'], self.c.credentials[0])
-        self.assertIn('exp', decoded)
-        self.assertIn('iat', decoded)
+    def test_password_grant_flow_sets_secret(self):
+        flow = AsyncServiceNowPasswordGrantFlow("user", "pass", "cid", "secret123")
+        self.assertEqual(flow.client_id, "cid")
+        # ensure secret is stored
+        self.assertEqual(flow._AsyncServiceNowPasswordGrantFlow__secret, "secret123")
+
+    def test_password_grant_success_sets_header_and_clears_password(self):
+        # Mock AsyncClient.post to return a 200 with access_token
+        token_payload = {"access_token": "tok123", "expires_in": 3600}
+        fake_resp = FakeHTTPXResponse(status_code=200, json_data=token_payload)
+
+        with mock.patch("httpx.AsyncClient.post", new=mock.AsyncMock(return_value=fake_resp)):
+            flow = AsyncServiceNowPasswordGrantFlow("user", "pass", "cid", "secret")
+            client = self.run_async(flow.authenticate("https://inst"))
+
+            # Authorization header is set
+            self.assertEqual(client.headers.get("Authorization"), "Bearer tok123")
+            # password cleared
+            self.assertIsNone(flow._AsyncServiceNowPasswordGrantFlow__password)
+
+            # Close the client to avoid warnings
+            self.run_async(client.aclose())
+
+    def test_password_grant_non_200_raises(self):
+        fake_resp = FakeHTTPXResponse(status_code=401, json_data={"error": "invalid"}, text="nope")
+        with mock.patch("httpx.AsyncClient.post", new=mock.AsyncMock(return_value=fake_resp)):
+            flow = AsyncServiceNowPasswordGrantFlow("user", "pass", "cid", "secret")
+            with self.assertRaises(AuthenticationException):
+                self.run_async(flow.authenticate("https://inst"))
+
+    def test_password_grant_missing_access_token_raises(self):
+        fake_resp = FakeHTTPXResponse(status_code=200, json_data={"not_access_token": "x"})
+        with mock.patch("httpx.AsyncClient.post", new=mock.AsyncMock(return_value=fake_resp)):
+            flow = AsyncServiceNowPasswordGrantFlow("user", "pass", "cid", "secret")
+            with self.assertRaises(AuthenticationException):
+                self.run_async(flow.authenticate("https://inst"))
+
+    def test_password_grant_wrapped_request_error(self):
+        # Simulate httpx.RequestError from the POST
+        async def raise_request_error(*args, **kwargs):
+            raise Exception("low-level")
+
+        with mock.patch("httpx.AsyncClient.post", new=mock.AsyncMock(side_effect=raise_request_error)):
+            flow = AsyncServiceNowPasswordGrantFlow("user", "pass", "cid", "secret")
+            with self.assertRaises(AuthenticationException):
+                self.run_async(flow.authenticate("https://inst"))
+
+    # ---------- JWT auth (httpx.Auth) ----------
+
+    def test_jwt_get_access_token_success(self):
+        # Build a request whose URL controls where /oauth_token.do goes
+        import httpx
+        request = httpx.Request("GET", "https://foo.example/api/now/table/task")
+
+        # access_token + expiry
+        payload = {"access_token": "jwt_tok", "expires_in": 120}
+        fake_resp = FakeHTTPXResponse(status_code=200, json_data=payload)
+
+        with mock.patch("httpx.AsyncClient.post", new=mock.AsyncMock(return_value=fake_resp)):
+            auth = AsyncServiceNowJWTAuth(client_id="cid", client_secret="sec", jwt="signed.jwt.here")
+
+            # Call private to verify return values
+            token, exp = self.run_async(auth._get_access_token(request))
+
+            self.assertEqual(token, "jwt_tok")
+            self.assertGreaterEqual(exp, int(time.time()))  # expiry is in the future
+
+    def test_jwt_get_access_token_failure_raises(self):
+        import httpx
+        request = httpx.Request("GET", "https://foo.example/api/now/table/task")
+        fake_resp = FakeHTTPXResponse(status_code=400, json_data={"error": "bad"}, text="bad")
+        with mock.patch("httpx.AsyncClient.post", new=mock.AsyncMock(return_value=fake_resp)):
+            auth = AsyncServiceNowJWTAuth(client_id="cid", client_secret="sec", jwt="jwt")
+            with self.assertRaises(AuthenticationException):
+                self.run_async(auth._get_access_token(request))
+
+    def test_jwt_auth_flow_sets_header_and_refreshes(self):
+        import httpx
+        # First token response
+        payload1 = {"access_token": "tok1", "expires_in": 1}
+        # Second token (after expiry)
+        payload2 = {"access_token": "tok2", "expires_in": 3600}
+        calls = [
+            FakeHTTPXResponse(status_code=200, json_data=payload1),
+            FakeHTTPXResponse(status_code=200, json_data=payload2),
+        ]
+
+        async def post_side_effect(*args, **kwargs):
+            return calls.pop(0)
+
+        with mock.patch("httpx.AsyncClient.post", new=mock.AsyncMock(side_effect=post_side_effect)):
+            auth = AsyncServiceNowJWTAuth(client_id="cid", client_secret="sec", jwt="jwt")
+
+            # Build request and run the auth flow generator manually
+            request = httpx.Request("GET", "https://foo.example/api/now/table/incident")
+            agen = auth.auth_flow(request)
+
+            # First yield (fetch tok1)
+            req1 = self.run_async(agen.__anext__())
+            self.assertEqual(req1.headers.get("Authorization"), "Bearer tok1")
+
+            # Force expiry
+            auth._AsyncServiceNowJWTAuth__expires_at = 0
+
+            # Next yield (should refresh to tok2)
+            agen = auth.auth_flow(request)
+            req2 = self.run_async(agen.__anext__())
+            self.assertEqual(req2.headers.get("Authorization"), "Bearer tok2")
