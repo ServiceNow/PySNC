@@ -779,7 +779,7 @@ class GlideRecord(object):
         c = self._current()
         if c is None:
             raise NoRecordException('cannot get a value from nothing, did you forget to call next() or initialize()?')
-        return self._current()[field] if field in c else None
+        return self._current()[field] if field in c else None # type: ignore
 
     def set_value(self, field, value):
         """
@@ -831,7 +831,7 @@ class GlideRecord(object):
 
     def get_link(self, no_stack: bool=False) -> str:
         """
-        Generate a full URL to the current record. sys_id will be -1 if there is no current record.
+        Generate a full URL to the current record. sys_id will be -1 i*f there is no current record.
 
         :param bool no_stack: Default ``False``, adds ``&sysparm_stack=<table>_list.do?sysparm_query=active=true`` to the URL
         :param bool list: Default ``False``, if ``True`` then provide a link to the record set, not the current record
