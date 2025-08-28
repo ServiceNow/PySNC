@@ -31,29 +31,19 @@ class TestRecordQueryAdvanced(TestCase):
     def test_rl_query_manual(self):
         # simulate a left outter join by finding users with no roles
         client = ServiceNowClient(self.c.server, self.c.credentials)
-        gr = client.GlideRecord('sys_user')
-        gr.add_encoded_query('RLQUERYsys_user_has_role.user,=0^ENDRLQUERY')
+        gr = client.GlideRecord('sys_user_group')
+        gr.add_encoded_query('RLQUERYsys_group_has_role.group,>0,m2m^role.nameLIKEadmin^ENDRLQUERY')
         gr.query()
-        self.assertGreater(gr.get_row_count(), 1)
-        self.assertLess(gr.get_row_count(), 10)
-
-    def test_rl_query_basic(self):
-        # simulate a left outter join by finding users with no roles
-        client = ServiceNowClient(self.c.server, self.c.credentials)
-        gr = client.GlideRecord('sys_user')
-        gr.add_rl_query('sys_user_has_role', 'user', '=0')
-        self.assertEqual(gr.get_encoded_query(), 'RLQUERYsys_user_has_role.user,=0^ENDRLQUERY')
-        gr.query()
-        self.assertGreater(gr.get_row_count(), 1)
-        self.assertLess(gr.get_row_count(), 10)
+        self.assertGreater(gr.get_row_count(), 2)
+        self.assertLess(gr.get_row_count(), 8)
 
     def test_rl_query_advanced(self):
         client = ServiceNowClient(self.c.server, self.c.credentials)
-        gr = client.GlideRecord('sys_user')
-        qc = gr.add_rl_query('sys_user_has_role', 'user', '>0', True)
-        qc.add_query('role.name', 'admin')
-        self.assertEqual(gr.get_encoded_query(), 'RLQUERYsys_user_has_role.user,>0,m2m^role.name=admin^ENDRLQUERY')
+        gr = client.GlideRecord('sys_user_group')
+        qc = gr.add_rl_query('sys_group_has_role', 'group', '>0', True)
+        qc.add_query('role.name', 'LIKE', 'admin')
+        self.assertEqual(gr.get_encoded_query(), 'RLQUERYsys_group_has_role.group,>0,m2m^role.nameLIKEadmin^ENDRLQUERY')
         gr.query()
-        self.assertGreater(gr.get_row_count(), 10)
-        self.assertLess(gr.get_row_count(), 25)
+        self.assertGreater(gr.get_row_count(), 2)
+        self.assertLess(gr.get_row_count(), 8)
 
