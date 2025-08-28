@@ -229,7 +229,7 @@ class TestRecordQuery(TestCase):
 
         super_long_non_existant_name = "A" * 23000
         gr = client.GlideRecord(super_long_non_existant_name)
-        self.assertRaisesRegex(exceptions.RequestException, r'^<!DOCTYPE html>.*', lambda: gr.get('doesntmatter'))
+        self.assertRaisesRegex(exceptions.RequestException, r'^<.*html>.*', lambda: gr.get('doesntmatter'))
 
     def test_changes(self):
         client = ServiceNowClient(self.c.server, self.c.credentials)

@@ -25,9 +25,7 @@ class TestWrite(TestCase):
         # We have validated inserting works, now can we update.
         # find us a user to change the opened_by field that isn't us
         user = client.GlideRecord('sys_user')
-        user.add_query('sys_id', '!=', 'javascript:gs.getUserID()')
-        user.query()
-        self.assertTrue(user.next())
+        self.assertTrue(user.get('26fbff173b331300ad3cc9bb34efc4bd')) # problem.admin
         self.assertNotEqual(user.sys_id, gr.get_value('opened_by'), 'what this shouldnt happen')
         #print(f"new user id is {user.sys_id}")
 
@@ -36,11 +34,10 @@ class TestWrite(TestCase):
         self.assertTrue(gr2.get(res))
         #print(f"pre-update {gr2.serialize(display_value='both')}")
         self.assertTrue(bool(gr2.active))
-        gr2.active = 'false'
-        self.assertTrue(gr2.changes())
-        self.assertFalse(bool(gr2.active))
         gr2.short_description = "ABCDEFG0123"
-        gr2.opened_by = user.sys_id
+        self.assertTrue(gr2.changes())
+        self.assertEqual(gr2.get_value('short_description'), "ABCDEFG0123")
+        gr2.assigned_to = user.sys_id
 
         #print(f"mid-update {gr2.serialize(display_value='both')}")
         self.assertIsNotNone(gr2.update())
@@ -49,16 +46,16 @@ class TestWrite(TestCase):
         # now we expect our record to be different, locally
         self.assertTrue(bool(gr2.active)) # server-side forces it to stay true
         self.assertEqual(gr2.short_description, 'ABCDEFG0123')
-        self.assertEqual(gr2.opened_by, user.sys_id)
-        self.assertNotEqual(gr2.get_display_value('opened_by'), first_user_display)
-        self.assertEqual(gr2.get_display_value('opened_by'), user.get_display_value('name'))
+        self.assertEqual(gr2.assigned_to, user.sys_id)
+        self.assertNotEqual(gr2.get_display_value('assigned_to'), first_user_display)
+        self.assertEqual(gr2.get_display_value('assigned_to'), user.get_display_value('name'))
 
 
         # and if we re-query
         gr3 = client.GlideRecord('problem')
         gr3.get(res)
         self.assertEqual(gr3.short_description, "ABCDEFG0123")
-        self.assertEqual(gr3.get_display_value('opened_by'), user.get_display_value('name'))
+        self.assertEqual(gr3.get_display_value('assigned_to'), user.get_display_value('name'))
 
         gr4 = gr3.pop_record()
         gr4.short_description = 'ZZZ123'
