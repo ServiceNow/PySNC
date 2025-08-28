@@ -10,7 +10,7 @@ from pysnc.asyncio.attachment import AsyncAttachment
 
 
 class FakeResponse:
-    def __init__(self, json_data: Dict[str, Any] | None = None, status_code: int = 200):
+    def __init__(self, json_data: Optional[Dict[str, Any]] = None, status_code: int = 200):
         self._json_data = json_data or {}
         self.status_code = status_code
 
