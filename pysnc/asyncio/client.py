@@ -49,23 +49,24 @@ class AsyncServiceNowClient(ServiceNowClient):
         if auth is not None and cert is not None:
             raise AuthenticationException('Cannot specify both auth and cert')
 
-        self.__client: Optional[httpx.AsyncClient] = None
+        self.__session: Optional[httpx.AsyncClient] = None
         headers: JSONHeaders = {"Accept": "application/json"}
+        self.credentials = auth
 
         if isinstance(auth, (list, tuple)) and len(auth) == 2:
             # basic auth
-            self.__client = httpx.AsyncClient(
+            self.__session = httpx.AsyncClient(
                 auth=(auth[0], auth[1]),
                 headers=headers,
                 verify=verify if verify is not None else True,
                 cert=cert,
-                proxies=self.__proxies,
+                proxy=self.__proxies,
                 base_url=self.__instance,
                 timeout=60.0,
                 follow_redirects=True,
             )
         elif isinstance(auth, (HTTPXAuth, httpx.Auth)):
-            self.__client = httpx.AsyncClient(
+            self.__session = httpx.AsyncClient(
                 auth=auth,
                 headers=headers,
                 verify=verify if verify is not None else True,
@@ -77,14 +78,14 @@ class AsyncServiceNowClient(ServiceNowClient):
             )
         elif isinstance(auth, httpx.AsyncClient):
             # Caller supplied a preconfigured async client
-            self.__client = auth
+            self.__session = auth
             # best-effort header merge
-            self.__client.headers.update(headers)
-        elif isinstance(auth, (AsyncServiceNowFlow, ServiceNowFlow)):  # accept either, adapt
+            self.__session.headers.update(headers)
+        elif isinstance(auth, AsyncServiceNowFlow):  # accept either, adapt
             raise NotImplementedError("AsyncServiceNowFlow is not supported yet for async client")
         elif cert is not None:
             # cert-only client (no auth)
-            self.__client = httpx.AsyncClient(
+            self.__session = httpx.AsyncClient(
                 headers=headers,
                 verify=verify if verify is not None else True,
                 cert=cert,
@@ -122,27 +123,37 @@ class AsyncServiceNowClient(ServiceNowClient):
         """
         return AsyncAttachment(self, table)
 
-    @property
-    def session(self):
-        return self.__client    
-
     async def close(self) -> None:
         """
         Close the httpx AsyncClient and release resources.
         This should be called when the client is no longer needed.
         """
-        if self.__client is not None:
-            await self.__client.aclose()
-            self.__client = None
+        if self.__session is not None:
+            await self.__session.aclose()
+            self.__session = None
+
+
+    @property
+    def instance(self) -> str:
+        """
+        The instance we're associated with.
+
+        :return: Instance URI
+        :rtype: str
+        """
+        return self.__instance
+
+    @property
+    def session(self):
+        """
+        :return: The requests session
+        """
+        return self.__session
 
 
 class AsyncAPI(API):
     def __init__(self, client):
         super().__init__(client)
-
-    @property
-    def session(self) -> httpx.AsyncClient:
-        return self._client
 
     # noinspection PyMethodMayBeStatic
     def _validate_response(self, response: httpx.Response) -> None:

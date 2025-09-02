@@ -1,6 +1,6 @@
 import logging
 from typing import Optional, Dict, Any, List, Union, TYPE_CHECKING, BinaryIO
-
+from ..query import Query
 from ..attachment import Attachment
 from tempfile import SpooledTemporaryFile
 from pathlib import Path
@@ -16,6 +16,14 @@ class AsyncAttachment(Attachment):
     
     This class provides an async interface for working with ServiceNow attachments.
     """
+
+    # TODO refactor this to use a .get method
+    def __init__(self, client, table):
+        """
+        :param str table: the table we are associated with
+        """
+        super().__init__(client, table)
+        self._log = logging.getLogger(__name__)
     
     def __iter__(self):
         # Block sync iteration to avoid calling async query() from a sync context
@@ -42,28 +50,28 @@ class AsyncAttachment(Attachment):
             self on success, or raises StopAsyncIteration when done (if used via `async for`)
             If not iterating, returns True/False like the sync API.
         """
-        l = len(self.__results)
-        if l > 0 and self.__current + 1 < l:
-            self.__current = self.__current + 1
-            if self.__is_iter:
+        l = len(self._Attachment__results)
+        if l > 0 and self._Attachment__current + 1 < l:
+            self._Attachment__current = self._Attachment__current + 1
+            if self._Attachment__is_iter:
                 return self
             return True
         if (
-            (self.__total or 0) > 0
-            and (self.__current + 1) < (self.__total or 0)
-            and (self.__total or 0) > len(self.__results)
+            (self._Attachment__total or 0) > 0
+            and (self._Attachment__current + 1) < (self._Attachment__total or 0)
+            and (self._Attachment__total or 0) > len(self._Attachment__results)
             and _recursive is False
         ):
-            if self.__limit:
-                if self.__current + 1 < self.__limit:
+            if self._Attachment__limit:
+                if self._Attachment__current + 1 < self._Attachment__limit:
                     await self.query()
                     return await self.next(_recursive=True)
             else:
                 await self.query()
                 return await self.next(_recursive=True)
 
-        if self.__is_iter:
-            self.__is_iter = False
+        if self._Attachment__is_iter:
+            self._Attachment__is_iter = False
             raise StopAsyncIteration()
         return False
 
@@ -131,13 +139,13 @@ class AsyncAttachment(Attachment):
         try:
             result = response.json()["result"]
             # append results and update counters
-            self.__results = self.__results + result
-            self.__page = self.__page + 1
-            self.__total = int(response.headers.get("X-Total-Count", "0"))
+            self._Attachment__results = self._Attachment__results + result
+            self._Attachment__page = self._Attachment__page + 1
+            self._Attachment__total = int(response.headers.get("X-Total-Count", "0"))
         except Exception as e:
             if 'Transaction cancelled: maximum execution time exceeded' in response.text:
                 raise RequestException(
-                    'Maximum execution time exceeded. Lower batch size (< %s).' % self.__batch_size)
+                    'Maximum execution time exceeded. Lower batch size.')
             else:
                 traceback.print_exc()
                 self._log.debug(response.text)
@@ -151,10 +159,10 @@ class AsyncAttachment(Attachment):
             response = await self._client.attachment_api.get(sys_id)
         except NotFoundException:
             return False
-        self.__results = [self._transform_result(response.json()["result"])]
-        if len(self.__results) > 0:
-            self.__current = 0
-            self.__total = len(self.__results)
+        self._Attachment__results = [self._transform_result(response.json()["result"])]
+        if len(self._Attachment__results) > 0:
+            self._Attachment__current = 0
+            self._Attachment__total = len(self._Attachment__results)
             return True
         return False
 

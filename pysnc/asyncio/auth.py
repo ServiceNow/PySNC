@@ -72,21 +72,36 @@ class AsyncServiceNowPasswordGrantFlow(AsyncServiceNowFlow):
         proxies = kwargs.get("proxies", None)
         timeout = kwargs.get("timeout", 30.0)
 
-        async with httpx.AsyncClient(verify=verify, proxies=proxies, timeout=timeout) as ac:
-            resp = await ac.post(token_url, data=form, headers={"Accept": "application/json"})
-        # httpx closes connection when exiting the context; we only need the payload
+        # Build the client we will return on success
+        client = httpx.AsyncClient(
+            base_url=instance,
+            headers={"Accept": "application/json"},
+            verify=verify,
+            proxy=proxies,
+            timeout=timeout,
+            follow_redirects=True,
+        )
+        try:
+            resp = await client.post(token_url, data=form, headers={"Accept": "application/json"})
+        except Exception:
+            await client.aclose()
+            raise AuthenticationException('Failed to authenticate')
+
         try:
             payload = resp.json()
         except Exception:
+            await client.aclose()
             raise AuthenticationException(resp.text)
 
         if resp.status_code >= 400 or "access_token" not in payload:
+            await client.aclose()
             raise AuthenticationException(payload)
 
         # drop password after successful exchange
-        self.__password = ""
+        self.__password = None
 
-        return {"Authorization": f"Bearer {payload['access_token']}"}
+        client.headers["Authorization"] = f"Bearer {payload['access_token']}"
+        return client
 
 
 class AsyncServiceNowJWTAuth(httpx.Auth):

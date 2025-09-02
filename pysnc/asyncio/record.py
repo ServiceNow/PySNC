@@ -2,18 +2,24 @@
 Asynchronous implementation of GlideRecord for ServiceNow.
 """
 
-from typing import TYPE_CHECKING
+import logging
+import traceback
+from typing import TYPE_CHECKING, List, Optional, Union
 
-from ..query import *
 from ..exceptions import *
+from ..query import *
 from ..record import GlideRecord
 
 if TYPE_CHECKING:
-    from .client import AsyncServiceNowClient
     from .attachment import AsyncAttachment
+    from .client import AsyncServiceNowClient
 
 
 class AsyncGlideRecord(GlideRecord):
+
+    def __init__(self, client: "AsyncServiceNowClient", table: str, batch_size: int = 500, rewindable: bool = True):
+        super().__init__(client, table, batch_size=batch_size, rewindable=rewindable)
+        self._log = logging.getLogger(__name__)
 
     def __iter__(self):
         raise TypeError("AsyncGlideRecord is async-iterable. Use `async for`.")
@@ -22,7 +28,7 @@ class AsyncGlideRecord(GlideRecord):
         raise TypeError("AsyncGlideRecord is async-iterable. Use `async for`.")
 
     def __aiter__(self):
-        self.__is_iter = True
+        self._GlideRecord__is_iter = True
         if self._is_rewindable():
             self.rewind()
         return self
@@ -30,79 +36,82 @@ class AsyncGlideRecord(GlideRecord):
     async def __anext__(self):
         ok_or_self = await self.next()
         if ok_or_self is False:
-            self.__is_iter = False
+            self._GlideRecord__is_iter = False
             raise StopAsyncIteration()
         return ok_or_self  # return self (iterator style) or True (bool style), matching your original
 
     async def next(self, _recursive: bool = False):
-        l = len(self.__results)
-        if l > 0 and self.__current+1 < l:
-            self.__current = self.__current + 1
-            if self.__is_iter:
-                if not self._is_rewindable(): # if we're not rewindable, remove the previous record
-                    self.__results[self.__current - 1] = None
+        l = len(self._GlideRecord__results)
+        if l > 0 and self._GlideRecord__current + 1 < l:
+            self._GlideRecord__current = self._GlideRecord__current + 1
+            if self._GlideRecord__is_iter:
+                if not self._is_rewindable():  # if we're not rewindable, remove the previous record
+                    self._GlideRecord__results[self._GlideRecord__current - 1] = None
                 return self  # type: ignore  # this typing is internal only
             return True
 
-        if self.__total and self.__total > 0 and \
-                (self.__current+1) < self.__total and \
-                self.__total > len(self.__results) and \
-                _recursive is False:
-            if self.__limit:
-                if self.__current+1 < self.__limit:
+        if (
+            self._GlideRecord__total
+            and self._GlideRecord__total > 0
+            and (self._GlideRecord__current + 1) < self._GlideRecord__total
+            and self._GlideRecord__total > len(self._GlideRecord__results)
+            and _recursive is False
+        ):
+            if self._GlideRecord__limit:
+                if self._GlideRecord__current + 1 < self._GlideRecord__limit:
                     self._do_query()
                     return self.next(_recursive=True)
             else:
                 self._do_query()
                 return self.next(_recursive=True)
-        if self.__is_iter:
-            self.__is_iter = False
+        if self._GlideRecord__is_iter:
+            self._GlideRecord__is_iter = False
             raise StopIteration()
         return False
 
     async def query(self, query=None):
-        if not self._is_rewindable() and self.__current > 0:
-            raise RuntimeError('Cannot re-query a non-rewindable record that has been iterated upon')
+        if not self._is_rewindable() and self._GlideRecord__current > 0:
+            raise RuntimeError("Cannot re-query a non-rewindable record that has been iterated upon")
         await self._do_query(query)
 
-
     async def _do_query(self, query=None):
-        stored = self.__query
+        stored = self._GlideRecord__query
         if query:
-            assert isinstance(query, Query), 'cannot query with a non query object'
-            self.__query = query
+            assert isinstance(query, Query), "cannot query with a non query object"
+            self._GlideRecord__query = query
         try:
-            short_len = len('&'.join([ f"{x}={y}" for (x,y) in self._parameters().items() ]))
+            short_len = len("&".join([f"{x}={y}" for (x, y) in self._parameters().items()]))
             if short_len > 10000:  # just the approx limit, but a few thousand below (i hope/think)
 
                 def on_resp(r):
                     nonlocal response
                     response = r
+
                 self._client.batch_api.list(self, on_resp)
                 await self._client.batch_api.execute()
             else:
                 response = await self._client.table_api.list(self)
         finally:
-            self.__query = stored
+            self._GlideRecord__query = stored
 
         code = response.status_code
         if code == 200:
             try:
-                for result in response.json()['result']:
-                    self.__results.append(self._transform_result(result))
-                self.__page = self.__page + 1
-                self.__total = int(response.headers['X-Total-Count'])
+                for result in response.json()["result"]:
+                    self._GlideRecord__results.append(self._transform_result(result))
+                self._GlideRecord__page = self._GlideRecord__page + 1
+                self._GlideRecord__total = int(response.headers["X-Total-Count"])
                 # cannot call query before this...
             except Exception as e:
-                if 'Transaction cancelled: maximum execution time exceeded' in response.text:
-                    raise RequestException('Maximum execution time exceeded. Lower batch size (< %s).' % self.__batch_size)
+                if "Transaction cancelled: maximum execution time exceeded" in response.text:
+                    raise RequestException("Maximum execution time exceeded. Lower batch size.")
                 else:
                     traceback.print_exc()
                     self._log.debug(response.text)
                     raise e
 
         elif code == 401:
-            raise AuthenticationException(response.json()['error'])
+            raise AuthenticationException(response.json()["error"])
 
     async def get(self, name, value=None) -> bool:
         """
@@ -118,10 +127,10 @@ class AsyncGlideRecord(GlideRecord):
                 response = await self._client.table_api.get(self, name)
             except NotFoundException:
                 return False
-            self.__results = [self._transform_result(response.json()['result'])]
-            if self.__results:
-                self.__current = 0
-                self.__total = len(self.__results)
+            self._GlideRecord__results = [self._transform_result(response.json()["result"])]
+            if self._GlideRecord__results:
+                self._GlideRecord__current = 0
+                self._GlideRecord__total = len(self._GlideRecord__results)
                 return True
             return False
         else:
@@ -141,17 +150,19 @@ class AsyncGlideRecord(GlideRecord):
         response = await self._client.table_api.post(self)
         code = response.status_code
         if code == 201:
-            self.__results = [self._transform_result(response.json()['result'])]
-            if len(self.__results) > 0:
-                self.__current = 0
-                self.__total = len(self.__results)
+            self._GlideRecord__results = [self._transform_result(response.json()["result"])]
+            if len(self._GlideRecord__results) > 0:
+                self._GlideRecord__current = 0
+                self._GlideRecord__total = len(self._GlideRecord__results)
                 return self.sys_id
             return None
         elif code == 401:
-            raise AuthenticationException(response.json()['error'])
+            raise AuthenticationException(response.json()["error"])
         else:
+            print(response)
+            print(response.text)
             rjson = response.json()
-            raise InsertException(rjson['error'] if 'error' in rjson else f"{code} response on insert -- expected 201", status_code=code)
+            raise InsertException(rjson["error"] if "error" in rjson else f"{code} response on insert -- expected 201", status_code=code)
 
     async def update(self):
         """
@@ -166,13 +177,13 @@ class AsyncGlideRecord(GlideRecord):
         code = response.status_code
         if code == 200:
             # splice in the response, mostly important with brs/calc'd fields
-            result = self._transform_result(response.json()['result'])
-            if len(self.__results) > 0: # when would this NOT be true...?
-                self.__results[self.__current] = result
+            result = self._transform_result(response.json()["result"])
+            if len(self._GlideRecord__results) > 0:  # when would this NOT be true...?
+                self._GlideRecord__results[self._GlideRecord__current] = result
                 return self.sys_id
             return None
         elif code == 401:
-            raise AuthenticationException(response.json()['error'])
+            raise AuthenticationException(response.json()["error"])
         else:
             raise UpdateException(response.json(), status_code=code)
 
@@ -190,10 +201,9 @@ class AsyncGlideRecord(GlideRecord):
         if code == 204:
             return True
         elif code == 401:
-            raise AuthenticationException(response.json()['error'])
+            raise AuthenticationException(response.json()["error"])
         else:
             raise DeleteException(response.json(), status_code=code)
-
 
     async def delete_multiple(self) -> bool:
         """
@@ -205,14 +215,14 @@ class AsyncGlideRecord(GlideRecord):
             :AuthenticationException: If we do not have rights
             :DeleteException: For any other failure reason
         """
-        if self.__total is None:
-            if not self.__field_limits:
-                self.fields = 'sys_id'  # type: ignore  ## all we need...
+        if self._GlideRecord__total is None:
+            if not self._GlideRecord__field_limits:
+                self.fields = "sys_id"  # type: ignore  ## all we need...
             await self._do_query()
 
         allRecordsWereDeleted = True
         def handle(response):
-            nonlocal  allRecordsWereDeleted
+            nonlocal allRecordsWereDeleted
             if response is None or response.status_code != 204:
                 allRecordsWereDeleted = False
 
@@ -231,6 +241,7 @@ class AsyncGlideRecord(GlideRecord):
         :return: ``True`` on success, ``False`` if any records failed. If custom_handler is specified, always returns ``True``
         """
         updated = True
+
         def handle(response):
             nonlocal updated
             if response is None or response.status_code != 200:
@@ -250,12 +261,72 @@ class AsyncGlideRecord(GlideRecord):
         :return: A list of attachments
         :rtype: :class:`pysnc.Attachment`
         """
-        attachment = await self._client.Attachment(self.__table)  # returns AsyncAttachment
+        live_client = self._fresh_client()
+        attachment = await live_client.Attachment(self.table)  # returns AsyncAttachment
         if self.sys_id:
-            attachment.add_query('table_sys_id', self.sys_id)
+            attachment.add_query("table_sys_id", self.sys_id)
         await attachment.query()
         return attachment
+
+    async def add_attachment(self, file_name, file, content_type=None, encryption_context=None):
+        if self._current() is None:
+            raise NoRecordException(
+                "cannot add attachment to nothing, did you forget to call next() or initialize()?"
+            )
+        live_client = self._fresh_client()
+        attachment = await live_client.Attachment(self.table)
+        return await attachment.add_attachment(self.sys_id, file_name, file, content_type, encryption_context)
 
     # Async helpers for callers that used to rely on sync iteration:
     async def serialize_all_async(self, **kw):
         return [rec.serialize(**kw) async for rec in self]
+
+    @property
+    def view(self):
+        """
+        :return: The current view
+        """
+        return self._GlideRecord__view
+
+    @property
+    def limit(self) -> Optional[int]:
+        """
+        :return: Query number limit
+        """
+        return self._GlideRecord__limit
+
+    @property
+    def batch_size(self) -> int:
+        """
+        :return: The number of records to query in a single HTTP GET
+        """
+        return self._GlideRecord__batch_size
+
+    @property
+    def location(self) -> int:
+        """
+        Current location within the iteration
+        :return: location is -1 if iteration has not started
+        :rtype: int
+        """
+        return self._GlideRecord__current
+
+    @property
+    def display_value(self):
+        return self._GlideRecord__display_value
+
+    @property
+    def table(self) -> str:
+        """
+        :return: The table we are operating on
+        """
+        return self._GlideRecord__table
+
+    def _fresh_client(self) -> "AsyncServiceNowClient":
+        """
+        Return a live AsyncServiceNowClient. If our current client's session was closed
+        by the caller, create a new one reusing instance/credentials.
+        """
+        from .client import AsyncServiceNowClient  # noqa: WPS433 (runtime import intentional)
+        return AsyncServiceNowClient(self._client.instance, self._client.credentials)
+
