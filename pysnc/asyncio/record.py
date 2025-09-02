@@ -5,7 +5,7 @@ Asynchronous implementation of GlideRecord for ServiceNow.
 import logging
 import traceback
 from typing import TYPE_CHECKING, List, Optional, Union
-
+import copy
 from ..exceptions import *
 from ..query import *
 from ..record import GlideRecord
@@ -43,7 +43,7 @@ class AsyncGlideRecord(GlideRecord):
     async def next(self, _recursive: bool = False):
         l = len(self._GlideRecord__results)
         if l > 0 and self._GlideRecord__current + 1 < l:
-            self._GlideRecord__current = self._GlideRecord__current + 1
+            self._GlideRecord__current += 1
             if self._GlideRecord__is_iter:
                 if not self._is_rewindable():  # if we're not rewindable, remove the previous record
                     self._GlideRecord__results[self._GlideRecord__current - 1] = None
@@ -59,14 +59,14 @@ class AsyncGlideRecord(GlideRecord):
         ):
             if self._GlideRecord__limit:
                 if self._GlideRecord__current + 1 < self._GlideRecord__limit:
-                    self._do_query()
-                    return self.next(_recursive=True)
+                    await self._do_query()
+                    return await self.next(_recursive=True)
             else:
-                self._do_query()
-                return self.next(_recursive=True)
+                await self._do_query()
+                return await self.next(_recursive=True)
         if self._GlideRecord__is_iter:
             self._GlideRecord__is_iter = False
-            raise StopIteration()
+            raise StopAsyncIteration()
         return False
 
     async def query(self, query=None):
@@ -217,19 +217,21 @@ class AsyncGlideRecord(GlideRecord):
         """
         if self._GlideRecord__total is None:
             if not self._GlideRecord__field_limits:
-                self.fields = "sys_id"  # type: ignore  ## all we need...
+                self.fields = "sys_id"  # only need sys_id
             await self._do_query()
 
-        allRecordsWereDeleted = True
+        all_records_were_deleted = True
         def handle(response):
-            nonlocal allRecordsWereDeleted
+            nonlocal all_records_were_deleted
             if response is None or response.status_code != 204:
-                allRecordsWereDeleted = False
+                all_records_were_deleted = False
 
-        for e in self:
+        # enqueue deletes (no await here)
+        async for e in self:
             self._client.batch_api.delete(e, handle)
+        # execute once (await here)
         await self._client.batch_api.execute()
-        return allRecordsWereDeleted
+        return all_records_were_deleted
 
     async def update_multiple(self, custom_handler=None) -> bool:
         """
@@ -242,17 +244,21 @@ class AsyncGlideRecord(GlideRecord):
         """
         updated = True
 
-        def handle(response):
+        def default_handle(response):
             nonlocal updated
             if response is None or response.status_code != 200:
                 updated = False
 
-        for e in self:
-            if e.changes():
-                self._client.batch_api.put(e, custom_handler if custom_handler else handle)
+        handler = custom_handler or default_handle
 
+        # enqueue updates for changed rows only (no await here)
+        async for e in self:
+            if e.changes():
+                self._client.batch_api.put(e, handler)
+
+        # execute once (await here)
         await self._client.batch_api.execute()
-        return updated
+        return True if custom_handler else updated
 
     async def get_attachments(self):
         """
@@ -281,47 +287,6 @@ class AsyncGlideRecord(GlideRecord):
     async def serialize_all_async(self, **kw):
         return [rec.serialize(**kw) async for rec in self]
 
-    @property
-    def view(self):
-        """
-        :return: The current view
-        """
-        return self._GlideRecord__view
-
-    @property
-    def limit(self) -> Optional[int]:
-        """
-        :return: Query number limit
-        """
-        return self._GlideRecord__limit
-
-    @property
-    def batch_size(self) -> int:
-        """
-        :return: The number of records to query in a single HTTP GET
-        """
-        return self._GlideRecord__batch_size
-
-    @property
-    def location(self) -> int:
-        """
-        Current location within the iteration
-        :return: location is -1 if iteration has not started
-        :rtype: int
-        """
-        return self._GlideRecord__current
-
-    @property
-    def display_value(self):
-        return self._GlideRecord__display_value
-
-    @property
-    def table(self) -> str:
-        """
-        :return: The table we are operating on
-        """
-        return self._GlideRecord__table
-
     def _fresh_client(self) -> "AsyncServiceNowClient":
         """
         Return a live AsyncServiceNowClient. If our current client's session was closed
@@ -330,3 +295,13 @@ class AsyncGlideRecord(GlideRecord):
         from .client import AsyncServiceNowClient  # noqa: WPS433 (runtime import intentional)
         return AsyncServiceNowClient(self._client.instance, self._client.credentials)
 
+    def pop_record(self) -> "AsyncGlideRecord":
+        """
+        Pop the current record into a new AsyncGlideRecord (async variant of the sync method).
+        """
+        agr = AsyncGlideRecord(self._client, self._GlideRecord__table)  # reuse same table
+        c = self._GlideRecord__results[self._GlideRecord__current]
+        agr._GlideRecord__results = [copy.deepcopy(c)]
+        agr._GlideRecord__current = 0
+        agr._GlideRecord__total = 1
+        return agr

@@ -35,16 +35,22 @@ class AsyncServiceNowClient(ServiceNowClient):
         self._log = logging.getLogger(__name__)
         self.__instance = get_instance(instance)
 
+        self.__proxy_url = None
         if proxy:
-            if type(proxy) != dict:
-                proxies = dict(http=proxy, https=proxy)
+            if isinstance(proxy, dict):
+                http_url = proxy.get("http")
+                https_url = proxy.get("https", http_url)
+                # If they differ, choose https (or raise if you prefer strictness)
+                if https_url and http_url and https_url != http_url:
+                    # Pick https to be conservative. Alternatively, raise.
+                    chosen = https_url
+                else:
+                    chosen = https_url or http_url
+                self.__proxy_url = chosen
             else:
-                proxies = proxy
-            self.__proxies = proxies
+                self.__proxy_url = proxy
             if verify is None:
                 verify = True  # default to verify with proxy
-        else:
-            self.__proxies = None
 
         if auth is not None and cert is not None:
             raise AuthenticationException('Cannot specify both auth and cert')
@@ -60,7 +66,7 @@ class AsyncServiceNowClient(ServiceNowClient):
                 headers=headers,
                 verify=verify if verify is not None else True,
                 cert=cert,
-                proxy=self.__proxies,
+                proxy=self.__proxy_url,
                 base_url=self.__instance,
                 timeout=60.0,
                 follow_redirects=True,
@@ -71,7 +77,7 @@ class AsyncServiceNowClient(ServiceNowClient):
                 headers=headers,
                 verify=verify if verify is not None else True,
                 cert=cert,
-                proxies=self.__proxies,
+                proxy=self.__proxy_url,
                 base_url=self.__instance,
                 timeout=60.0,
                 follow_redirects=True,
@@ -89,7 +95,7 @@ class AsyncServiceNowClient(ServiceNowClient):
                 headers=headers,
                 verify=verify if verify is not None else True,
                 cert=cert,
-                proxies=self.__proxies,
+                proxy=self.__proxy_url,
                 base_url=self.__instance,
                 timeout=60.0,
                 follow_redirects=True,
@@ -434,9 +440,15 @@ class AsyncBatchAPI(AsyncAPI):
         merged_headers = dict(self.session.headers)
         merged_headers.update(request.headers)
 
-        # Build relative URL: /path?query
-        path = request.url.raw_path.decode()
-        query = request.url.raw_query.decode()
+        url = request.url
+        # path: prefer raw_path (bytes) if present; else fall back to .path (str)
+        path = url.raw_path.decode() if hasattr(url, "raw_path") else url.path
+
+        # query: httpx.URL.query is bytes on recent versions, str on some others
+        query = url.query
+        if isinstance(query, (bytes, bytearray)):
+            query = query.decode()
+            
         relative_url = path + (("?" + query) if query else "")
 
         request_id = str(id(request))
