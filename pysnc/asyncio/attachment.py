@@ -1,11 +1,13 @@
 import logging
-from typing import Optional, Dict, Any, List, Union, TYPE_CHECKING, BinaryIO
-from ..query import Query
-from ..attachment import Attachment
-from tempfile import SpooledTemporaryFile
-from pathlib import Path
 import traceback
-from ..exceptions import RequestException, NotFoundException
+from pathlib import Path
+from tempfile import SpooledTemporaryFile
+from typing import TYPE_CHECKING, Any, BinaryIO, Dict, List, Optional, Union
+
+from ..attachment import Attachment
+from ..exceptions import NotFoundException, RequestException
+from ..query import Query
+
 if TYPE_CHECKING:
     from .client import AsyncServiceNowClient
 
@@ -13,7 +15,7 @@ if TYPE_CHECKING:
 class AsyncAttachment(Attachment):
     """
     Asynchronous implementation of Attachment for ServiceNow.
-    
+
     This class provides an async interface for working with ServiceNow attachments.
     """
 
@@ -24,7 +26,7 @@ class AsyncAttachment(Attachment):
         """
         super().__init__(client, table)
         self._log = logging.getLogger(__name__)
-    
+
     def __iter__(self):
         # Block sync iteration to avoid calling async query() from a sync context
         raise TypeError("AsyncAttachment is async-iterable. Use `async for` instead of `for`.")
@@ -75,7 +77,7 @@ class AsyncAttachment(Attachment):
             raise StopAsyncIteration()
         return False
 
-    async def as_temp_file(self, chunk_size: int = 512) -> SpooledTemporaryFile:
+    async def as_temp_file(self, chunk_size: int = 512) -> SpooledTemporaryFile:  # type: ignore[override]
         """
         Return the attachment as a TempFile (async streaming).
         """
@@ -91,7 +93,7 @@ class AsyncAttachment(Attachment):
         tf.seek(0)
         return tf
 
-    async def write_to(self, path, chunk_size: int = 512) -> Path:
+    async def write_to(self, path, chunk_size: int = 512) -> Path:  # type: ignore[override]
         """
         Write the attachment to the given path (async streaming).
         """
@@ -110,7 +112,7 @@ class AsyncAttachment(Attachment):
             await resp.aclose()
         return p
 
-    async def read(self) -> bytes:
+    async def read(self) -> bytes:  # type: ignore[override]
         """
         Read the entire attachment into memory.
         """
@@ -123,13 +125,12 @@ class AsyncAttachment(Attachment):
             await resp.aclose()
         return data
 
-    async def readlines(self, encoding: str = "UTF-8", delimiter: str = "\n") -> List[str]:
+    async def readlines(self, encoding: str = "UTF-8", delimiter: str = "\n") -> List[str]:  # type: ignore[override]
         """
         Read the attachment as text, splitting by delimiter.
         """
         data = await self.read()
         return data.decode(encoding).split(delimiter)
-
 
     async def query(self):
         """
@@ -143,15 +144,14 @@ class AsyncAttachment(Attachment):
             self._Attachment__page = self._Attachment__page + 1
             self._Attachment__total = int(response.headers.get("X-Total-Count", "0"))
         except Exception as e:
-            if 'Transaction cancelled: maximum execution time exceeded' in response.text:
-                raise RequestException(
-                    'Maximum execution time exceeded. Lower batch size.')
+            if "Transaction cancelled: maximum execution time exceeded" in response.text:
+                raise RequestException("Maximum execution time exceeded. Lower batch size.")
             else:
                 traceback.print_exc()
                 self._log.debug(response.text)
                 raise e
 
-    async def get(self, sys_id: str) -> bool:
+    async def get(self, sys_id: str) -> bool:  # type: ignore[override]
         """
         Get a single attachment by sys_id (async).
         """
@@ -175,7 +175,7 @@ class AsyncAttachment(Attachment):
         if code != 204:
             raise RequestException(response.text)
 
-    async def add_attachment(
+    async def add_attachment( # type: ignore[override]
         self,
         table_sys_id,
         file_name,
@@ -186,7 +186,5 @@ class AsyncAttachment(Attachment):
         """
         Upload an attachment to this table (async). Returns Location header.
         """
-        r = await self._client.attachment_api.upload_file(
-            file_name, self._table, table_sys_id, file, content_type, encryption_context
-        )
+        r = await self._client.attachment_api.upload_file(file_name, self._table, table_sys_id, file, content_type, encryption_context)
         return r.headers["Location"]

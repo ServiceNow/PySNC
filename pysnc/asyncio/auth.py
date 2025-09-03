@@ -2,35 +2,36 @@
 Asynchronous authentication implementations for ServiceNow client.
 """
 
-import httpx
 import time
-from typing import Dict, Any, Optional
+from typing import Optional
+
+import httpx
 
 from ..exceptions import *
 
-JWT_GRANT_TYPE = 'urn:ietf:params:oauth:grant-type:jwt-bearer'
+JWT_GRANT_TYPE = "urn:ietf:params:oauth:grant-type:jwt-bearer"
 
 
 class AsyncServiceNowFlow:
     """Base class for async authentication flows"""
-    
+
     async def authenticate(self, instance: str, **kwargs) -> httpx.AsyncClient:
         """
         Authenticate and return an httpx.AsyncClient
-        
+
         :param str instance: The instance URL
         :param kwargs: Additional parameters for authentication
         :return: An authenticated httpx.AsyncClient
         :raises: AuthenticationException if authentication fails
         """
-        raise AuthenticationException('authenticate not implemented')
+        raise AuthenticationException("authenticate not implemented")
 
 
 class AsyncServiceNowPasswordGrantFlow(AsyncServiceNowFlow):
     """
     Password grant flow authentication for async client
     """
-    
+
     def __init__(self, username, password, client_id, client_secret):
         """
         Password flow authentication using 'legacy mobile'
@@ -52,10 +53,10 @@ class AsyncServiceNowPasswordGrantFlow(AsyncServiceNowFlow):
     def authorization_url(self, authorization_base_url: str) -> str:
         return f"{authorization_base_url}/oauth_token.do"
 
-    async def authenticate(self, instance: str, **kwargs) -> Dict[str, str]:
+    async def authenticate(self, instance: str, **kwargs) -> httpx.AsyncClient:  # type: ignore[override]
         """
         Designed to be called by AsyncServiceNowClient (async).
-        Returns headers dict suitable for httpx.AsyncClient.
+        Returns an authenticated httpx.AsyncClient.
         """
         token_url = self.authorization_url(instance)
         form = {
@@ -85,7 +86,7 @@ class AsyncServiceNowPasswordGrantFlow(AsyncServiceNowFlow):
             resp = await client.post(token_url, data=form, headers={"Accept": "application/json"})
         except Exception:
             await client.aclose()
-            raise AuthenticationException('Failed to authenticate')
+            raise AuthenticationException("Failed to authenticate")
 
         try:
             payload = resp.json()
@@ -108,7 +109,7 @@ class AsyncServiceNowJWTAuth(httpx.Auth):
     """
     JWT-based authentication for async client
     """
-    
+
     def __init__(self, client_id: str, client_secret: str, jwt: str):
         """
         You must obtain a signed JWT from your OIDC provider (Okta/Auth0/etc.).
@@ -119,7 +120,7 @@ class AsyncServiceNowJWTAuth(httpx.Auth):
         self.__jwt = jwt
         self.__token: Optional[str] = None
         self.__expires_at: Optional[float] = None
-    
+
     async def _get_access_token(self, request: httpx.Request) -> tuple[str, float]:
         # Build token endpoint from the request URL
         url = request.url

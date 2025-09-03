@@ -2,23 +2,25 @@
 Asynchronous implementation of GlideRecord for ServiceNow.
 """
 
+import copy
 import logging
 import traceback
-from typing import TYPE_CHECKING, List, Optional, Iterable, Dict
-import copy
+from typing import TYPE_CHECKING, Dict, Iterable, List, Optional
+
 from ..exceptions import *
 from ..query import *
 from ..record import GlideRecord
 
 if TYPE_CHECKING:
-    from .attachment import AsyncAttachment
     from .client import AsyncServiceNowClient
 
 
 class AsyncGlideRecord(GlideRecord):
+    _client: "AsyncServiceNowClient"
 
     def __init__(self, client: "AsyncServiceNowClient", table: str, batch_size: int = 500, rewindable: bool = True):
         super().__init__(client, table, batch_size=batch_size, rewindable=rewindable)
+        self._client = client
         self._log = logging.getLogger(__name__)
 
     def __iter__(self):
@@ -40,7 +42,7 @@ class AsyncGlideRecord(GlideRecord):
             raise StopAsyncIteration()
         return ok_or_self  # return self (iterator style) or True (bool style), matching your original
 
-    async def next(self, _recursive: bool = False):
+    async def next(self, _recursive: bool = False):  # type: ignore[override]
         l = len(self._GlideRecord__results)
         if l > 0 and self._GlideRecord__current + 1 < l:
             self._GlideRecord__current += 1
@@ -113,7 +115,7 @@ class AsyncGlideRecord(GlideRecord):
         elif code == 401:
             raise AuthenticationException(response.json()["error"])
 
-    async def get(self, name, value=None) -> bool:
+    async def get(self, name, value=None) -> bool:  # type: ignore[override]
         """
         Get a single record, accepting two values. If one value is passed, assumed to be sys_id. If two values are
         passed in, the first value is the column name to be used. Can return multiple records.
@@ -187,7 +189,7 @@ class AsyncGlideRecord(GlideRecord):
         else:
             raise UpdateException(response.json(), status_code=code)
 
-    async def delete(self) -> bool:
+    async def delete(self) -> bool: # type: ignore[override]
         """
         Delete the current record
 
@@ -205,7 +207,7 @@ class AsyncGlideRecord(GlideRecord):
         else:
             raise DeleteException(response.json(), status_code=code)
 
-    async def delete_multiple(self) -> bool:
+    async def delete_multiple(self) -> bool:  # type: ignore[override]
         """
         Deletes the current query, funny enough this is the same as iterating and deleting each record since we're
         using the REST api.
@@ -221,6 +223,7 @@ class AsyncGlideRecord(GlideRecord):
             await self._do_query()
 
         all_records_were_deleted = True
+
         def handle(response):
             nonlocal all_records_were_deleted
             if response is None or response.status_code != 204:
@@ -233,7 +236,7 @@ class AsyncGlideRecord(GlideRecord):
         await self._client.batch_api.execute()
         return all_records_were_deleted
 
-    async def update_multiple(self, custom_handler=None) -> bool:
+    async def update_multiple(self, custom_handler=None) -> bool:  # type: ignore[override]
         """
         Updates multiple records at once. A ``custom_handler`` of the form ``def handle(response: requests.Response | None)`` can be passed in,
         which may be useful if you wish to handle errors in a specific way. Note that if a custom_handler is used this
@@ -276,14 +279,12 @@ class AsyncGlideRecord(GlideRecord):
 
     async def add_attachment(self, file_name, file, content_type=None, encryption_context=None):
         if self._current() is None:
-            raise NoRecordException(
-                "cannot add attachment to nothing, did you forget to call next() or initialize()?"
-            )
+            raise NoRecordException("cannot add attachment to nothing, did you forget to call next() or initialize()?")
         live_client = self._fresh_client()
         attachment = await live_client.Attachment(self.table)
         return await attachment.add_attachment(self.sys_id, file_name, file, content_type, encryption_context)
 
-    async def serialize_all(
+    async def serialize_all( # type: ignore[override]
         self,
         display_value: bool | str = False,
         fields: Optional[Iterable[str]] = None,
@@ -307,24 +308,25 @@ class AsyncGlideRecord(GlideRecord):
         Return a live AsyncServiceNowClient. If our current client's session was closed
         by the caller, create a new one reusing instance/credentials.
         """
-        from .client import AsyncServiceNowClient  # noqa: WPS433 (runtime import intentional)
-        return AsyncServiceNowClient(self._client.instance, self._client.credentials)
+        from .client import (  # noqa: WPS433 (runtime import intentional)
+            AsyncServiceNowClient,
+        )
+
+        return AsyncServiceNowClient(self._client.instance, getattr(self._client, "credentials", None))
 
     def pop_record(self) -> "AsyncGlideRecord":
         """
         Pop the current record into a new AsyncGlideRecord (async variant of the sync method).
         """
-        agr = AsyncGlideRecord(self._client, self._GlideRecord__table)  # reuse same table
-        c = self._GlideRecord__results[self._GlideRecord__current]
-        agr._GlideRecord__results = [copy.deepcopy(c)]
-        agr._GlideRecord__current = 0
+        agr = AsyncGlideRecord(self._client, self._GlideRecord__table)  # type: ignore[arg-type]
+        agr._GlideRecord__results = [self._current()]
         agr._GlideRecord__total = 1
+        agr._GlideRecord__current = 0
         return agr
 
-
-    async def to_pandas(
+    async def to_pandas( # type: ignore[override]
         self,
-        mode: str = "smart",       # 'smart' | 'value' | 'display' | 'both'
+        mode: str = "smart",  # 'smart' | 'value' | 'display' | 'both'
         columns: Optional[List[str]] = None,
     ) -> Dict[str, List]:
         """
@@ -346,11 +348,11 @@ class AsyncGlideRecord(GlideRecord):
         if isinstance(self.fields, str):
             fields: List[str] = [f.strip() for f in self.fields.split(",") if f.strip()]
         else:
-            fields: List[str] = list(self.fields or [])
+            fields = list(self.fields or [])
 
         # Accumulate values & displays for all rows, and track equality per field
         vals: Dict[str, List] = {f: [] for f in fields}
-        dvs:  Dict[str, List] = {f: [] for f in fields}
+        dvs: Dict[str, List] = {f: [] for f in fields}
         different: Dict[str, bool] = {f: False for f in fields}
 
         async for row in self:

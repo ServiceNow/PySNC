@@ -1,6 +1,7 @@
 """
 Asynchronous ServiceNow client implementation using httpx.AsyncClient.
 """
+
 from __future__ import annotations
 
 import base64
@@ -10,6 +11,7 @@ from typing import Any, Callable, Dict, Mapping, Optional
 
 import httpx
 from httpx import Auth as HTTPXAuth
+from httpx import URL
 
 from ..client import API, ServiceNowClient
 from ..exceptions import *
@@ -31,6 +33,7 @@ class AsyncServiceNowClient(ServiceNowClient):
     :param bool verify: Verify the SSL/TLS certificate OR the certificate to use. Useful if you're using a self-signed HTTPS proxy.
     :param cert: if String, path to ssl client cert file (.pem). If Tuple, ('cert', 'key') pair.
     """
+
     def __init__(self, instance, auth, proxy=None, verify=None, cert=None, auto_retry=True):
         self._log = logging.getLogger(__name__)
         self.__instance = get_instance(instance)
@@ -53,7 +56,7 @@ class AsyncServiceNowClient(ServiceNowClient):
                 verify = True  # default to verify with proxy
 
         if auth is not None and cert is not None:
-            raise AuthenticationException('Cannot specify both auth and cert')
+            raise AuthenticationException("Cannot specify both auth and cert")
 
         self.__session: Optional[httpx.AsyncClient] = None
         headers: JSONHeaders = {"Accept": "application/json"}
@@ -101,27 +104,26 @@ class AsyncServiceNowClient(ServiceNowClient):
                 follow_redirects=True,
             )
         else:
-            raise AuthenticationException('No valid authentication method provided')
+            raise AuthenticationException("No valid authentication method provided")
 
         self.table_api = AsyncTableAPI(self)
         self.attachment_api = AsyncAttachmentAPI(self)
         self.batch_api = AsyncBatchAPI(self)
 
-
-    async def GlideRecord(self, table, batch_size=100, rewindable=True) -> 'AsyncGlideRecord':
+    async def GlideRecord(self, table, batch_size=100, rewindable=True) -> "AsyncGlideRecord": # type: ignore[override]
         """
         Create a :class:`pysnc.async.AsyncGlideRecord` for a given table against the current client
 
         :param str table: The table name e.g. ``problem``
         :param int batch_size: Batch size (items returned per HTTP request). Default is ``100``.
-        :param bool rewindable: If we can rewind the record. Default is ``True``. If ``False`` then we cannot rewind 
+        :param bool rewindable: If we can rewind the record. Default is ``True``. If ``False`` then we cannot rewind
                                 the record, which means as an Iterable this object will be 'spent' after iteration.
                                 When ``False`` less memory will be consumed, as each previous record will be collected.
         :return: :class:`pysnc.async.AsyncGlideRecord`
         """
         return AsyncGlideRecord(self, table, batch_size, rewindable)
 
-    async def Attachment(self, table) -> 'AsyncAttachment':
+    async def Attachment(self, table) -> "AsyncAttachment": # type: ignore[override]
         """
         Create an AsyncAttachment object for the current client
 
@@ -137,7 +139,6 @@ class AsyncServiceNowClient(ServiceNowClient):
         if self.__session is not None:
             await self.__session.aclose()
             self.__session = None
-
 
     @property
     def instance(self) -> str:
@@ -162,7 +163,7 @@ class AsyncAPI(API):
         super().__init__(client)
 
     # noinspection PyMethodMayBeStatic
-    def _validate_response(self, response: httpx.Response) -> None:
+    def _validate_response(self, response: httpx.Response) -> None:  # type: ignore[override]
         assert response is not None, "response argument required"
         code = response.status_code
         if code >= 400:
@@ -181,7 +182,7 @@ class AsyncAPI(API):
                 raise AuthenticationException(rjson)
             raise RequestException(rjson)
 
-    async def _send(self, req: httpx.Request, stream: bool=False) -> httpx.Response:
+    async def _send(self, req: httpx.Request, stream: bool = False) -> httpx.Response: # type: ignore[override]
         """
         Async port of API._send.
 
@@ -197,13 +198,13 @@ class AsyncAPI(API):
         if hasattr(self.session, "token"):
             try:
                 # Emulate: req.url, req.headers, req.data = self.session._client.add_token(...)
-                if hasattr(self.client, "_client") and hasattr(self.client._client, "add_token"):
+                if hasattr(self._client, "_client") and hasattr(self._client._client, "add_token"):
                     # Prepare inputs for add_token from the req-like object
                     method = getattr(req, "method", None)
                     url = getattr(req, "url", None)
                     headers = getattr(req, "headers", None) or {}
                     body = getattr(req, "data", None)
-                    url, headers, body = self.client._client.add_token(  # type: ignore[attr-defined]
+                    url, headers, body = self._client._client.add_token(  # type: ignore[attr-defined]
                         url, http_method=method, body=body, headers=headers
                     )
                     # Reflect updates back onto req if it is mutable
@@ -234,15 +235,15 @@ class AsyncAPI(API):
             request = req
         else:
             # Treat `req` as a lightweight request object (like requests.Request)
-            method: str = getattr(req, "method", "GET")
-            url: str = getattr(req, "url", "")
-            headers: Optional[Mapping[str, str]] = getattr(req, "headers", None)
+            method = getattr(req, "method", "GET")
+            url = getattr(req, "url", "")
+            headers = getattr(req, "headers", None)
             # Prefer explicit .json over .data to preserve JSON semantics
-            json_payload: Optional[Any] = getattr(req, "json", None)
-            data_payload: Optional[Any] = getattr(req, "data", None) if json_payload is None else None
-            files_payload: Optional[Any] = getattr(req, "files", None)
-            params_payload: Optional[Mapping[str, Any]] = getattr(req, "params", None)
-            auth_payload: Optional[Any] = getattr(req, "auth", None)
+            json_payload = getattr(req, "json", None)
+            data_payload = getattr(req, "data", None) if json_payload is None else None
+            files_payload = getattr(req, "files", None)
+            params_payload = getattr(req, "params", None)
+            auth_payload = getattr(req, "auth", None)
 
             request = self.session.build_request(
                 method=method,
@@ -275,16 +276,28 @@ class AsyncTableAPI(AsyncAPI):
         params = self._set_params(record)
         target_url = self._target(record.table)
 
-        req = httpx.Request('GET', target_url, params=params)
+        req = httpx.Request("GET", target_url, params=params)
         return await self._send(req)
 
     async def get(self, record, sys_id: str) -> httpx.Response:
         params = self._set_params(record)
-        if 'sysparm_offset' in params:
-            del params['sysparm_offset']
+        params.pop("sysparm_offset", None)
 
         target_url = self._target(record.table, sys_id)
-        req = httpx.Request('GET', target_url, params=params)
+        req = httpx.Request("GET", target_url, params=params)
+
+        if len(str(req.url)) > 8000:
+            # Move sysparm_* into the body; keep other params on the URL.
+            body = {k: v for k, v in params.items() if k.startswith("sysparm_")}
+            short_params = {k: v for k, v in params.items() if not k.startswith("sysparm_")}
+            req = httpx.Request(
+                "POST",
+                target_url,
+                params=short_params,
+                json=body,
+                headers={"X-HTTP-Method-Override": "GET"},
+            )
+
         return await self._send(req)
 
     async def put(self, record) -> httpx.Response:
@@ -295,36 +308,34 @@ class AsyncTableAPI(AsyncAPI):
         body = record.serialize(changes_only=True)
         params = self._set_params()
         target_url = self._target(record.table, record.sys_id)
-        req = httpx.Request('PATCH', target_url, params=params, json=body)
+        req = httpx.Request("PATCH", target_url, params=params, json=body)
         return await self._send(req)
 
     async def post(self, record) -> httpx.Response:
         body = record.serialize()
         params = self._set_params()
         target_url = self._target(record.table)
-        req = httpx.Request('POST', target_url, params=params, json=body)
+        req = httpx.Request("POST", target_url, params=params, json=body)
         return await self._send(req)
 
     async def delete(self, record) -> httpx.Response:
         target_url = self._target(record.table, record.sys_id)
-        req = httpx.Request('DELETE', target_url)
+        req = httpx.Request("DELETE", target_url)
         return await self._send(req)
 
 
 class AsyncAttachmentAPI(AsyncAPI):
-    API_VERSION = 'v1'
+    API_VERSION = "v1"
 
     def _target(self, sys_id: Optional[str] = None) -> str:
-        target = "{url}/api/now/{version}/attachment".format(
-            url=self._client.instance, version=self.API_VERSION
-        )
+        target = "{url}/api/now/{version}/attachment".format(url=self._client.instance, version=self.API_VERSION)
         if sys_id:
             target = "{}/{}".format(target, sys_id)
         return target
 
     async def get(self, sys_id: Optional[str] = None) -> httpx.Response:
         target_url = self._target(sys_id)
-        req = httpx.Request('GET', target_url, params={})
+        req = httpx.Request("GET", target_url, params={})
         return await self._send(req)
 
     async def get_file(self, sys_id: str, stream: bool = True) -> httpx.Response:
@@ -333,13 +344,13 @@ class AsyncAttachmentAPI(AsyncAPI):
         One should always ``with api.get_file(sys_id) as f:``
         """
         target_url = "{}/file".format(self._target(sys_id))
-        req = httpx.Request('GET', target_url)
+        req = httpx.Request("GET", target_url)
         return await self._send(req, stream=stream)
 
     async def list(self, attachment) -> httpx.Response:
         params = self._set_params(attachment)
         url = self._target()
-        req = httpx.Request('GET', url, params=params, headers=dict(Accept="application/json"))
+        req = httpx.Request("GET", url, params=params, headers=dict(Accept="application/json"))
         return await self._send(req)
 
     async def upload_file(
@@ -353,28 +364,28 @@ class AsyncAttachmentAPI(AsyncAPI):
     ) -> httpx.Response:
         url = f"{self._target()}/file"
         params: Dict[str, Any] = {
-            'file_name': file_name,
-            'table_name': table_name,
-            'table_sys_id': f"{table_sys_id}",
+            "file_name": file_name,
+            "table_name": table_name,
+            "table_sys_id": f"{table_sys_id}",
         }
         if encryption_context:
-            params['encryption_context'] = encryption_context
+            params["encryption_context"] = encryption_context
 
         if not content_type:
-            content_type = 'application/octet-stream'
-        headers = {'Content-Type': content_type}
+            content_type = "application/octet-stream"
+        headers = {"Content-Type": content_type}
 
-        req = httpx.Request('POST', url, params=params, headers=headers, data=file)
+        req = httpx.Request("POST", url, params=params, headers=headers, content=file)
         return await self._send(req)
 
     async def delete(self, sys_id: str) -> httpx.Response:
         target_url = self._target(sys_id)
-        req = httpx.Request('DELETE', target_url)
+        req = httpx.Request("DELETE", target_url)
         return await self._send(req)
 
 
 class AsyncBatchAPI(AsyncAPI):
-    API_VERSION = 'v1'
+    API_VERSION = "v1"
 
     def __init__(self, client):
         super().__init__(client)
@@ -384,9 +395,7 @@ class AsyncBatchAPI(AsyncAPI):
         self.__request_id = 0
 
     def _batch_target(self) -> str:
-        return "{url}/api/now/{version}/batch".format(
-            url=self._client.instance, version=self.API_VERSION
-        )
+        return "{url}/api/now/{version}/batch".format(url=self._client.instance, version=self.API_VERSION)
 
     def _table_target(self, table: str, sys_id: Optional[str] = None) -> str:
         # note: the instance is still in here so requests behaves normally when preparing requests
@@ -413,18 +422,14 @@ class AsyncBatchAPI(AsyncAPI):
             try:
                 if hasattr(self.session, "_client") and hasattr(self.session._client, "add_token"):
                     method = request.method
-                    url = str(request.url)
+                    token_url_str = str(request.url)
                     headers = dict(request.headers)
                     body = request.content if request.content is not None else None
-                    url, headers, body = self.session._client.add_token(  # type: ignore[attr-defined]
-                        url, http_method=method, body=body, headers=headers
+                    token_url_str, headers, body = self.session._client.add_token(  # type: ignore[attr-defined]
+                        token_url_str, http_method=method, body=body, headers=headers
                     )
-                    request = httpx.Request(
-                        method=method,
-                        url=url,
-                        headers=headers,
-                        content=body,
-                    )
+                    request = httpx.Request(method=method, url=token_url_str, headers=headers, content=body)
+
             except Exception as e:
                 if e.__class__.__name__ == "TokenExpiredError":
                     if getattr(self.session, "auto_refresh_url", None):
@@ -440,16 +445,22 @@ class AsyncBatchAPI(AsyncAPI):
         merged_headers = dict(self.session.headers)
         merged_headers.update(request.headers)
 
-        url = request.url
-        # path: prefer raw_path (bytes) if present; else fall back to .path (str)
-        path = url.raw_path.decode() if hasattr(url, "raw_path") else url.path
+        req_url: URL = request.url  # httpx.URL
 
-        # query: httpx.URL.query is bytes on recent versions, str on some others
-        query = url.query
-        if isinstance(query, (bytes, bytearray)):
-            query = query.decode()
-            
-        relative_url = path + (("?" + query) if query else "")
+        # Always get a str path
+        path: str = getattr(req_url, "path", "")
+        if not isinstance(path, str):
+            # Fallback just in case stubs/types say bytes
+            path = getattr(req_url, "raw_path", b"").decode()
+
+        # Always get a str query
+        raw_q = getattr(req_url, "raw_query", None)
+        if isinstance(raw_q, (bytes, bytearray)):
+            query: str = raw_q.decode()
+        else:
+            query = getattr(req_url, "query", "") or ""
+
+        relative_url = path + (f"?{query}" if query else "")
 
         request_id = str(id(request))
 
@@ -530,15 +541,14 @@ class AsyncBatchAPI(AsyncAPI):
         if len(data.get("unserviced_requests", [])) > 0:
             await self.execute(attempt=attempt + 1)
 
-
     # -------- enqueue helpers (same signatures, no I/O) --------
 
     def get(self, record, sys_id: str, hook: Callable[[Optional[httpx.Response]], None]) -> None:
         params = self._set_params(record)
-        if 'sysparm_offset' in params:
-            del params['sysparm_offset']
+        if "sysparm_offset" in params:
+            del params["sysparm_offset"]
         target_url = self._table_target(record.table, sys_id)
-        req = httpx.Request('GET', target_url, params=params)
+        req = httpx.Request("GET", target_url, params=params)
         self._add_request(req, hook)
 
     def put(self, record, hook: Callable[[Optional[httpx.Response]], None]) -> None:
@@ -548,23 +558,23 @@ class AsyncBatchAPI(AsyncAPI):
         body = record.serialize(changes_only=True)
         params = self._set_params()
         target_url = self._table_target(record.table, record.sys_id)
-        req = httpx.Request('PATCH', target_url, params=params, json=body)
+        req = httpx.Request("PATCH", target_url, params=params, json=body)
         self._add_request(req, hook)
 
     def post(self, record, hook: Callable[[Optional[httpx.Response]], None]) -> None:
         body = record.serialize()
         params = self._set_params()
         target_url = self._table_target(record.table)
-        req = httpx.Request('POST', target_url, params=params, json=body)
+        req = httpx.Request("POST", target_url, params=params, json=body)
         self._add_request(req, hook)
 
     def delete(self, record, hook: Callable[[Optional[httpx.Response]], None]) -> None:
         target_url = self._table_target(record.table, record.sys_id)
-        req = httpx.Request('DELETE', target_url)
+        req = httpx.Request("DELETE", target_url)
         self._add_request(req, hook)
 
     def list(self, record, hook: Callable[[Optional[httpx.Response]], None]) -> None:
         params = self._set_params(record)
         target_url = self._table_target(record.table)
-        req = httpx.Request('GET', target_url, params=params)
+        req = httpx.Request("GET", target_url, params=params)
         self._add_request(req, hook)
