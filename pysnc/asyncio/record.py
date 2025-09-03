@@ -5,7 +5,7 @@ Asynchronous implementation of GlideRecord for ServiceNow.
 import copy
 import logging
 import traceback
-from typing import TYPE_CHECKING, Dict, Iterable, List, Optional
+from typing import TYPE_CHECKING, Dict, Iterable, List, Optional, Union
 
 from ..exceptions import *
 from ..query import *
@@ -286,7 +286,7 @@ class AsyncGlideRecord(GlideRecord):
 
     async def serialize_all( # type: ignore[override]
         self,
-        display_value: bool | str = False,
+        display_value: Union[bool, str] = False,
         fields: Optional[Iterable[str]] = None,
         fmt: Optional[str] = None,
         exclude_reference_link: bool = True,
