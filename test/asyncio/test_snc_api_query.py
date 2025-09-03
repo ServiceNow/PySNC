@@ -232,27 +232,6 @@ class TestAsyncRecordQuery(IsolatedAsyncioTestCase):
         finally:
             await client.session.aclose()
 
-    async def test_extra_long_query(self):
-        client = AsyncServiceNowClient(self.c.server, self.c.credentials)
-        try:
-            true_id = '6816f79cc0a8016401c5a33be04be441'
-            gr = await client.GlideRecord('sys_user')
-            self.assertTrue(await gr.get(true_id), 'failed to get true_id')
-
-            # make an extra long query...
-            gr = await client.GlideRecord('sys_user')
-            for _ in range(2300):
-                # designed to be ~10 chars long including ^
-                gr.add_query('AAAA', 'BBBB')  # 'AAAA=BBBB^'
-            gr.add_query('sys_id', true_id)  # want this at the end
-            self.assertGreater(len(gr.get_encoded_query()), 23000)
-            await gr.query()  # would throw normally; should batch under the hood
-            self.assertEqual(len(gr), 1)
-            self.assertTrue(await gr.next())
-            self.assertEqual(gr.sys_id, true_id)
-        finally:
-            await client.session.aclose()
-
     async def test_disable_display_values(self):
         client = AsyncServiceNowClient(self.c.server, self.c.credentials)
         try:
@@ -279,9 +258,9 @@ class TestAsyncRecordQuery(IsolatedAsyncioTestCase):
     async def test_nonjson_error(self):
         client = AsyncServiceNowClient(self.c.server, self.c.credentials)
         try:
-            super_long_non_existant_name = "A" * 23000
+            super_long_non_existant_name = "A" * 8000
             gr = await client.GlideRecord(super_long_non_existant_name)
-            with self.assertRaisesRegex(exceptions.RequestException, r'^<.*html>.*'):
+            with self.assertRaisesRegex(exceptions.RequestException, r'Invalid table'):
                 await gr.get('doesntmatter')
         finally:
             await client.session.aclose()

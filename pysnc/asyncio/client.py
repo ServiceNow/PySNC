@@ -71,7 +71,7 @@ class AsyncServiceNowClient(ServiceNowClient):
                 cert=cert,
                 proxy=self.__proxy_url,
                 base_url=self.__instance,
-                timeout=60.0,
+                timeout=5.0,
                 follow_redirects=True,
             )
         elif isinstance(auth, (HTTPXAuth, httpx.Auth)):
@@ -82,7 +82,7 @@ class AsyncServiceNowClient(ServiceNowClient):
                 cert=cert,
                 proxy=self.__proxy_url,
                 base_url=self.__instance,
-                timeout=60.0,
+                timeout=5.0,
                 follow_redirects=True,
             )
         elif isinstance(auth, httpx.AsyncClient):
@@ -218,10 +218,8 @@ class AsyncAPI(API):
                 if e.__class__.__name__ == "TokenExpiredError":
                     # use refresh token to get new token
                     if getattr(self.session, "auto_refresh_url", None):
-                        # clear per-request auth if present (parity with original)
                         if hasattr(req, "auth"):
                             req.auth = None
-                        # refresh (sync in original; your async flow may differ)
                         refresh = getattr(self.session, "refresh_token", None)
                         if callable(refresh):
                             refresh(self.session.auto_refresh_url)
@@ -234,11 +232,9 @@ class AsyncAPI(API):
         if isinstance(req, httpx.Request):
             request = req
         else:
-            # Treat `req` as a lightweight request object (like requests.Request)
             method = getattr(req, "method", "GET")
             url = getattr(req, "url", "")
             headers = getattr(req, "headers", None)
-            # Prefer explicit .json over .data to preserve JSON semantics
             json_payload = getattr(req, "json", None)
             data_payload = getattr(req, "data", None) if json_payload is None else None
             files_payload = getattr(req, "files", None)
@@ -259,8 +255,6 @@ class AsyncAPI(API):
         # ----- Send -----
         # httpx supports streaming via stream=True; the returned Response can be consumed with aiter_*.
         resp = await self.session.send(request, stream=stream, follow_redirects=True)
-
-        # Parity check & raise on errors
         self._validate_response(resp)
         return resp
 
@@ -285,18 +279,6 @@ class AsyncTableAPI(AsyncAPI):
 
         target_url = self._target(record.table, sys_id)
         req = httpx.Request("GET", target_url, params=params)
-
-        if len(str(req.url)) > 8000:
-            # Move sysparm_* into the body; keep other params on the URL.
-            body = {k: v for k, v in params.items() if k.startswith("sysparm_")}
-            short_params = {k: v for k, v in params.items() if not k.startswith("sysparm_")}
-            req = httpx.Request(
-                "POST",
-                target_url,
-                params=short_params,
-                json=body,
-                headers={"X-HTTP-Method-Override": "GET"},
-            )
 
         return await self._send(req)
 

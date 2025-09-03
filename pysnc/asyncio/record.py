@@ -161,8 +161,6 @@ class AsyncGlideRecord(GlideRecord):
         elif code == 401:
             raise AuthenticationException(response.json()["error"])
         else:
-            print(response)
-            print(response.text)
             rjson = response.json()
             raise InsertException(rjson["error"] if "error" in rjson else f"{code} response on insert -- expected 201", status_code=code)
 

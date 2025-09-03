@@ -247,7 +247,7 @@ class TestAsyncWrite(IsolatedAsyncioTestCase):
             def custom_handle(response):
                 nonlocal saw_change
                 self.assertEqual(response.status_code, 200)
-                saw_change.append(response.json()['result']['sys_id']['value'])
+                saw_change.append(response.json()['result']['sys_id'])
 
             await tgr.update_multiple(custom_handle)
             self.assertCountEqual(saw_change, expected_to_change)
