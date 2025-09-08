@@ -12,6 +12,12 @@ Spawned from the desire to interact with ServiceNow data in a familiar and consi
 pip install pysnc
 ```
 
+If you also want to install the asyncio support, you can run:
+
+```
+pip install pysnc[asyncio]
+```
+
 ## Quick Start
 
 ```python
