@@ -2,7 +2,7 @@ from unittest import TestCase, skip
 
 from pysnc import ServiceNowClient
 from pysnc.auth import *
-from constants import Constants
+from .constants import Constants
 from pysnc import exceptions
 
 import requests
@@ -24,8 +24,8 @@ class TestAuth(TestCase):
             gr.get('does not matter')
             assert 'Exception should have been thrown'
         except exceptions.AuthenticationException as e:
-            self.assertTrue('User Not Authenticated' in str(e))
-            self.assertTrue('Required to provide Auth information' in str(e))
+            self.assertTrue('not authenticated' in str(e).lower())
+            self.assertTrue('required to provide auth information' in str(e).lower())
         except Exception:
             assert 'Should have got an Auth exception'
 

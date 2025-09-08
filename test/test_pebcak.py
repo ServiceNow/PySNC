@@ -2,7 +2,7 @@ from unittest import TestCase
 
 from pysnc import ServiceNowClient
 from pysnc.exceptions import *
-from constants import Constants
+from .constants import Constants
 
 
 class TestPEBCAK(TestCase):

@@ -1,7 +1,7 @@
 from unittest import TestCase
 
 from pysnc import ServiceNowClient
-from constants import Constants
+from .constants import Constants
 
 
 class TestWrite(TestCase):

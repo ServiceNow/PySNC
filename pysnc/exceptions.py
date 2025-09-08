@@ -1,6 +1,8 @@
 class AuthenticationException(Exception):
     pass
 
+class AuthorizationException(Exception):
+    pass
 
 class EvaluationException(Exception):
     pass
@@ -53,4 +55,7 @@ class UploadException(Exception):
 
 
 class NoRecordException(Exception):
+    pass
+
+class ResponseException(Exception):
     pass
