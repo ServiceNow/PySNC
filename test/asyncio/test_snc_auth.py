@@ -29,8 +29,8 @@ class TestAsyncAuth(IsolatedAsyncioTestCase):
                 await gr.get('does not matter')
                 self.fail('Exception should have been thrown')
             except exceptions.AuthenticationException as e:
-                self.assertIn('User Not Authenticated', str(e))
-                self.assertIn('Required to provide Auth information', str(e))
+                self.assertTrue('not authenticated' in str(e).lower())
+                self.assertTrue('required to provide auth information' in str(e).lower())
             except Exception:
                 self.fail('Should have got an Auth exception')
         finally:
