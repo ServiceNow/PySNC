@@ -22,11 +22,12 @@ requests = ">=2.32"
 requests-oauthlib = { version = ">=1.2.0", optional = true}
 certifi = "^2024.7.4"
 urllib3 = ">=2.5"
-asyncio = "^4.0.0"
-httpx = "^0.28.1"
+asyncio = { version = "^4.0.0", optional = true }
+httpx = { version = "^0.28.1", optional = true }
 
 [tool.poetry.extras]
 oauth = ["requests-oauthlib"]
+asyncio = ["asyncio", "httpx"]
 
 [tool.poetry.group.dev.dependencies]
 requests-oauthlib = ">=1.2.0"
