@@ -37,7 +37,7 @@ jobs:
           poetry config pypi-token.pypi $PYPI_TOKEN
           poetry version ${{ github.ref_name }}
           poetry publish --build
-          poetry install --no-interaction --no-root --with dev,docs --extras "async"
+          poetry install --no-interaction --no-root --with dev,docs --extras "asyncio"
           poetry run jake ddt --output-format json -o bom.json --whitelist whitelist.json
       - name: update version
         uses: stefanzweifel/git-auto-commit-action@v4
@@ -50,7 +50,7 @@ jobs:
           mkdir gh-pages
           touch gh-pages/.nojekyll
           cd docs
-          poetry install --no-interaction --with dev,docs --extras "async"
+          poetry install --no-interaction --with dev,docs --extras "asyncio"
           poetry run make clean html
           cp -r _build/html/* ../gh-pages/
       - name: publish docs
