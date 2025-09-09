@@ -54,7 +54,7 @@ jobs:
           poetry run make clean html
           cp -r _build/html/* ../gh-pages/
       - name: publish docs
-        uses: JamesIves/github-pages-deploy-action@v4
+        uses: JamesIves/github-pages-deploy-action@4.1.4
         with:
           branch: gh-pages
           folder: gh-pages
