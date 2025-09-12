@@ -1,22 +1,23 @@
 <!DOCTYPE html>
 
-<html lang="en">
+<html lang="en" data-content_root="../../">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>pysnc.exceptions &#8212; PySNC 1.1.10 documentation</title>
-    <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=fa44fd50" />
-    <link rel="stylesheet" type="text/css" href="../../_static/alabaster.css?v=039e1c02" />
-    <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js?v=5d9df9de"></script>
-    <script src="../../_static/doctools.js?v=888ff710"></script>
-    <script src="../../_static/sphinx_highlight.js?v=4825356b"></script>
+    <title>pysnc.exceptions &#8212; PySNC 1.2.0 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=03e43079" />
+    <link rel="stylesheet" type="text/css" href="../../_static/alabaster.css?v=12dfc556" />
+    <script src="../../_static/documentation_options.js?v=6efca38a"></script>
+    <script src="../../_static/doctools.js?v=9a2dae69"></script>
+    <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
    
   <link rel="stylesheet" href="../../_static/custom.css" type="text/css" />
   
+
   
-  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+  
 
   </head><body>
   
@@ -29,24 +30,43 @@
           <div class="body" role="main">
             
   <h1>Source code for pysnc.exceptions</h1><div class="highlight"><pre>
-<div class="viewcode-block" id="AuthenticationException"><a class="viewcode-back" href="../../api.html#pysnc.exceptions.AuthenticationException">[docs]</a><span></span><span class="k">class</span> <span class="nc">AuthenticationException</span><span class="p">(</span><span class="ne">Exception</span><span class="p">):</span>
+<div class="viewcode-block" id="AuthenticationException">
+<a class="viewcode-back" href="../../api.html#pysnc.exceptions.AuthenticationException">[docs]</a>
+<span></span><span class="k">class</span><span class="w"> </span><span class="nc">AuthenticationException</span><span class="p">(</span><span class="ne">Exception</span><span class="p">):</span>
     <span class="k">pass</span></div>
 
 
-<div class="viewcode-block" id="EvaluationException"><a class="viewcode-back" href="../../api.html#pysnc.exceptions.EvaluationException">[docs]</a><span class="k">class</span> <span class="nc">EvaluationException</span><span class="p">(</span><span class="ne">Exception</span><span class="p">):</span>
+<div class="viewcode-block" id="AuthorizationException">
+<a class="viewcode-back" href="../../api.html#pysnc.exceptions.AuthorizationException">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">AuthorizationException</span><span class="p">(</span><span class="ne">Exception</span><span class="p">):</span>
     <span class="k">pass</span></div>
 
 
-<div class="viewcode-block" id="AclQueryException"><a class="viewcode-back" href="../../api.html#pysnc.exceptions.AclQueryException">[docs]</a><span class="k">class</span> <span class="nc">AclQueryException</span><span class="p">(</span><span class="ne">Exception</span><span class="p">):</span>
+<div class="viewcode-block" id="EvaluationException">
+<a class="viewcode-back" href="../../api.html#pysnc.exceptions.EvaluationException">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">EvaluationException</span><span class="p">(</span><span class="ne">Exception</span><span class="p">):</span>
     <span class="k">pass</span></div>
 
 
-<div class="viewcode-block" id="RoleException"><a class="viewcode-back" href="../../api.html#pysnc.exceptions.RoleException">[docs]</a><span class="k">class</span> <span class="nc">RoleException</span><span class="p">(</span><span class="ne">Exception</span><span class="p">):</span>
+
+<div class="viewcode-block" id="AclQueryException">
+<a class="viewcode-back" href="../../api.html#pysnc.exceptions.AclQueryException">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">AclQueryException</span><span class="p">(</span><span class="ne">Exception</span><span class="p">):</span>
     <span class="k">pass</span></div>
 
 
-<div class="viewcode-block" id="RestException"><a class="viewcode-back" href="../../api.html#pysnc.exceptions.RestException">[docs]</a><span class="k">class</span> <span class="nc">RestException</span><span class="p">(</span><span class="ne">Exception</span><span class="p">):</span>
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">message</span><span class="p">,</span> <span class="n">status_code</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+
+<div class="viewcode-block" id="RoleException">
+<a class="viewcode-back" href="../../api.html#pysnc.exceptions.RoleException">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">RoleException</span><span class="p">(</span><span class="ne">Exception</span><span class="p">):</span>
+    <span class="k">pass</span></div>
+
+
+
+<div class="viewcode-block" id="RestException">
+<a class="viewcode-back" href="../../api.html#pysnc.exceptions.RestException">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">RestException</span><span class="p">(</span><span class="ne">Exception</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">message</span><span class="p">,</span> <span class="n">status_code</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&#39;&#39;&#39;if isinstance(message, dict) and &#39;error&#39; in message:</span>
 <span class="sd">            message = message[&#39;error&#39;][&#39;message&#39;]</span>
 <span class="sd">            self.detail = message[&#39;error&#39;][&#39;detail&#39;]</span>
@@ -55,43 +75,74 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">status_code</span> <span class="o">=</span> <span class="n">status_code</span></div>
 
 
-<div class="viewcode-block" id="InsertException"><a class="viewcode-back" href="../../api.html#pysnc.exceptions.InsertException">[docs]</a><span class="k">class</span> <span class="nc">InsertException</span><span class="p">(</span><span class="n">RestException</span><span class="p">):</span>
+
+<div class="viewcode-block" id="InsertException">
+<a class="viewcode-back" href="../../api.html#pysnc.exceptions.InsertException">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">InsertException</span><span class="p">(</span><span class="n">RestException</span><span class="p">):</span>
     <span class="k">pass</span></div>
 
 
-<div class="viewcode-block" id="UpdateException"><a class="viewcode-back" href="../../api.html#pysnc.exceptions.UpdateException">[docs]</a><span class="k">class</span> <span class="nc">UpdateException</span><span class="p">(</span><span class="n">RestException</span><span class="p">):</span>
+
+<div class="viewcode-block" id="UpdateException">
+<a class="viewcode-back" href="../../api.html#pysnc.exceptions.UpdateException">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">UpdateException</span><span class="p">(</span><span class="n">RestException</span><span class="p">):</span>
     <span class="k">pass</span></div>
 
 
-<div class="viewcode-block" id="DeleteException"><a class="viewcode-back" href="../../api.html#pysnc.exceptions.DeleteException">[docs]</a><span class="k">class</span> <span class="nc">DeleteException</span><span class="p">(</span><span class="n">RestException</span><span class="p">):</span>
+
+<div class="viewcode-block" id="DeleteException">
+<a class="viewcode-back" href="../../api.html#pysnc.exceptions.DeleteException">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">DeleteException</span><span class="p">(</span><span class="n">RestException</span><span class="p">):</span>
     <span class="k">pass</span></div>
 
 
-<div class="viewcode-block" id="NotFoundException"><a class="viewcode-back" href="../../api.html#pysnc.exceptions.NotFoundException">[docs]</a><span class="k">class</span> <span class="nc">NotFoundException</span><span class="p">(</span><span class="ne">Exception</span><span class="p">):</span>
+
+<div class="viewcode-block" id="NotFoundException">
+<a class="viewcode-back" href="../../api.html#pysnc.exceptions.NotFoundException">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">NotFoundException</span><span class="p">(</span><span class="ne">Exception</span><span class="p">):</span>
     <span class="k">pass</span></div>
 
 
-<div class="viewcode-block" id="RequestException"><a class="viewcode-back" href="../../api.html#pysnc.exceptions.RequestException">[docs]</a><span class="k">class</span> <span class="nc">RequestException</span><span class="p">(</span><span class="ne">Exception</span><span class="p">):</span>
+
+<div class="viewcode-block" id="RequestException">
+<a class="viewcode-back" href="../../api.html#pysnc.exceptions.RequestException">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">RequestException</span><span class="p">(</span><span class="ne">Exception</span><span class="p">):</span>
     <span class="k">pass</span></div>
 
 
-<div class="viewcode-block" id="InstanceException"><a class="viewcode-back" href="../../api.html#pysnc.exceptions.InstanceException">[docs]</a><span class="k">class</span> <span class="nc">InstanceException</span><span class="p">(</span><span class="ne">Exception</span><span class="p">):</span>
+
+<div class="viewcode-block" id="InstanceException">
+<a class="viewcode-back" href="../../api.html#pysnc.exceptions.InstanceException">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">InstanceException</span><span class="p">(</span><span class="ne">Exception</span><span class="p">):</span>
     <span class="k">pass</span></div>
 
 
-<div class="viewcode-block" id="UploadException"><a class="viewcode-back" href="../../api.html#pysnc.exceptions.UploadException">[docs]</a><span class="k">class</span> <span class="nc">UploadException</span><span class="p">(</span><span class="ne">Exception</span><span class="p">):</span>
+
+<div class="viewcode-block" id="UploadException">
+<a class="viewcode-back" href="../../api.html#pysnc.exceptions.UploadException">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">UploadException</span><span class="p">(</span><span class="ne">Exception</span><span class="p">):</span>
     <span class="k">pass</span></div>
 
 
-<div class="viewcode-block" id="NoRecordException"><a class="viewcode-back" href="../../api.html#pysnc.exceptions.NoRecordException">[docs]</a><span class="k">class</span> <span class="nc">NoRecordException</span><span class="p">(</span><span class="ne">Exception</span><span class="p">):</span>
+
+<div class="viewcode-block" id="NoRecordException">
+<a class="viewcode-back" href="../../api.html#pysnc.exceptions.NoRecordException">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">NoRecordException</span><span class="p">(</span><span class="ne">Exception</span><span class="p">):</span>
     <span class="k">pass</span></div>
+
+
+<div class="viewcode-block" id="ResponseException">
+<a class="viewcode-back" href="../../api.html#pysnc.exceptions.ResponseException">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">ResponseException</span><span class="p">(</span><span class="ne">Exception</span><span class="p">):</span>
+    <span class="k">pass</span></div>
+
 </pre></div>
 
           </div>
           
         </div>
       </div>
-      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
         <div class="sphinxsidebarwrapper">
 <h1 class="logo"><a href="../../index.html">PySNC</a></h1>
 
@@ -123,7 +174,7 @@
   </ul></li>
 </ul>
 </div>
-<div id="searchbox" style="display: none" role="search">
+<search id="searchbox" style="display: none" role="search">
   <h3 id="searchlabel">Quick search</h3>
     <div class="searchformwrapper">
     <form class="search" action="../../search.html" method="get">
@@ -131,7 +182,7 @@
       <input type="submit" value="Go" />
     </form>
     </div>
-</div>
+</search>
 <script>document.getElementById('searchbox').style.display = "block"</script>
 
 
@@ -146,11 +197,11 @@
       <div class="clearer"></div>
     </div>
     <div class="footer">
-      &copy;2023, Matthew Gill.
+      &#169;2023, Matthew Gill.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 7.1.2</a>
-      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.13</a>
+      Powered by <a href="https://www.sphinx-doc.org/">Sphinx 7.4.7</a>
+      &amp; <a href="https://alabaster.readthedocs.io">Alabaster 0.7.16</a>
       
     </div>
 

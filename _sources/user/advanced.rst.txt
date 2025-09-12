@@ -121,6 +121,36 @@ Transform a query into a DataFrame::
     >>> df = pd.DataFrame(gr.to_pandas())
 
 
+Asyncio
+-------
+
+You can use most of PySNC’s features asynchronously. Instead of relying on ``pysnc.ServiceNowClient``, use ``pysnc.asyncio.AsyncServiceNowClient``. Below is a simple example of how to migrate from synchronous to asynchronous code:
+
+.. code-block:: diff
+
+    - from pysnc import ServiceNowClient
+    + import asyncio
+    + from pysnc.asyncio import AsyncServiceNowClient
+
+    - def main():
+    -     client = ServiceNowClient(...)
+    -     gr = client.GlideRecord('incident')
+    -     gr.query()
+    -     while gr.next():
+    -         print(gr.short_description)
+    -
+    - if __name__ == "__main__":
+    -     main()
+    + async def main():
+    +     client = AsyncServiceNowClient(...)
+    +     gr = await client.GlideRecord('incident')
+    +     await gr.query()
+    +     while await gr.next():
+    +         print(gr.short_description.get_value())
+    +
+    + if __name__ == "__main__":
+    +     asyncio.run(main())
+
 Performance Concerns
 --------------------
 
