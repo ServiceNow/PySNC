@@ -52,7 +52,6 @@ jobs:
     - name: run extra sanity checks
       run: |
         poetry run mypy
-      #    poetry run jake ddt --whitelist whitelist.json
   scan:
     runs-on: ubuntu-latest
     steps:
