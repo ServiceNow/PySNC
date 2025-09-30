@@ -52,7 +52,22 @@ jobs:
     - name: run extra sanity checks
       run: |
         poetry run mypy
-        poetry run jake ddt --whitelist whitelist.json
+      #    poetry run jake ddt --whitelist whitelist.json
+  scan:
+    runs-on: ubuntu-latest
+    steps:
+    - name: check out repository
+      uses: actions/checkout@v4
+    - name: make sbom
+      uses: anchore/sbom-action@v0
+      with:
+        file: poetry.lock
+        format: cyclonedx-json
+        output-file: "${{ github.event.repository.name }}-sbom.json"
+    - name: scan sbom
+      uses: anchore/scan-action@v6
+      with:
+        sbom: "${{ github.event.repository.name }}-sbom.json"
   prerelease:
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/main'

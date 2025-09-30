@@ -38,13 +38,18 @@ jobs:
           poetry version ${{ github.ref_name }}
           poetry publish --build
           poetry install --no-interaction --no-root --with dev,docs --extras "asyncio"
-          poetry run jake ddt --output-format json -o bom.json --whitelist whitelist.json
       - name: update version
         uses: stefanzweifel/git-auto-commit-action@v4
         with:
           commit_message: Automatic version bump
           branch: main
           file_pattern: pyproject.toml
+      - name: make sbom
+        uses: anchore/sbom-action@v0
+        with:
+          file: poetry.lock
+          format: cyclonedx-json
+          output-file: "${{ github.event.repository.name }}-sbom.json"
       - name: build docs
         run: |
           mkdir gh-pages
@@ -58,10 +63,3 @@ jobs:
         with:
           branch: gh-pages
           folder: gh-pages
-      - name: sbom
-        uses: svenstaro/upload-release-action@v2
-        with:
-          repo_token: ${{ secrets.GITHUB_TOKEN }}
-          file: bom.json
-          asset_name: bom.json
-          tag: ${{ github.ref }}
