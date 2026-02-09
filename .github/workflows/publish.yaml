@@ -38,7 +38,7 @@ jobs:
           poetry version ${{ github.ref_name }}
           poetry publish --build
           poetry install --no-interaction --no-root --with dev,docs --extras "asyncio"
-          poetry run jake ddt --output-format json -o bom.json --whitelist whitelist.json
+          poetry run cyclonedx-py poetry -o bom.json --mc-type library --all-extras
       - name: update version
         uses: stefanzweifel/git-auto-commit-action@v4
         with:

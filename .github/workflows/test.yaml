@@ -52,7 +52,7 @@ jobs:
     - name: run extra sanity checks
       run: |
         poetry run mypy
-        poetry run jake ddt --whitelist whitelist.json
+        poetry run cyclonedx-py poetry -o bom.json --mc-type library --all-extras
   prerelease:
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/main'
