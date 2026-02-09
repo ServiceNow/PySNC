@@ -42,7 +42,7 @@ python-dotenv = "^1.0.0"
 mypy = "^1.2.0"
 types-requests = "^2.29.0.0"
 types-oauthlib = "^3.2.0.7"
-jake = "^3.0.0"
+cyclonedx-bom = "^7.2.1"
 
 [tool.poetry.group.docs.dependencies]
 sphinx = "*"
