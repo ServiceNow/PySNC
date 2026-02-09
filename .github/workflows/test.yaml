@@ -21,9 +21,9 @@ jobs:
       PYSNC_CLIENT_SECRET: ${{ secrets.PYSNC_CLIENT_SECRET }}
     steps:
     - name: check out repository
-      uses: actions/checkout@v4
+      uses: actions/checkout@v5
     - name: set up python ${{ matrix.python-version }}
-      uses: actions/setup-python@v5
+      uses: actions/setup-python@v6
       with:
         python-version: ${{ matrix.python-version }}
     - name: setup poetry
@@ -58,9 +58,9 @@ jobs:
     if: github.ref == 'refs/heads/main'
     needs: install-test
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - name: Setup Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6
         with:
           python-version: "3.11"
       - name: cache poetry install
