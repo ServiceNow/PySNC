@@ -21,15 +21,15 @@ jobs:
       PYSNC_CLIENT_SECRET: ${{ secrets.PYSNC_CLIENT_SECRET }}
     steps:
     - name: check out repository
-      uses: actions/checkout@v4
+      uses: actions/checkout@v5
     - name: set up python ${{ matrix.python-version }}
-      uses: actions/setup-python@v5
+      uses: actions/setup-python@v6
       with:
         python-version: ${{ matrix.python-version }}
     - name: setup poetry
       uses: snok/install-poetry@v1
       with:
-        poetry-version: 2.1.3
+        version: 2.1.3
         virtualenvs-create: true
         virtualenvs-in-project: true
     - name: cache deps
@@ -52,15 +52,15 @@ jobs:
     - name: run extra sanity checks
       run: |
         poetry run mypy
-        poetry run jake ddt --whitelist whitelist.json
+        poetry run cyclonedx-py poetry -o bom.json --mc-type library --all-extras
   prerelease:
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/main'
     needs: install-test
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - name: Setup Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6
         with:
           python-version: "3.11"
       - name: cache poetry install
@@ -71,7 +71,7 @@ jobs:
       - name: setup poetry
         uses: snok/install-poetry@v1
         with:
-          poetry-version: 2.1.3
+          version: 2.1.3
           virtualenvs-create: true
           virtualenvs-in-project: true
       - name: cache deps

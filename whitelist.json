@@ -1,8 +1,0 @@
-{
-    "ignore": [
-        {
-            "id": "CVE-2018-20225",
-            "reason": "get build passing, Disputed: pip --extra-index-url Improper Input Validation"
-        }
-    ]
-}
