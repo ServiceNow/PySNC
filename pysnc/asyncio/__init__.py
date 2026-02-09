@@ -8,6 +8,7 @@ try:
         AsyncServiceNowFlow,
         AsyncServiceNowJWTAuth,
         AsyncServiceNowPasswordGrantFlow,
+        AsyncServiceNowClientCredentialsFlow,
     )
     from .client import (
         AsyncAttachmentAPI,
@@ -28,5 +29,6 @@ __all__ = [
     "AsyncAttachment",
     "AsyncServiceNowFlow",
     "AsyncServiceNowPasswordGrantFlow",
+    "AsyncServiceNowClientCredentialsFlow",
     "AsyncServiceNowJWTAuth",
 ]
