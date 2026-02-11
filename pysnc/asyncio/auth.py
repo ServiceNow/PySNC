@@ -105,6 +105,136 @@ class AsyncServiceNowPasswordGrantFlow(AsyncServiceNowFlow):
         return client
 
 
+class AsyncServiceNowClientCredentialsFlow(AsyncServiceNowFlow):
+    """
+    OAuth2 Client Credentials Grant Flow for async ServiceNow client.
+    
+    This flow is ideal for machine-to-machine authentication where no user context is needed.
+    Only requires client_id and client_secret (no username/password).
+    
+    Example:
+        >>> flow = AsyncServiceNowClientCredentialsFlow('my_client_id', 'my_client_secret')
+        >>> client = AsyncServiceNowClient('dev12345', flow)
+    """
+    
+    def __init__(self, client_id: str, client_secret: str):
+        """
+        Client Credentials flow authentication (OAuth 2.0)
+        
+        :param client_id: The OAuth application client ID
+        :param client_secret: The OAuth application client secret
+        """
+        self.client_id = client_id
+        self.__secret = client_secret
+        self.__token: Optional[str] = None
+        self.__expires_at: Optional[float] = None
+        
+    def authorization_url(self, authorization_base_url: str) -> str:
+        """Generate the token endpoint URL"""
+        return f"{authorization_base_url}/oauth_token.do"
+    
+    async def _get_access_token(self, instance: str) -> str:
+        """
+        Request an access token from ServiceNow using client credentials.
+        
+        :param instance: The ServiceNow instance URL
+        :return: Access token string
+        :raises AuthenticationException: If token request fails
+        """
+        token_url = self.authorization_url(instance)
+        headers = {
+            'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8'
+        }
+        data = {
+            'grant_type': 'client_credentials',
+            'client_id': self.client_id,
+            'client_secret': self.__secret
+        }
+        
+        async with httpx.AsyncClient() as client:
+            try:
+                r = await client.post(token_url, headers=headers, data=data, timeout=30.0)
+            except httpx.RequestError as e:
+                raise AuthenticationException(f"Failed to connect to token endpoint: {e}")
+            
+            if r.status_code != 200:
+                try:
+                    error_data = r.json()
+                    error_msg = error_data.get('error_description', error_data.get('error', r.text))
+                except Exception:
+                    error_msg = r.text
+                raise AuthenticationException(
+                    f"Failed to obtain access token: {r.status_code} {r.reason_phrase} - {error_msg}"
+                )
+            
+            try:
+                token_data = r.json()
+            except Exception:
+                raise AuthenticationException(f"Invalid JSON response from token endpoint: {r.text}")
+            
+            if 'access_token' not in token_data:
+                raise AuthenticationException(f"No access_token in response: {token_data}")
+            
+            self.__token = token_data['access_token']
+            # Use expires_in from response, default to 3600 seconds (1 hour) if not provided
+            expires_in = token_data.get('expires_in', 3600)
+            # Refresh 60 seconds before actual expiry to avoid edge cases
+            self.__expires_at = time.time() + expires_in - 60
+            
+            return self.__token
+    
+    async def authenticate(self, instance: str, **kwargs) -> httpx.AsyncClient:
+        """
+        Create and return an authenticated httpx.AsyncClient with Bearer token.
+        The client will automatically refresh the token when it expires.
+        
+        :param instance: The ServiceNow instance URL
+        :param kwargs: Additional arguments (proxies, verify, timeout, etc.)
+        :return: Authenticated httpx.AsyncClient
+        """
+        verify = kwargs.get("verify", True)
+        proxies = kwargs.get("proxies", None)
+        timeout = kwargs.get("timeout", 30.0)
+        
+        # Get initial token
+        if not self.__token or (self.__expires_at is not None and time.time() > self.__expires_at):
+            await self._get_access_token(instance)
+        
+        # Create client with custom auth handler that refreshes tokens
+        client = httpx.AsyncClient(
+            base_url=instance,
+            headers={"Accept": "application/json"},
+            auth=_AsyncClientCredentialsAuth(self, instance),
+            verify=verify,
+            proxy=proxies,
+            timeout=timeout,
+            follow_redirects=True,
+        )
+        
+        return client
+
+
+class _AsyncClientCredentialsAuth(httpx.Auth):
+    """
+    Internal auth handler that automatically refreshes client credentials tokens for async client.
+    """
+    
+    def __init__(self, flow: AsyncServiceNowClientCredentialsFlow, instance: str):
+        self._flow = flow
+        self._instance = instance
+    
+    async def async_auth_flow(self, request: httpx.Request):
+        """httpx Auth flow that checks and refreshes token before each request"""
+        # Check if token needs refresh
+        _token = self._flow._AsyncServiceNowClientCredentialsFlow__token # type: ignore[attr-defined]
+        _expires_at = self._flow._AsyncServiceNowClientCredentialsFlow__expires_at # type: ignore[attr-defined]
+        if not _token or (_expires_at is not None and time.time() > _expires_at):
+            await self._flow._get_access_token(self._instance)
+        
+        request.headers['Authorization'] = f"Bearer {_token}"
+        yield request
+
+
 class AsyncServiceNowJWTAuth(httpx.Auth):
     """
     JWT-based authentication for async client

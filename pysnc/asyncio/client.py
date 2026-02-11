@@ -90,8 +90,29 @@ class AsyncServiceNowClient(ServiceNowClient):
             self.__session = auth
             # best-effort header merge
             self.__session.headers.update(headers)
-        elif isinstance(auth, AsyncServiceNowFlow):  # accept either, adapt
-            raise NotImplementedError("AsyncServiceNowFlow is not supported yet for async client")
+        elif isinstance(auth, AsyncServiceNowFlow):
+            # Use the async flow to authenticate and get a client
+            import asyncio
+            # We need to run the async authenticate method
+            # This is a bit awkward but necessary for __init__
+            loop = None
+            try:
+                loop = asyncio.get_running_loop()
+            except RuntimeError:
+                pass
+            
+            if loop and loop.is_running():
+                # If we're already in an async context, we can't use run_until_complete
+                # Store the flow and defer authentication
+                self.__pending_flow = auth
+                self.__session = None
+            else:
+                # Not in an async context, we can authenticate now
+                self.__session = asyncio.run(auth.authenticate(
+                    self.__instance, 
+                    proxies=self.__proxy_url, 
+                    verify=verify if verify is not None else True
+                ))
         elif cert is not None:
             # cert-only client (no auth)
             self.__session = httpx.AsyncClient(
