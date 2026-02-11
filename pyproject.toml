@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "pysnc"
-version = "1.2.1a0"
+version = "1.2.1a1"
 description = "Python SNC (REST) API"
 authors = [
     "Matthew Gill <matthew.gill@servicenow.com>",
