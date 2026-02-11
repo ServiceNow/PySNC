@@ -217,6 +217,3 @@ class TestElement(TestCase):
         self.assertFalse(element.changes())
         element.set_value('4')
         self.assertTrue(element.changes())
-
-    def test_non_ref_string_field(self):
-        element = GlideElement('')
