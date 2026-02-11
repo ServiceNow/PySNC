@@ -226,12 +226,12 @@ class _AsyncClientCredentialsAuth(httpx.Auth):
     async def async_auth_flow(self, request: httpx.Request):
         """httpx Auth flow that checks and refreshes token before each request"""
         # Check if token needs refresh
-        if not self._flow._AsyncServiceNowClientCredentialsFlow__token or \
-           (self._flow._AsyncServiceNowClientCredentialsFlow__expires_at is not None and 
-            time.time() > self._flow._AsyncServiceNowClientCredentialsFlow__expires_at):
+        _token = self._flow._AsyncServiceNowClientCredentialsFlow__token # type: ignore[attr-defined]
+        _expires_at = self._flow._AsyncServiceNowClientCredentialsFlow__expires_at # type: ignore[attr-defined]
+        if not _token or (_expires_at is not None and time.time() > _expires_at):
             await self._flow._get_access_token(self._instance)
         
-        request.headers['Authorization'] = f"Bearer {self._flow._AsyncServiceNowClientCredentialsFlow__token}"
+        request.headers['Authorization'] = f"Bearer {_token}"
         yield request
 
 
