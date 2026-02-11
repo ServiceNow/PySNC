@@ -29,7 +29,7 @@ class ServiceNowClient(object):
     :param bool verify: Verify the SSL/TLS certificate OR the certificate to use. Useful if you're using a self-signed HTTPS proxy.
     :param cert: if String, path to ssl client cert file (.pem). If Tuple, (‘cert’, ‘key’) pair.
     """
-    def __init__(self, instance, auth, proxy=None, verify=None, cert=None, auto_retry=True):
+    def __init__(self, instance, auth=None, proxy=None, verify=None, cert=None, auto_retry=True):
         self._log = logging.getLogger(__name__)
         self.__instance = get_instance(instance)
 
@@ -62,6 +62,7 @@ class ServiceNowClient(object):
         elif isinstance(auth, ServiceNowFlow):
             self.__session = auth.authenticate(self.__instance, proxies=self.__proxies, verify=verify)
         elif cert is not None:
+            self.__session = requests.session()
             self.__session.cert = cert
         else:
             raise AuthenticationException('No valid authentication method provided')

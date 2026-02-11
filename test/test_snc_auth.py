@@ -124,6 +124,19 @@ class TestAuth(TestCase):
         assert gr.get('6816f79cc0a8016401c5a33be04be441'), "did not jwt auth"
         '''
 
+    @skip("Requires keys and conf that makes automation hard")
+    def test_mtls(self):
+        # e.g. PYSNC_USER_KEY=x PYSNC_USER_CERT=y poetry run pytest test/test_snc_auth.py::TestAuth::test_mtls
+        path_key = self.c.get_value('USER_KEY')
+        assert path_key, 'Require user private key'
+        path_cert = self.c.get_value('USER_CERT')
+        assert path_cert, 'Require user x509 certificate'
+
+        client = ServiceNowClient(self.c.server, cert=(path_cert, path_key))
+        gr = client.GlideRecord('sys_user')
+        gr.fields = 'sys_id'
+        self.assertTrue(gr.get('6816f79cc0a8016401c5a33be04be441'))
+
 
 
 
