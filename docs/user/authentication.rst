@@ -68,6 +68,7 @@ mTLS - Mutual TLS Authentication (Certificate-Based Authentication)
 
 The most ideal form of authentication for machine to machine communication. Follow `KB0993615 <https://support.servicenow.com/kb?id=kb_article_view&sysparm_article=KB0993615>`_ then:
 
+
     >>> client = ServiceNowClient(instance, cert=('/path/to/USER_x509.pem', '/path/to/USERPRIVATEKEY.key'))
 
 
@@ -75,27 +76,30 @@ A quick example, using self-signed certificates:
 
 1. Setup the CA (root) key
 
-```bash
-# generate a root private key, if for some reason you don't have one already
-$ openssl genrsa -aes256 -out ca.key 2048
-# generate the CA certificate
-$ openssl req -x509 -new -nodes -key ca.key -out cert.pem -sha512 -days 365 -out cacert.pem
-```
+.. code-block:: bash
 
-2. Upload cacert.pem via /sys_ca_certificate.do
+    # generate a root private key, if for some reason you don't have one already
+    openssl genrsa -aes256 -out ca.key 2048
+    # generate the CA certificate
+    openssl req -x509 -new -nodes -key ca.key -out cert.pem -sha512 -days 365 -out cacert.pem
+
+2. Upload `cacert.pem` via `/sys_ca_certificate.do`
 
 3. Setup the user key and CSR (we just generate them here for a POC example)
 
-```bash
-# note: python requests (the underlying library) does not directly support keys with passwords!
-$ openssl req -nodes -newkey rsa:2048 -keyout USERPRIVATEKEY.key -out USERCSR.csr
-```
+.. code-block:: bash
+
+    openssl req -nodes -newkey rsa:2048 -keyout USERPRIVATEKEY.key -out USERCSR.csr
+
+.. important::
+
+    Python requests (the underlying http library) does not directly support keys with passwords! See `requests#2519 <https://github.com/psf/requests/issues/2519>`_ for details.
 
 4. Sign the CSR with the root, creating a X.509 for the user
 
-```
-$ openssl x509 -req -days 365 -in USERCSR.csr -CA cacert.pem -CAkey ca.key -extfile <(printf "extendedKeyUsage=clientAuth") -out USER_x509.pem
-```
+.. code-block:: bash
+
+    openssl x509 -req -days 365 -in USERCSR.csr -CA cacert.pem -CAkey ca.key -extfile <(printf "extendedKeyUsage=clientAuth") -out USER_x509.pem
 
 5. Attach `USER_x509.pem` to a new `/sys_user_certificate.do` record
 
