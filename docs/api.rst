@@ -20,6 +20,14 @@ GlideRecord
 .. autoclass:: GlideElement
     :inherited-members:
 
+GlideAggregate
+--------------
+
+.. autoclass:: GlideAggregate
+    :inherited-members:
+
+.. autoclass:: AggregateType
+
 Attachment
 ----------
 
@@ -44,6 +52,10 @@ These are 'internal' but you may as well know about them
     :undoc-members:
 
 .. autoclass:: BatchAPI
+    :inherited-members:
+    :undoc-members:
+
+.. autoclass:: StatsAPI
     :inherited-members:
     :undoc-members:
 
