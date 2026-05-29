@@ -14,6 +14,7 @@ from requests.adapters import HTTPAdapter, Retry
 
 from .exceptions import *
 from .record import GlideRecord
+from .aggregate import GlideAggregate
 from .attachment import Attachment
 from .utils import get_instance, MockHeaders
 from .auth import ServiceNowFlow
@@ -83,6 +84,7 @@ class ServiceNowClient(object):
         self.table_api = TableAPI(self)
         self.attachment_api = AttachmentAPI(self)
         self.batch_api = BatchAPI(self)
+        self.stats_api = StatsAPI(self)
 
     def GlideRecord(self, table, batch_size=100, rewindable=True) -> GlideRecord:
         """
@@ -105,6 +107,17 @@ class ServiceNowClient(object):
         :return: :class:`pysnc.Attachment`
         """
         return Attachment(self, table)
+
+    def GlideAggregate(self, table) -> GlideAggregate:
+        """
+        Create a :class:`pysnc.GlideAggregate` for a given table against the current client.
+        Wraps the Stats API (``/api/now/stats/{table}``), the REST equivalent of the
+        server-side ``GlideAggregate``.
+
+        :param str table: The table name e.g. ``incident``
+        :return: :class:`pysnc.GlideAggregate`
+        """
+        return GlideAggregate(self, table)
 
     @property
     def instance(self) -> str:
@@ -431,3 +444,18 @@ class BatchAPI(API):
 
         req = requests.Request('GET', target_url, params=params)
         self._add_request(req, hook)
+
+
+class StatsAPI(API):
+
+    def _target(self, table) -> str:
+        return "{url}/api/now/stats/{table}".format(url=self._client.instance, table=table)
+
+    def list(self, aggregate: GlideAggregate) -> requests.Response:
+        # Aggregate queries don't take the GlideRecord-specific defaults from
+        # _set_params (sysparm_display_value=all, sysparm_exclude_reference_link),
+        # so we read aggregate._parameters() directly.
+        params = aggregate._parameters()
+        target_url = self._target(aggregate.table)
+        req = requests.Request('GET', target_url, params=params, headers={'Accept': 'application/json'})
+        return self._send(req)

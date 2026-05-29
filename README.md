@@ -32,6 +32,25 @@ for r in gr:
 	print(r.sys_id)
 ```
 
+## Aggregate Queries
+
+Use `GlideAggregate` for aggregate queries via the Stats API (`/api/now/stats/{table}`), mirroring the server-side `GlideAggregate`:
+
+```python
+from pysnc import ServiceNowClient
+
+client = ServiceNowClient('https://dev0000.service-now.com', ('integration.user', password))
+
+ga = client.GlideAggregate('incident')
+ga.add_active_query()
+ga.add_aggregate('COUNT')
+ga.add_aggregate('AVG', 'reassignment_count')
+ga.group_by('priority')
+ga.query()
+for row in ga:
+	print(row.get_value('priority'), row.get_aggregate('COUNT'), row.get_aggregate('AVG', 'reassignment_count'))
+```
+
 ## Documentation
 
 Full documentation currently available at [https://servicenow.github.io/PySNC/](https://servicenow.github.io/PySNC/)
@@ -68,8 +87,6 @@ The following will not be implemented:
 * `is_action_aborted()` Not Applicable
 
 # Feature Wants and TODO
-
-* GlideAggregate support (`/api/now/stats/{tableName}`)
 
 And we want to:
 
