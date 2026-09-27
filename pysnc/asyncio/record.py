@@ -119,11 +119,13 @@ class AsyncGlideRecord(GlideRecord):
         """
         Get a single record, accepting two values. If one value is passed, assumed to be sys_id. If two values are
         passed in, the first value is the column name to be used. Can return multiple records.
+        Previous results are cleared, including when no matching record is found.
 
         :param value: the ``sys_id`` or the field to query
         :param value2: the field value
         :return: ``True`` or ``False`` based on success
         """
+        self._clear_results()
         if value is None:
             try:
                 response = await self._client.table_api.get(self, name)
